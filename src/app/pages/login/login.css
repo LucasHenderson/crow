@@ -1,0 +1,120 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.login-card {
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 380px;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo img {
+  width: 120px;
+  border-radius: 10px;
+}
+
+.logo h1 {
+  font-size: 1.4rem;
+  color: var(--color-primary);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 20px;
+}
+
+.input-group label {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.input-group input {
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--bg-secondary);
+  color: var(--color-text);
+  width: 100%;
+}
+
+.input-group input:focus {
+  outline: 2px solid var(--color-primary);
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted);
+}
+
+.eye-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+button[type="submit"] {
+  width: 100%;
+  margin-top: 40px;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button[type="submit"]:hover {
+  filter: brightness(1.1);
+}
+
+.error {
+  font-size: 0.75rem;
+  color: #ef4444;
+}
+
+.footer-text {
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--color-muted);
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.5rem;
+  }
+
+  .logo img {
+    width: 100px;
+  }
+}

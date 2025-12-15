@@ -1,1 +1,24 @@
-/* You can add global styles to this file, and also import other style files */
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Variáveis de tema */
+:root {
+  --bg-primary: #0b1c2d;
+  --bg-secondary: #111827;
+  --bg-card: #0f172a;
+  --color-primary: #3b82f6;
+  --color-text: #e5e7eb;
+  --color-muted: #9ca3af;
+}
+
+/* Fundo global */
+body {
+  background: linear-gradient(135deg, #0b1c2d, #020617);
+  min-height: 100vh;
+  color: var(--color-text);
+}
