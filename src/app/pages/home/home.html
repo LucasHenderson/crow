@@ -1,0 +1,21 @@
+<main class="home">
+
+  <h1>IDIOMAS</h1>
+
+  <!-- SEM IDIOMAS -->
+  <div class="empty-state" *ngIf="idiomas.length === 0">
+    <button class="add-circle" (click)="adicionarIdioma()"><div class="mais">+</div></button>
+    <p>NENHUM IDIOMA CADASTRADO<br>NO MOMENTO</p>
+  </div>
+
+  <!-- COM IDIOMAS -->
+  <div class="grid" *ngIf="idiomas.length > 0">
+    <div class="card" *ngFor="let idioma of idiomas">
+      <img [src]="idioma.bandeira" alt="Bandeira">
+      <span>{{ idioma.nome | uppercase }}</span>
+    </div>
+
+    <div class="card add" *ngIf="idiomas.length < 4" (click)="adicionarIdioma()">+</div>
+  </div>
+
+</main>

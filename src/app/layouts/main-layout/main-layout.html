@@ -1,0 +1,9 @@
+<div  class="layout">
+<div [class.expand]="!topbarVisible"> 
+  
+  <app-topbar (toggleTopbar)="toggleTopbar()"></app-topbar>
+
+  <router-outlet></router-outlet>
+  
+</div>
+</div>

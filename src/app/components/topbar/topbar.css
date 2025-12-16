@@ -1,0 +1,82 @@
+.topbar {
+  height: 64px;
+  background: #1D3E67;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  position: relative;
+}
+
+.icon svg,
+.user-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+.logo img {
+  height: 64px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.user-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 15px;
+  position: relative;
+  margin-right: 20px;
+}
+
+.user-name {
+  font-weight: bold;
+}
+
+.user-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 10px;
+
+  transition: box-shadow 0.5s ease-in-out;
+}
+
+.user-btn:hover {
+  box-shadow: 0 0px 10px rgba(255, 255, 255, 0.3); 
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  background: #0f172a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+
+.dropdown button {
+  padding: 0.7rem 1rem;
+  background: none;
+  border: none;
+  color: white;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown button:hover {
+  background: #1e293b;
+}
+
+@media (max-width: 400px) {
+  .user-name {
+    display: none;
+  }
+}
