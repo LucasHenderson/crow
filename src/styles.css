@@ -18,7 +18,7 @@
 
 /* Fundo global */
 body {
-  background: linear-gradient(135deg, #0b1c2d, #020617);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
   min-height: 100vh;
   color: var(--color-text);
 }

@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { Login } from './pages/login/login';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { MainLayout } from './layouts/main-layout/main-layout';
 
@@ -25,6 +24,10 @@ export const routes: Routes = [{
       {
         path: 'home',
         loadComponent: () => import('./pages/home/home').then((m) => m.Home),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
       },
     ]
   }
