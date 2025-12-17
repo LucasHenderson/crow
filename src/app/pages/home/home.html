@@ -4,18 +4,44 @@
 
   <!-- SEM IDIOMAS -->
   <div class="empty-state" *ngIf="idiomas.length === 0">
-    <button class="add-circle" (click)="adicionarIdioma()"><div class="mais">+</div></button>
+    <button class="add-circle" (click)="adicionarIdioma()">
+      <div class="mais">+</div>
+    </button>
     <p>NENHUM IDIOMA CADASTRADO<br>NO MOMENTO</p>
   </div>
 
   <!-- COM IDIOMAS -->
   <div class="grid" *ngIf="idiomas.length > 0">
-    <div class="card" *ngFor="let idioma of idiomas">
-      <img [src]="idioma.bandeira" alt="Bandeira">
-      <span>{{ idioma.nome | uppercase }}</span>
+
+    <div class="card-wrapper" *ngFor="let idioma of idiomas">
+
+      <div class="card">
+        <img [src]="idioma.bandeira" alt="Bandeira">
+        <span>{{ idioma.nome | uppercase }}</span>
+      </div>
+
+      <!-- INFO BOX -->
+      <div class="info-box">
+        <div class="rating">
+          <span><strong>Nota:</strong></span>
+          <div class="stars">
+            <svg *ngFor="let ativa of estrelasArray(idioma.nota)"
+                 viewBox="0 0 24 24"
+                 [class.active]="ativa">
+              <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </div>
+        </div>
+
+        <p><strong>Módulos:</strong> {{ idioma.modulos }}/20</p>
+        <p class="descricao">{{ idioma.descricao }}</p>
+      </div>
+
     </div>
 
+    <!-- CARD ADD -->
     <div class="card add" *ngIf="idiomas.length < 4" (click)="adicionarIdioma()">+</div>
+
   </div>
 
 </main>
