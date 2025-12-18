@@ -1,0 +1,66 @@
+<main class="buscar">
+
+  <!-- BARRA DE BUSCA -->
+  <div class="top-actions">
+
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Buscar por ID, idioma ou nome"
+        [(ngModel)]="busca"
+      />
+      <span class="icon">🔍</span>
+    </div>
+
+    <div class="actions">
+      <button class="ordenar" (click)="toggleOrdenacao()">
+        Ordenação: {{ criterio === 'avaliacao' ? 'Avaliação' : 'Data' }}
+        <span (click)="alterarDirecao()">⬇</span>
+      </button>
+
+      <button class="novo" (click)="irParaCadastro()">Novo idioma</button>
+    </div>
+
+  </div>
+
+  <!-- MENU ORDENAÇÃO -->
+  <div class="ordenacao-menu" *ngIf="mostrarOrdenacao">
+    <div (click)="criterio = 'avaliacao'">Avaliação</div>
+    <div (click)="criterio = 'data'">Data de criação</div>
+  </div>
+
+  <h2>RESULTADOS</h2>
+
+  <!-- RESULTADOS -->
+  <div class="lista">
+
+    <div class="item" *ngFor="let idioma of paginados">
+      <img [src]="idioma.bandeira">
+
+      <div class="info">
+        <p><strong>ID:</strong> {{ idioma.id }}</p>
+        <p><strong>Nome:</strong> {{ idioma.nome | uppercase }}</p>
+        <p><strong>Módulos:</strong> {{ idioma.modulos }}/20</p>
+
+        <div class="avaliacao">
+          <strong>Avaliação:</strong>
+          <svg *ngFor="let ativa of estrelas(idioma.avaliacao)"
+               viewBox="0 0 24 24"
+               [class.active]="ativa">
+            <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PAGINAÇÃO -->
+  <div class="paginacao">
+    <button (click)="paginaAtual = paginaAtual - 1" [disabled]="paginaAtual === 1">‹</button>
+    <span>{{ paginaAtual }}</span>
+    <button (click)="paginaAtual = paginaAtual + 1"
+            [disabled]="paginaAtual === totalPaginas()">›</button>
+  </div>
+
+</main>

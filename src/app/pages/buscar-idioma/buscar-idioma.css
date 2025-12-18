@@ -1,0 +1,125 @@
+.buscar {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #0b1c2d, #020617);
+  padding: 3rem;
+  color: white;
+}
+
+.top-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+}
+
+.search-box .icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.actions button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.ordenar {
+  background: #1f3b5b;
+  color: white;
+}
+
+.novo {
+  background: white;
+  color: #020617;
+  font-weight: bold;
+}
+
+.ordenacao-menu {
+  background: #1f3b5b;
+  border-radius: 12px;
+  margin: 1rem 0;
+  width: 200px;
+}
+
+.ordenacao-menu div {
+  padding: 0.8rem;
+  cursor: pointer;
+}
+
+.ordenacao-menu div:hover {
+  background: rgba(255,255,255,.1);
+}
+
+h2 {
+  text-align: center;
+  margin: 3rem 0 2rem;
+}
+
+.lista {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.item {
+  background: rgba(255,255,255,.95);
+  color: #020617;
+  border-radius: 14px;
+  padding: 1.2rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.item img {
+  width: 80px;
+  height: 50px;
+  object-fit: cover;
+}
+
+.avaliacao svg {
+  width: 18px;
+  height: 18px;
+  fill: #999;
+}
+
+.avaliacao svg.active {
+  fill: gold;
+}
+
+.paginacao {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.paginacao button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .lista {
+    grid-template-columns: 1fr;
+  }
+}

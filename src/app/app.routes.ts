@@ -29,6 +29,10 @@ export const routes: Routes = [{
         path: 'perfil',
         loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
       },
+      {
+        path: 'buscar-idioma',
+        loadComponent: () => import('./pages/buscar-idioma/buscar-idioma').then((m) => m.BuscarIdioma),
+      },
     ]
   }
 ];
