@@ -87,6 +87,7 @@
   align-items: center;
   justify-content: center;
   transition: font-size 0.5s ease;
+  transform: translateY(-0.05em);
 }
 
 .add-circle:hover .mais {

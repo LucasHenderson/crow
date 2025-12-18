@@ -1,84 +1,331 @@
 .topbar {
-  height: 64px;
+  height: 70px;
   background: #1D3E67;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1rem;
-  position: relative;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
 }
 
-.icon svg,
-.user-btn svg {
-  width: 24px;
-  height: 24px;
-  fill: white;
+.topbar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+}
+
+/* LOGO */
+.logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
 }
 
 .logo img {
   cursor: pointer;
-  height: 64px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  height: 56px;
+  border-radius: 12px;
 }
 
-.user-area {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  gap: 15px;
-  position: relative;
-  margin-right: 20px;
-}
-
-.user-name {
-  font-weight: bold;
-}
-
-.user-btn {
+/* LEFT SIDE - Menu Icon */
+.menu-icon {
+  display: none;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: 0.6rem;
   border-radius: 10px;
+  transition: all 0.3s ease;
+}
 
-  transition: box-shadow 0.5s ease-in-out;
+.menu-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke: white;
+  fill: none;
+}
+
+.menu-icon:hover {
+  background: rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+/* USER AREA */
+.user-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.user-greeting {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.user-name {
+  font-weight: 700;
+  color: white;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.user-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 0.65rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.user-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+  stroke: white;
+  stroke-width: 1.5;
 }
 
 .user-btn:hover {
-  box-shadow: 0 0px 10px rgba(255, 255, 255, 0.3); 
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
+.user-btn:active {
+  transform: translateY(0);
+}
+
+/* DROPDOWN MENU */
 .dropdown {
   position: absolute;
-  z-index: 1000;
+  z-index: 1001;
   right: 0;
-  top: 48px;
-  background: #0f172a;
-  border-radius: 8px;
+  top: calc(100% + 12px);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  min-width: 200px;
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  animation: dropdownFadeIn 0.3s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #1e293b;
 }
 
 .dropdown button {
-  padding: 0.7rem 1rem;
+  padding: 0.9rem 1.2rem;
   background: none;
   border: none;
   color: white;
   width: 100%;
   text-align: left;
   cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dropdown button:last-child {
+  border-bottom: none;
+}
+
+.dropdown button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 
 .dropdown button:hover {
-  background: #1e293b;
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  padding-left: 1.5rem;
+}
+
+.dropdown button.logout:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 1.5rem;
+    height: 65px;
+  }
+
+  .logo img {
+    height: 50px;
+  }
+
+  .user-info {
+    gap: 0.15rem;
+  }
+
+  .user-greeting {
+    font-size: 0.75rem;
+  }
+
+  .user-name {
+    font-size: 0.9rem;
+  }
+
+  .user-area {
+    gap: 0.8rem;
+  }
+
+  .dropdown {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .logo img {
+    height: 46px;
+  }
+
+  .user-greeting {
+    display: none;
+  }
+
+  .user-name {
+    font-size: 0.85rem;
+  }
+
+  .user-btn {
+    padding: 0.55rem;
+  }
+
+  .user-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 0 0.8rem;
+  }
+
+  .logo img {
+    height: 42px;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .user-area {
+    gap: 0.6rem;
+  }
+
+  .dropdown {
+    min-width: 160px;
+    right: -10px;
+  }
+
+  .dropdown::before {
+    right: 25px;
+  }
 }
 
 @media (max-width: 400px) {
   .user-name {
     display: none;
   }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    padding: 0 0.6rem;
+  }
+
+  .logo img {
+    height: 38px;
+  }
+
+  .user-btn {
+    padding: 0.5rem;
+  }
+
+  .user-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .dropdown button {
+    padding: 0.8rem 1rem;
+    font-size: 0.88rem;
+  }
+}
+
+/* ANIMAÇÃO DE PULSAÇÃO NO BOTÃO DO USUÁRIO */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+  }
+}
+
+.user-btn.notification {
+  animation: pulse 2s infinite;
 }
