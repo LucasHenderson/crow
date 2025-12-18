@@ -7,36 +7,57 @@
       <input
         type="text"
         placeholder="Buscar por ID, idioma ou nome"
-        [(ngModel)]="busca"
+        [ngModel]="busca"
+        (ngModelChange)="onBuscar($event)"
       />
-      <span class="icon">🔍</span>
+       <svg class="lupa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        <circle cx="11" cy="11" r="8"></circle>
+      </svg>
     </div>
 
     <div class="actions">
-      <button class="ordenar" (click)="toggleOrdenacao()">
-        Ordenação: {{ criterio === 'avaliacao' ? 'Avaliação' : 'Data' }}
-        <span (click)="alterarDirecao()">⬇</span>
-      </button>
+      <div class="ordenar-wrapper">
+        <button class="ordenar" (click)="mostrarOrdenacao = !mostrarOrdenacao">
+          Ordenação
+        </button>
+
+        <div class="ordenacao-menu" *ngIf="mostrarOrdenacao">
+          <div (click)="alterarCriterio('avaliacao')">
+            Avaliação
+            <span *ngIf="criterio === 'avaliacao'">
+              {{ direcao === 'asc' ? '⬆' : '⬇' }}
+            </span>
+          </div>
+
+          <div (click)="alterarCriterio('data')">
+            Data
+            <span *ngIf="criterio === 'data'">
+              {{ direcao === 'asc' ? '⬆' : '⬇' }}
+            </span>
+          </div>
+        </div>
+      </div>
 
       <button class="novo" (click)="irParaCadastro()">Novo idioma</button>
     </div>
 
   </div>
 
-  <!-- MENU ORDENAÇÃO -->
-  <div class="ordenacao-menu" *ngIf="mostrarOrdenacao">
-    <div (click)="criterio = 'avaliacao'">Avaliação</div>
-    <div (click)="criterio = 'data'">Data de criação</div>
-  </div>
-
   <h2>RESULTADOS</h2>
 
-  <!-- RESULTADOS -->
+  <!-- LISTA -->
   <div class="lista">
 
     <div class="item" *ngFor="let idioma of paginados">
-      <img [src]="idioma.bandeira">
 
+      <!-- COLUNA DA BANDEIRA -->
+      <div class="flag">
+        <img [src]="idioma.bandeira" alt="Bandeira">
+        <span class="idioma-nome">{{ idioma.idioma | uppercase }}</span>
+      </div>
+
+      <!-- INFORMAÇÕES -->
       <div class="info">
         <p><strong>ID:</strong> {{ idioma.id }}</p>
         <p><strong>Nome:</strong> {{ idioma.nome | uppercase }}</p>
@@ -51,16 +72,16 @@
           </svg>
         </div>
       </div>
+
     </div>
 
   </div>
 
   <!-- PAGINAÇÃO -->
   <div class="paginacao">
-    <button (click)="paginaAtual = paginaAtual - 1" [disabled]="paginaAtual === 1">‹</button>
+    <button (click)="paginaAnterior()" [disabled]="paginaAtual === 1">‹</button>
     <span>{{ paginaAtual }}</span>
-    <button (click)="paginaAtual = paginaAtual + 1"
-            [disabled]="paginaAtual === totalPaginas()">›</button>
+    <button (click)="proximaPagina()" [disabled]="paginaAtual === totalPaginas()">›</button>
   </div>
 
 </main>
