@@ -6,19 +6,29 @@
     <div class="search-box">
       <input
         type="text"
-        placeholder="Buscar por ID, idioma ou nome"
+        placeholder="Buscar por ID, idioma ou nome..."
         [ngModel]="busca"
         (ngModelChange)="onBuscar($event)"
+        aria-label="Campo de busca"
       />
-       <svg class="lupa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      <svg class="lupa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
     </div>
 
     <div class="actions">
+      <!-- ORDENAÇÃO -->
       <div class="ordenar-wrapper">
-        <button class="ordenar" (click)="mostrarOrdenacao = !mostrarOrdenacao">
+        <button 
+          class="ordenar" 
+          (click)="toggleOrdenacao()"
+          [attr.aria-expanded]="mostrarOrdenacao">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="7" y1="12" x2="20" y2="12"></line>
+            <line x1="10" y1="18" x2="20" y2="18"></line>
+          </svg>
           Ordenação
         </button>
 
@@ -26,50 +36,157 @@
           <div (click)="alterarCriterio('avaliacao')">
             Avaliação
             <span *ngIf="criterio === 'avaliacao'">
-              {{ direcao === 'asc' ? '⬆' : '⬇' }}
+              {{ direcao === 'asc' ? '↑' : '↓' }}
             </span>
           </div>
 
           <div (click)="alterarCriterio('data')">
-            Data
+            Data de Criação
             <span *ngIf="criterio === 'data'">
-              {{ direcao === 'asc' ? '⬆' : '⬇' }}
+              {{ direcao === 'asc' ? '↑' : '↓' }}
             </span>
           </div>
         </div>
       </div>
 
-      <button class="novo" (click)="irParaCadastro()">Novo idioma</button>
+      <!-- PROFICIÊNCIA -->
+      <div class="proficiencia-wrapper">
+        <button 
+          class="proficiencia-btn" 
+          (click)="toggleProficiencia()"
+          [attr.aria-expanded]="mostrarProficiencia">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          Proficiência
+        </button>
+
+        <div class="proficiencia-menu" *ngIf="mostrarProficiencia">
+          <div 
+            (click)="filtrarPorProficiencia(null)"
+            [class.selected]="proficienciaSelecionada === null"
+            class="nivel-todos">
+            Todos os níveis
+          </div>
+
+          <div 
+            (click)="filtrarPorProficiencia('iniciante')"
+            [class.selected]="proficienciaSelecionada === 'iniciante'"
+            class="nivel-iniciante">
+            Iniciante
+            <span class="proficiencia-indicator"></span>
+          </div>
+
+          <div 
+            (click)="filtrarPorProficiencia('basico')"
+            [class.selected]="proficienciaSelecionada === 'basico'"
+            class="nivel-basico">
+            Básico
+            <span class="proficiencia-indicator"></span>
+          </div>
+
+          <div 
+            (click)="filtrarPorProficiencia('intermediario')"
+            [class.selected]="proficienciaSelecionada === 'intermediario'"
+            class="nivel-intermediario">
+            Intermediário
+            <span class="proficiencia-indicator"></span>
+          </div>
+
+          <div 
+            (click)="filtrarPorProficiencia('avancado')"
+            [class.selected]="proficienciaSelecionada === 'avancado'"
+            class="nivel-avancado">
+            Avançado
+            <span class="proficiencia-indicator"></span>
+          </div>
+
+          <div 
+            (click)="filtrarPorProficiencia('fluente')"
+            [class.selected]="proficienciaSelecionada === 'fluente'"
+            class="nivel-fluente">
+            Fluente
+            <span class="proficiencia-indicator"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOVO IDIOMA -->
+      <button class="novo" (click)="irParaCadastro()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Novo Idioma
+      </button>
     </div>
 
   </div>
 
-  <h2>RESULTADOS</h2>
+  <h2>{{ resultadosTexto }}</h2>
 
   <!-- LISTA -->
-  <div class="lista">
+  <div class="lista" *ngIf="paginados.length > 0">
 
-    <div class="item" *ngFor="let idioma of paginados">
+    <div 
+      class="item" 
+      *ngFor="let idioma of paginados; let i = index" 
+      (click)="selecionarIdioma(idioma)"
+      [class.nivel-iniciante]="idioma.proficiencia === 'iniciante'"
+      [class.nivel-basico]="idioma.proficiencia === 'basico'"
+      [class.nivel-intermediario]="idioma.proficiencia === 'intermediario'"
+      [class.nivel-avancado]="idioma.proficiencia === 'avancado'"
+      [class.nivel-fluente]="idioma.proficiencia === 'fluente'">
 
       <!-- COLUNA DA BANDEIRA -->
       <div class="flag">
-        <img [src]="idioma.bandeira" alt="Bandeira">
+        <img [src]="idioma.bandeira" [alt]="'Bandeira ' + idioma.idioma">
         <span class="idioma-nome">{{ idioma.idioma | uppercase }}</span>
       </div>
 
       <!-- INFORMAÇÕES -->
       <div class="info">
-        <p><strong>ID:</strong> {{ idioma.id }}</p>
-        <p><strong>Nome:</strong> {{ idioma.nome | uppercase }}</p>
-        <p><strong>Módulos:</strong> {{ idioma.modulos }}/20</p>
+        <p>
+          <strong>ID:</strong>
+          <span>{{ idioma.id }}</span>
+        </p>
+        <p>
+          <strong>Nome:</strong>
+          <span>{{ idioma.nome }}</span>
+        </p>
+        <p>
+          <strong>Proficiência:</strong>
+          <span 
+            class="proficiencia-badge"
+            [class.iniciante]="idioma.proficiencia === 'iniciante'"
+            [class.basico]="idioma.proficiencia === 'basico'"
+            [class.intermediario]="idioma.proficiencia === 'intermediario'"
+            [class.avancado]="idioma.proficiencia === 'avancado'"
+            [class.fluente]="idioma.proficiencia === 'fluente'">
+            {{ getNomeProficiencia(idioma.proficiencia) }}
+          </span>
+        </p>
+        <p>
+          <strong>Módulos:</strong>
+          <span>{{ idioma.modulos }}/20 ({{ calcularProgresso(idioma.modulos) }}%)</span>
+        </p>
+        <p>
+          <strong>Data:</strong>
+          <span>{{ idioma.criadoEm | date:'dd/MM/yyyy' }}</span>
+        </p>
 
         <div class="avaliacao">
           <strong>Avaliação:</strong>
-          <svg *ngFor="let ativa of estrelas(idioma.avaliacao)"
-               viewBox="0 0 24 24"
-               [class.active]="ativa">
-            <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-          </svg>
+          <div class="stars">
+            <svg *ngFor="let ativa of estrelas(idioma.avaliacao); let j = index"
+                 viewBox="0 0 24 24"
+                 [class.active]="ativa"
+                 [attr.aria-label]="'Estrela ' + (j + 1)">
+              <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -77,11 +194,31 @@
 
   </div>
 
+  <!-- EMPTY STATE -->
+  <div class="empty-state" *ngIf="paginados.length === 0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <h3>Nenhum resultado encontrado</h3>
+    <p>Tente ajustar os filtros ou termos de busca</p>
+  </div>
+
   <!-- PAGINAÇÃO -->
-  <div class="paginacao">
-    <button (click)="paginaAnterior()" [disabled]="paginaAtual === 1">‹</button>
-    <span>{{ paginaAtual }}</span>
-    <button (click)="proximaPagina()" [disabled]="paginaAtual === totalPaginas()">›</button>
+  <div class="paginacao" *ngIf="totalPaginas() > 1">
+    <button 
+      (click)="paginaAnterior()" 
+      [disabled]="paginaAtual === 1"
+      aria-label="Página anterior">
+      ‹
+    </button>
+    <span aria-label="Página atual">{{ paginaAtual }} / {{ totalPaginas() }}</span>
+    <button 
+      (click)="proximaPagina()" 
+      [disabled]="paginaAtual === totalPaginas()"
+      aria-label="Próxima página">
+      ›
+    </button>
   </div>
 
 </main>

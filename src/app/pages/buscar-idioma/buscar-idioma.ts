@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+type Proficiencia = 'iniciante' | 'basico' | 'intermediario' | 'avancado' | 'fluente';
+
 interface Idioma {
   id: string;
   nome: string;
@@ -11,7 +13,7 @@ interface Idioma {
   modulos: number;
   avaliacao: number;
   criadoEm: Date;
-  visibilidade: boolean;
+  proficiencia: Proficiencia;
 }
 
 @Component({
@@ -26,8 +28,12 @@ export class BuscarIdioma {
   busca = '';
 
   mostrarOrdenacao = false;
+  mostrarProficiencia = false;
+  
   criterio: 'avaliacao' | 'data' = 'avaliacao';
   direcao: 'asc' | 'desc' = 'desc';
+  
+  proficienciaSelecionada: Proficiencia | null = null;
 
   paginaAtual = 1;
   porPagina = 9;
@@ -38,10 +44,10 @@ export class BuscarIdioma {
       nome: 'Japonês para iniciantes',
       idioma: 'Japonês',
       bandeira: '../../../assets/imgs/Japan.png',
-      modulos: 20,
+      modulos: 5,
       avaliacao: 5,
       criadoEm: new Date('2024-05-01'),
-      visibilidade: true,
+      proficiencia: 'iniciante'
     },
     {
       id: '000002',
@@ -51,7 +57,7 @@ export class BuscarIdioma {
       modulos: 18,
       avaliacao: 4,
       criadoEm: new Date('2024-04-12'),
-      visibilidade: true,
+      proficiencia: 'avancado'
     },
     {
       id: '000003',
@@ -61,27 +67,27 @@ export class BuscarIdioma {
       modulos: 15,
       avaliacao: 3,
       criadoEm: new Date('2024-03-22'),
-      visibilidade: true,
+      proficiencia: 'intermediario'
     },
     {
       id: '000004',
       nome: 'Espanhol para turismo',
       idioma: 'Espanhol',
       bandeira: '../../../assets/imgs/Spain.svg',
-      modulos: 16,
+      modulos: 8,
       avaliacao: 4,
       criadoEm: new Date('2024-06-10'),
-      visibilidade: true,
+      proficiencia: 'basico'
     },
     {
       id: '000005',
       nome: 'Francês básico',
       idioma: 'Francês',
       bandeira: '../../../assets/imgs/Franca.png',
-      modulos: 12,
+      modulos: 7,
       avaliacao: 3,
       criadoEm: new Date('2024-02-18'),
-      visibilidade: true,
+      proficiencia: 'basico'
     },
     {
       id: '000006',
@@ -91,17 +97,17 @@ export class BuscarIdioma {
       modulos: 14,
       avaliacao: 4,
       criadoEm: new Date('2024-07-05'),
-      visibilidade: true,
+      proficiencia: 'intermediario'
     },
     {
       id: '000007',
       nome: 'Mandarim para negócios',
       idioma: 'Mandarim',
       bandeira: '../../../assets/imgs/China.svg',
-      modulos: 19,
+      modulos: 20,
       avaliacao: 5,
       criadoEm: new Date('2024-08-20'),
-      visibilidade: true,
+      proficiencia: 'fluente'
     },
     {
       id: '000008',
@@ -111,7 +117,7 @@ export class BuscarIdioma {
       modulos: 11,
       avaliacao: 4,
       criadoEm: new Date('2024-01-30'),
-      visibilidade: true,
+      proficiencia: 'intermediario'
     },
     {
       id: '000009',
@@ -121,7 +127,7 @@ export class BuscarIdioma {
       modulos: 17,
       avaliacao: 5,
       criadoEm: new Date('2024-09-12'),
-      visibilidade: true,
+      proficiencia: 'avancado'
     },
     {
       id: '000010',
@@ -131,20 +137,45 @@ export class BuscarIdioma {
       modulos: 13,
       avaliacao: 3,
       criadoEm: new Date('2024-04-25'),
-      visibilidade: true,
+      proficiencia: 'intermediario'
+    },
+    {
+      id: '000011',
+      nome: 'Árabe iniciante',
+      idioma: 'Árabe',
+      bandeira: '../../../assets/imgs/Flag_of_the_United_Arab_Emirates.svg.png',
+      modulos: 3,
+      avaliacao: 4,
+      criadoEm: new Date('2024-10-15'),
+      proficiencia: 'iniciante'
+    },
+    {
+      id: '000012',
+      nome: 'Inglês fluente - Business',
+      idioma: 'Inglês',
+      bandeira: '../../../assets/imgs/Flag_of_the_United_States.svg',
+      modulos: 20,
+      avaliacao: 5,
+      criadoEm: new Date('2024-11-01'),
+      proficiencia: 'fluente'
     },
   ];
 
   constructor(private router: Router) {}
 
   /**
-   * Fecha o menu de ordenação ao clicar fora
+   * Fecha os menus ao clicar fora
    */
   @HostListener('document:click', ['$event'])
-  fecharMenuOrdenacao(event: MouseEvent): void {
+  fecharMenus(event: MouseEvent): void {
     const target = event.target as HTMLElement;
+    
     if (!target.closest('.ordenar-wrapper')) {
       this.mostrarOrdenacao = false;
+    }
+    
+    if (!target.closest('.proficiencia-wrapper')) {
+      this.mostrarProficiencia = false;
     }
   }
 
@@ -153,6 +184,19 @@ export class BuscarIdioma {
    */
   toggleOrdenacao(): void {
     this.mostrarOrdenacao = !this.mostrarOrdenacao;
+    if (this.mostrarOrdenacao) {
+      this.mostrarProficiencia = false;
+    }
+  }
+
+  /**
+   * Alterna visibilidade do menu de proficiência
+   */
+  toggleProficiencia(): void {
+    this.mostrarProficiencia = !this.mostrarProficiencia;
+    if (this.mostrarProficiencia) {
+      this.mostrarOrdenacao = false;
+    }
   }
 
   /**
@@ -160,7 +204,7 @@ export class BuscarIdioma {
    */
   onBuscar(valor: string): void {
     this.busca = valor.trim();
-    this.paginaAtual = 1; // Volta para primeira página ao buscar
+    this.paginaAtual = 1;
   }
 
   /**
@@ -182,6 +226,29 @@ export class BuscarIdioma {
    */
   toggleDirecao(): void {
     this.direcao = this.direcao === 'asc' ? 'desc' : 'asc';
+  }
+
+  /**
+   * 🎯 PROFICIÊNCIA - Filtra por nível de proficiência
+   */
+  filtrarPorProficiencia(nivel: Proficiencia | null): void {
+    this.proficienciaSelecionada = nivel;
+    this.paginaAtual = 1;
+    this.mostrarProficiencia = false;
+  }
+
+  /**
+   * Retorna o nome formatado da proficiência
+   */
+  getNomeProficiencia(proficiencia: Proficiencia): string {
+    const nomes = {
+      'iniciante': 'Iniciante',
+      'basico': 'Básico',
+      'intermediario': 'Intermediário',
+      'avancado': 'Avançado',
+      'fluente': 'Fluente'
+    };
+    return nomes[proficiencia];
   }
 
   /**
@@ -212,21 +279,27 @@ export class BuscarIdioma {
   }
 
   /**
-   * Retorna idiomas filtrados pela busca
+   * Retorna idiomas filtrados pela busca e proficiência
    */
   get idiomasFiltrados(): Idioma[] {
-    if (!this.busca) {
-      return this.ordenarIdiomas(this.idiomas);
+    let resultado = this.idiomas;
+
+    // Filtro de busca
+    if (this.busca) {
+      const termo = this.busca.toLowerCase();
+      resultado = resultado.filter(i =>
+        i.id.toLowerCase().includes(termo) ||
+        i.nome.toLowerCase().includes(termo) ||
+        i.idioma.toLowerCase().includes(termo)
+      );
     }
 
-    const termo = this.busca.toLowerCase();
-    const filtrados = this.idiomas.filter(i =>
-      i.id.toLowerCase().includes(termo) ||
-      i.nome.toLowerCase().includes(termo) ||
-      i.idioma.toLowerCase().includes(termo)
-    );
+    // Filtro de proficiência
+    if (this.proficienciaSelecionada) {
+      resultado = resultado.filter(i => i.proficiencia === this.proficienciaSelecionada);
+    }
 
-    return this.ordenarIdiomas(filtrados);
+    return this.ordenarIdiomas(resultado);
   }
 
   /**
@@ -281,7 +354,7 @@ export class BuscarIdioma {
   get resultadosTexto(): string {
     const total = this.idiomasFiltrados.length;
     
-    if (this.busca) {
+    if (this.busca || this.proficienciaSelecionada) {
       return total === 0 
         ? 'NENHUM RESULTADO' 
         : total === 1 

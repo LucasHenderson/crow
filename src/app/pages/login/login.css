@@ -28,9 +28,9 @@
 .login-card::before {
   content: '';
   position: absolute;
-  top: 0px;  /* Compensa a borda de 2px */
-  left: 0px;  /* Compensa a borda de 2px */
-  right: 0px; /* Compensa a borda de 2px */
+  top: 0px;  
+  left: 0px;  
+  right: 0px; 
   height: 8px;
   background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
   border-radius: 20px 20px 0 0;
