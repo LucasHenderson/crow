@@ -33,6 +33,10 @@ export const routes: Routes = [{
         path: 'buscar-idioma',
         loadComponent: () => import('./pages/buscar-idioma/buscar-idioma').then((m) => m.BuscarIdioma),
       },
+      {
+        path: 'cadastrar-idioma',
+        loadComponent: () => import('./pages/cadastrar-idioma/cadastrar-idioma').then((m) => m.CadastrarIdioma),
+      },
     ]
   }
 ];

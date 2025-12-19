@@ -371,8 +371,7 @@ export class BuscarIdioma {
    * Navega para o formulário de cadastro de novo idioma
    */
   irParaCadastro(): void {
-    console.log('Navegando para cadastro de idioma...');
-    // this.router.navigate(['/idioma/novo']);
+    this.router.navigate(['cadastrar-idioma']);
   }
 
   /**

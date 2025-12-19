@@ -1,0 +1,176 @@
+<main class="cadastro">
+
+  <div class="cadastro-container">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <h1>Cadastrar Novo Idioma</h1>
+      <p>Selecione o idioma e configure suas preferências de aprendizado</p>
+    </div>
+
+    <!-- CARD PRINCIPAL -->
+    <div class="form-card">
+
+      <!-- BANDEIRA -->
+      <div class="bandeira-section">
+        <div class="bandeira-preview">
+          <img
+            *ngIf="idiomaSelecionado"
+            [src]="idiomaSelecionado.bandeira"
+            [alt]="'Bandeira ' + idiomaSelecionado.nome"
+          />
+          
+          <div class="bandeira-placeholder" *ngIf="!idiomaSelecionado">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <p>Selecione um idioma para visualizar a bandeira</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- IDIOMA -->
+      <div class="campo">
+        <label for="idioma">Idioma *</label>
+        <div 
+          id="idioma"
+          class="select" 
+          [class.active]="mostrarIdiomas"
+          [class.placeholder]="!idiomaSelecionado"
+          (click)="toggleIdiomas()"
+          role="button"
+          tabindex="0"
+          [attr.aria-expanded]="mostrarIdiomas">
+          {{ idiomaSelecionado?.nome || 'Selecione um idioma' }}
+        </div>
+
+        <div class="dropdown" *ngIf="mostrarIdiomas">
+          <input
+            type="text"
+            placeholder="Buscar idioma..."
+            [(ngModel)]="buscaIdioma"
+            (click)="$event.stopPropagation()"
+            aria-label="Buscar idioma"
+            autofocus
+          />
+
+          <div
+            class="option"
+            *ngFor="let idioma of idiomasFiltrados"
+            (click)="selecionarIdioma(idioma)"
+            role="option">
+            {{ idioma.nome }}
+          </div>
+
+          <div class="option" *ngIf="idiomasFiltrados.length === 0" style="color: #94a3b8; text-align: center;">
+            Nenhum idioma encontrado
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFICIÊNCIA -->
+      <div class="campo">
+        <label for="proficiencia">Nível de Proficiência *</label>
+        <div 
+          id="proficiencia"
+          class="select" 
+          [class.active]="mostrarProficiencia"
+          [class.placeholder]="!proficiencia"
+          (click)="toggleProficiencia()"
+          role="button"
+          tabindex="0"
+          [attr.aria-expanded]="mostrarProficiencia">
+          {{ proficiencia || 'Selecione a proficiência' }}
+        </div>
+
+        <div class="dropdown" *ngIf="mostrarProficiencia">
+          <div
+            class="option"
+            [class.nivel-todos]="nivel === 'Todos os níveis'"
+            [class.nivel-iniciante]="nivel === 'Iniciante'"
+            [class.nivel-basico]="nivel === 'Básico'"
+            [class.nivel-intermediario]="nivel === 'Intermediário'"
+            [class.nivel-avancado]="nivel === 'Avançado'"
+            [class.nivel-fluente]="nivel === 'Fluente'"
+            *ngFor="let nivel of proficiencias"
+            (click)="selecionarProficiencia(nivel)"
+            role="option">
+            {{ nivel }}
+          </div>
+        </div>
+      </div>
+
+      <!-- VISIBILIDADE -->
+      <div class="campo">
+        <label>Visibilidade do Curso *</label>
+        <div class="radio-group">
+          <div 
+            class="radio-option"
+            [class.selected]="visibilidade === 'publico'"
+            (click)="visibilidade = 'publico'">
+            <input 
+              type="radio" 
+              id="publico"
+              value="publico" 
+              [(ngModel)]="visibilidade"
+              name="visibilidade">
+            <label for="publico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; display: inline; margin-right: 4px;" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              Público
+            </label>
+          </div>
+
+          <div 
+            class="radio-option"
+            [class.selected]="visibilidade === 'privado'"
+            (click)="visibilidade = 'privado'">
+            <input 
+              type="radio" 
+              id="privado"
+              value="privado" 
+              [(ngModel)]="visibilidade"
+              name="visibilidade">
+            <label for="privado">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; display: inline; margin-right: 4px;" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Privado
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- AÇÕES -->
+      <div class="acoes">
+        <button class="cancelar" (click)="cancelar()" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+        
+        <button 
+          class="avancar" 
+          (click)="avancar()" 
+          type="button"
+          [disabled]="!podeAvancar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+          Avançar
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>

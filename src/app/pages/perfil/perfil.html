@@ -3,7 +3,7 @@
   <div class="page-header">
     <div class="header-content">
       <div class="icon-title">
-        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
@@ -15,7 +15,7 @@
 
   <!-- Success Alert -->
   <div class="success-alert" *ngIf="showSuccessAlert">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
     <span>{{ successMessage }}</span>
@@ -26,7 +26,7 @@
     <!-- Profile Card -->
     <div class="profile-card">
       <div class="card-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
@@ -36,11 +36,11 @@
       <div class="profile-content">
         <div class="profile-avatar">{{ getInitials() }}</div>
         <h3 class="profile-name">{{ user.nome }}</h3>
-        <p class="profile-role">---------------------------------------</p>
+        <p class="profile-role">Desenvolvedor</p>
         
         <div class="profile-info">
           <div class="info-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
               <polyline points="22,6 12,13 2,6"></polyline>
             </svg>
@@ -48,15 +48,15 @@
           </div>
           
           <div class="info-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="10" r="3"></circle>
+              <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
             </svg>
             <span>{{ user.pais }}</span>
           </div>
 
           <div class="info-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="16" y1="2" x2="16" y2="6"></line>
               <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -71,7 +71,7 @@
     <!-- Form Card -->
     <div class="form-card">
       <div class="card-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
@@ -80,29 +80,62 @@
 
       <form class="form-content" (ngSubmit)="salvar()" #f="ngForm">
         <div class="form-grid">
-          <div class="form-group">
+          <div class="form-group full-width">
             <label for="nome">Nome completo</label>
-            <input id="nome" name="nome" type="text" [(ngModel)]="user.nome" required />
+            <input 
+              id="nome" 
+              name="nome" 
+              type="text" 
+              [(ngModel)]="user.nome" 
+              placeholder="Seu nome completo"
+              required />
           </div>
 
           <div class="form-group">
             <label for="email">E-mail</label>
             <div class="input-with-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                 <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
-              <input id="email" name="email" type="email" [(ngModel)]="user.email" required />
+              <input 
+                id="email" 
+                name="email" 
+                type="email" 
+                [(ngModel)]="user.email"
+                placeholder="seu@email.com" 
+                required />
             </div>
           </div>
 
           <div class="form-group">
             <label for="telefone">Telefone</label>
             <div class="input-with-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
               </svg>
-              <input id="telefone" name="telefone" type="text" [(ngModel)]="user.telefone" />
+              <input 
+                id="telefone" 
+                name="telefone" 
+                type="tel" 
+                [(ngModel)]="user.telefone"
+                placeholder="+55 (00) 00000-0000" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="pais">País</label>
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="10" r="3"></circle>
+                <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
+              </svg>
+              <input 
+                id="pais" 
+                name="pais" 
+                type="text" 
+                [(ngModel)]="user.pais"
+                placeholder="Seu país" />
             </div>
           </div>
         </div>
@@ -110,7 +143,7 @@
         <div class="divider"></div>
 
         <div class="section-header">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
@@ -121,16 +154,22 @@
           <div class="form-group full-width">
             <label for="senhaAtual">Senha atual</label>
             <div class="password-wrapper">
-              <input id="senhaAtual" name="senhaAtual"
-                     [type]="camposVisiveis.senhaAtual ? 'text' : 'password'"
-                     [(ngModel)]="senhaAtual" 
-                     placeholder="Digite sua senha atual" />
-              <button type="button" class="eye-icon" (click)="togglePassword('senhaAtual')">
-                <svg *ngIf="!camposVisiveis.senhaAtual" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <input 
+                id="senhaAtual" 
+                name="senhaAtual"
+                [type]="camposVisiveis.senhaAtual ? 'text' : 'password'"
+                [(ngModel)]="senhaAtual" 
+                placeholder="Digite sua senha atual" />
+              <button 
+                type="button" 
+                class="eye-icon" 
+                (click)="togglePassword('senhaAtual')"
+                [attr.aria-label]="camposVisiveis.senhaAtual ? 'Ocultar senha' : 'Mostrar senha'">
+                <svg *ngIf="!camposVisiveis.senhaAtual" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-                <svg *ngIf="camposVisiveis.senhaAtual" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg *ngIf="camposVisiveis.senhaAtual" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                   <line x1="1" y1="1" x2="23" y2="23"></line>
                 </svg>
@@ -141,16 +180,22 @@
           <div class="form-group">
             <label for="novaSenha">Nova senha</label>
             <div class="password-wrapper">
-              <input id="novaSenha" name="novaSenha"
-                     [type]="camposVisiveis.novaSenha ? 'text' : 'password'"
-                     [(ngModel)]="novaSenha" 
-                     placeholder="Mínimo 6 caracteres" />
-              <button type="button" class="eye-icon" (click)="togglePassword('novaSenha')">
-                <svg *ngIf="!camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <input 
+                id="novaSenha" 
+                name="novaSenha"
+                [type]="camposVisiveis.novaSenha ? 'text' : 'password'"
+                [(ngModel)]="novaSenha" 
+                placeholder="Mínimo 6 caracteres" />
+              <button 
+                type="button" 
+                class="eye-icon" 
+                (click)="togglePassword('novaSenha')"
+                [attr.aria-label]="camposVisiveis.novaSenha ? 'Ocultar senha' : 'Mostrar senha'">
+                <svg *ngIf="!camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-                <svg *ngIf="camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg *ngIf="camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                   <line x1="1" y1="1" x2="23" y2="23"></line>
                 </svg>
@@ -161,16 +206,22 @@
           <div class="form-group">
             <label for="confirmarSenha">Confirmar nova senha</label>
             <div class="password-wrapper">
-              <input id="confirmarSenha" name="confirmarSenha"
-                     [type]="camposVisiveis.confirmarSenha ? 'text' : 'password'"
-                     [(ngModel)]="confirmarSenha" 
-                     placeholder="Repita a nova senha" />
-              <button type="button" class="eye-icon" (click)="togglePassword('confirmarSenha')">
-                <svg *ngIf="!camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <input 
+                id="confirmarSenha" 
+                name="confirmarSenha"
+                [type]="camposVisiveis.confirmarSenha ? 'text' : 'password'"
+                [(ngModel)]="confirmarSenha" 
+                placeholder="Repita a nova senha" />
+              <button 
+                type="button" 
+                class="eye-icon" 
+                (click)="togglePassword('confirmarSenha')"
+                [attr.aria-label]="camposVisiveis.confirmarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+                <svg *ngIf="!camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-                <svg *ngIf="camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg *ngIf="camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                   <line x1="1" y1="1" x2="23" y2="23"></line>
                 </svg>
@@ -180,7 +231,7 @@
         </div>
 
         <button type="submit" class="btn-save">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
             <polyline points="17 21 17 13 7 13 7 21"></polyline>
             <polyline points="7 3 7 8 15 8"></polyline>
