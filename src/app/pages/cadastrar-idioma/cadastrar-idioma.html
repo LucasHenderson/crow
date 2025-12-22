@@ -1,176 +1,269 @@
 <main class="cadastro">
-
   <div class="cadastro-container">
 
-    <!-- HEADER -->
-    <div class="page-header">
-      <h1>Cadastrar Novo Idioma</h1>
-      <p>Selecione o idioma e configure suas preferências de aprendizado</p>
+    <!-- PROGRESS BAR -->
+    <div class="progress-bar">
+      <div class="progress-step" [class.active]="etapaAtual === 1" [class.completed]="etapaAtual > 1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Idioma</div>
+      </div>
+      <div class="progress-step" [class.active]="etapaAtual === 2" [class.completed]="etapaAtual > 2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Módulo</div>
+      </div>
+      <div class="progress-step" [class.active]="etapaAtual === 3" [class.completed]="etapaAtual > 3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Frase</div>
+      </div>
     </div>
 
-    <!-- CARD PRINCIPAL -->
-    <div class="form-card">
-
-      <!-- BANDEIRA -->
-      <div class="bandeira-section">
-        <div class="bandeira-preview">
-          <img
-            *ngIf="idiomaSelecionado"
-            [src]="idiomaSelecionado.bandeira"
-            [alt]="'Bandeira ' + idiomaSelecionado.nome"
-          />
-          
-          <div class="bandeira-placeholder" *ngIf="!idiomaSelecionado">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            <p>Selecione um idioma para visualizar a bandeira</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- IDIOMA -->
-      <div class="campo">
-        <label for="idioma">Idioma *</label>
-        <div 
-          id="idioma"
-          class="select" 
-          [class.active]="mostrarIdiomas"
-          [class.placeholder]="!idiomaSelecionado"
-          (click)="toggleIdiomas()"
-          role="button"
-          tabindex="0"
-          [attr.aria-expanded]="mostrarIdiomas">
-          {{ idiomaSelecionado?.nome || 'Selecione um idioma' }}
-        </div>
-
-        <div class="dropdown" *ngIf="mostrarIdiomas">
-          <input
-            type="text"
-            placeholder="Buscar idioma..."
-            [(ngModel)]="buscaIdioma"
-            (click)="$event.stopPropagation()"
-            aria-label="Buscar idioma"
-            autofocus
-          />
-
-          <div
-            class="option"
-            *ngFor="let idioma of idiomasFiltrados"
-            (click)="selecionarIdioma(idioma)"
-            role="option">
-            {{ idioma.nome }}
-          </div>
-
-          <div class="option" *ngIf="idiomasFiltrados.length === 0" style="color: #94a3b8; text-align: center;">
-            Nenhum idioma encontrado
-          </div>
-        </div>
-      </div>
-
-      <!-- PROFICIÊNCIA -->
-      <div class="campo">
-        <label for="proficiencia">Nível de Proficiência *</label>
-        <div 
-          id="proficiencia"
-          class="select" 
-          [class.active]="mostrarProficiencia"
-          [class.placeholder]="!proficiencia"
-          (click)="toggleProficiencia()"
-          role="button"
-          tabindex="0"
-          [attr.aria-expanded]="mostrarProficiencia">
-          {{ proficiencia || 'Selecione a proficiência' }}
-        </div>
-
-        <div class="dropdown" *ngIf="mostrarProficiencia">
-          <div
-            class="option"
-            [class.nivel-todos]="nivel === 'Todos os níveis'"
-            [class.nivel-iniciante]="nivel === 'Iniciante'"
-            [class.nivel-basico]="nivel === 'Básico'"
-            [class.nivel-intermediario]="nivel === 'Intermediário'"
-            [class.nivel-avancado]="nivel === 'Avançado'"
-            [class.nivel-fluente]="nivel === 'Fluente'"
-            *ngFor="let nivel of proficiencias"
-            (click)="selecionarProficiencia(nivel)"
-            role="option">
-            {{ nivel }}
-          </div>
-        </div>
-      </div>
-
-      <!-- VISIBILIDADE -->
-      <div class="campo">
-        <label>Visibilidade do Curso *</label>
-        <div class="radio-group">
-          <div 
-            class="radio-option"
-            [class.selected]="visibilidade === 'publico'"
-            (click)="visibilidade = 'publico'">
-            <input 
-              type="radio" 
-              id="publico"
-              value="publico" 
-              [(ngModel)]="visibilidade"
-              name="visibilidade">
-            <label for="publico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; display: inline; margin-right: 4px;" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-              </svg>
-              Público
-            </label>
-          </div>
-
-          <div 
-            class="radio-option"
-            [class.selected]="visibilidade === 'privado'"
-            (click)="visibilidade = 'privado'">
-            <input 
-              type="radio" 
-              id="privado"
-              value="privado" 
-              [(ngModel)]="visibilidade"
-              name="visibilidade">
-            <label for="privado">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; display: inline; margin-right: 4px;" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              Privado
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- AÇÕES -->
-      <div class="acoes">
-        <button class="cancelar" (click)="cancelar()" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-          Cancelar
-        </button>
+    <!-- CAROUSEL -->
+    <div class="carousel-container">
+      <div class="carousel-wrapper" [style.transform]="'translateX(' + (-100 * (etapaAtual - 1)) + '%)'">
         
-        <button 
-          class="avancar" 
-          (click)="avancar()" 
-          type="button"
-          [disabled]="!podeAvancar()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-          Avançar
-        </button>
+        <!-- ETAPA 1: DADOS DO IDIOMA -->
+        <div class="carousel-slide">
+          <div class="page-header">
+            <h1>Cadastrar Novo Idioma</h1>
+            <p>Selecione o idioma e configure suas preferências</p>
+          </div>
+
+          <div class="form-card">
+            <div class="bandeira-section">
+              <div class="bandeira-preview">
+                <img *ngIf="idiomaSelecionado" [src]="idiomaSelecionado.bandeira" [alt]="'Bandeira ' + idiomaSelecionado.nome" />
+                <div class="bandeira-placeholder" *ngIf="!idiomaSelecionado">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <p>Selecione um idioma</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="campo">
+              <label>Idioma *</label>
+              <div class="select" [class.active]="mostrarIdiomas" [class.placeholder]="!idiomaSelecionado" (click)="toggleIdiomas()">
+                {{ idiomaSelecionado?.nome || 'Selecione um idioma' }}
+              </div>
+              <div class="dropdown" *ngIf="mostrarIdiomas">
+                <input type="text" placeholder="Buscar..." [(ngModel)]="buscaIdioma" (click)="$event.stopPropagation()" />
+                <div class="option" *ngFor="let idioma of idiomasFiltrados" (click)="selecionarIdioma(idioma)">{{ idioma.nome }}</div>
+              </div>
+            </div>
+
+            <div class="campo">
+              <label>Proficiência *</label>
+              <div class="select" [class.active]="mostrarProficiencia" [class.placeholder]="!proficiencia" (click)="toggleProficiencia()">
+                {{ proficiencia || 'Selecione a proficiência' }}
+              </div>
+              <div class="dropdown" *ngIf="mostrarProficiencia">
+                <div class="option" [class.nivel-iniciante]="nivel === 'Iniciante'" [class.nivel-basico]="nivel === 'Básico'" [class.nivel-intermediario]="nivel === 'Intermediário'" [class.nivel-avancado]="nivel === 'Avançado'" [class.nivel-fluente]="nivel === 'Fluente'" *ngFor="let nivel of proficiencias" (click)="selecionarProficiencia(nivel)">{{ nivel }}</div>
+              </div>
+            </div>
+
+            <div class="campo">
+              <label>Visibilidade *</label>
+              <div class="radio-group">
+                <div class="radio-option" [class.selected]="visibilidade === 'publico'" (click)="visibilidade = 'publico'">
+                  <input type="radio" id="publico" value="publico" [(ngModel)]="visibilidade" />
+                  <label for="publico">Público</label>
+                </div>
+                <div class="radio-option" [class.selected]="visibilidade === 'privado'" (click)="visibilidade = 'privado'">
+                  <input type="radio" id="privado" value="privado" [(ngModel)]="visibilidade" />
+                  <label for="privado">Privado</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="acoes">
+              <button class="cancelar" (click)="cancelar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Cancelar</button>
+              <button class="avancar" (click)="avancarEtapa()" [disabled]="!podeAvancarEtapa1()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Avançar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ETAPA 2: CRIAR MÓDULO -->
+        <div class="carousel-slide">
+          <div class="page-header">
+            <h1>Crie o seu primeiro módulo!</h1>
+            <p>Escolha um ícone e dê um nome ao módulo</p>
+          </div>
+
+          <div class="form-card">
+            <div class="campo">
+              <label>Selecione um Ícone *</label>
+              <div class="icones-grid">
+                <div class="icone-option" [class.selected]="iconeModuloSelecionado === icone" *ngFor="let icone of iconesModulo" (click)="iconeModuloSelecionado = icone">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [innerHTML]="icone"></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="campo">
+              <label>Nome do Módulo *</label>
+              <input type="text" [(ngModel)]="nomeModulo" placeholder="Ex: Saudações Básicas" />
+            </div>
+
+            <div class="acoes">
+              <button class="btn-voltar" (click)="voltarEtapa()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Voltar</button>
+              <button class="avancar" (click)="avancarEtapa()" [disabled]="!podeAvancarEtapa2()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Avançar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ETAPA 3: CADASTRAR FRASE -->
+        <div class="carousel-slide">
+          <div class="page-header">
+            <h1>Cadastre a primeira frase</h1>
+            <p>Escolha um modo e preencha os campos</p>
+          </div>
+
+          <div class="form-card">
+            <div class="campo">
+              <label>Modo/Layout *</label>
+              <div class="modo-grid">
+                <div class="modo-card" [class.selected]="modoFrase === 'traducao'" (click)="modoFrase = 'traducao'">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>
+                  <h3>Tradução Direta</h3>
+                </div>
+                <div class="modo-card" [class.selected]="modoFrase === 'pares'" (click)="modoFrase = 'pares'">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  <h3>Selecionar Pares</h3>
+                </div>
+                <div class="modo-card" [class.selected]="modoFrase === 'quiz'" (click)="modoFrase = 'quiz'">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <h3>Quiz</h3>
+                </div>
+              </div>
+            </div>
+
+            <!-- MODO: TRADUÇÃO DIRETA -->
+            <div *ngIf="modoFrase === 'traducao'">
+              <div class="campo">
+                <label>Imagem (opcional)</label>
+                <div class="upload-area" (click)="uploadImagem.click()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <p>Clique para selecionar uma imagem</p>
+                  <input #uploadImagem type="file" accept="image/*" (change)="onImagemSelecionada($event)" />
+                </div>
+                <img *ngIf="imagemPreview" [src]="imagemPreview" class="imagem-preview" />
+              </div>
+
+              <div class="campo">
+                <label>Tradução Completa *</label>
+                <textarea [(ngModel)]="traducaoCompleta" placeholder="Ex: Bom dia! Como você está?"></textarea>
+              </div>
+
+              <div *ngFor="let item of palavrasTraducao; let i = index">
+                <div class="linha-dinamica">
+                  <div class="campo">
+                    <label>Palavra {{ i + 1 }} *</label>
+                    <input type="text" [(ngModel)]="item.palavra" placeholder="Ex: Bom dia" />
+                  </div>
+                  <div class="campo">
+                    <label>Tradução *</label>
+                    <input type="text" [(ngModel)]="item.traducao" placeholder="Ex: Good morning" />
+                  </div>
+                  <button *ngIf="palavrasTraducao.length > 1" class="btn-icone btn-remove" (click)="removerPalavra(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+              </div>
+              <button class="btn-icone btn-add" (click)="adicionarPalavra()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
+              <div class="campo">
+                <label>Observações Gerais (opcional)</label>
+                <textarea [(ngModel)]="observacoes" placeholder="Adicione contexto ou dicas"></textarea>
+              </div>
+
+              <div *ngFor="let link of links; let i = index">
+                <div class="linha-dinamica">
+                  <div class="campo">
+                    <label>Link {{ i + 1 }}</label>
+                    <input type="text" [(ngModel)]="links[i]" placeholder="https://..." />
+                  </div>
+                  <button *ngIf="links.length > 1" class="btn-icone btn-remove" (click)="removerLink(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+              </div>
+              <button class="btn-icone btn-add" (click)="adicionarLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+
+            <!-- MODO: SELECIONAR PARES -->
+            <div *ngIf="modoFrase === 'pares'">
+              <div *ngFor="let par of pares; let i = index">
+                <div class="linha-dinamica">
+                  <div class="campo">
+                    <label>Imagem {{ i + 1 }}</label>
+                    <div class="upload-area" style="padding: 0.8rem;" (click)="uploadParImagem.click()">
+                      <svg style="width: 32px; height: 32px; margin: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      <input #uploadParImagem type="file" accept="image/*" (change)="onParImagemSelecionada($event, i)" />
+                    </div>
+                  </div>
+                  <div class="campo">
+                    <label>Palavra {{ i + 1 }} *</label>
+                    <input type="text" [(ngModel)]="par.palavra" placeholder="Palavra" />
+                  </div>
+                  <div class="campo">
+                    <label>Tradução {{ i + 1 }} *</label>
+                    <input type="text" [(ngModel)]="par.traducao" placeholder="Tradução" />
+                  </div>
+                  <button *ngIf="pares.length > 3" class="btn-icone btn-remove" (click)="removerPar(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+              </div>
+              <button *ngIf="pares.length < 10" class="btn-icone btn-add" (click)="adicionarPar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+
+            <!-- MODO: QUIZ -->
+            <div *ngIf="modoFrase === 'quiz'">
+              <div class="campo">
+                <label>Mídia (opcional)</label>
+                <div class="radio-group">
+                  <div class="radio-option" [class.selected]="tipoMidiaQuiz === 'imagem'" (click)="tipoMidiaQuiz = 'imagem'">
+                    <input type="radio" value="imagem" [(ngModel)]="tipoMidiaQuiz" />
+                    <label>Imagem</label>
+                  </div>
+                  <div class="radio-option" [class.selected]="tipoMidiaQuiz === 'video'" (click)="tipoMidiaQuiz = 'video'">
+                    <input type="radio" value="video" [(ngModel)]="tipoMidiaQuiz" />
+                    <label>Vídeo</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="campo" *ngIf="tipoMidiaQuiz === 'imagem'">
+                <div class="upload-area" (click)="uploadQuizImagem.click()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <p>Selecionar imagem</p>
+                  <input #uploadQuizImagem type="file" accept="image/*" (change)="onQuizImagemSelecionada($event)" />
+                </div>
+              </div>
+
+              <div class="campo" *ngIf="tipoMidiaQuiz === 'video'">
+                <label>Link do YouTube (Incorporar)</label>
+                <input type="text" [(ngModel)]="videoQuiz" placeholder="https://www.youtube.com/embed/..." />
+              </div>
+
+              <div class="campo">
+                <label>Pergunta *</label>
+                <textarea [(ngModel)]="perguntaQuiz" placeholder="Digite a pergunta"></textarea>
+              </div>
+
+              <div *ngFor="let alt of alternativas; let i = index">
+                <div class="linha-dinamica">
+                  <div class="campo">
+                    <label>Alternativa {{ getLetraAlternativa(i) }} *</label>
+                    <input type="text" [(ngModel)]="alternativas[i]" placeholder="Digite a alternativa" />
+                  </div>
+                  <button *ngIf="alternativas.length > 2" class="btn-icone btn-remove" (click)="removerAlternativa(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+              </div>
+              <button *ngIf="alternativas.length < 5" class="btn-icone btn-add" (click)="adicionarAlternativa()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            </div>
+
+            <div class="acoes">
+              <button class="btn-voltar" (click)="voltarEtapa()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Voltar</button>
+              <button class="finalizar" (click)="finalizar()" [disabled]="!podeFinalizar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Finalizar</button>
+            </div>
+          </div>
+        </div>
+
       </div>
-
     </div>
-
   </div>
-
 </main>
