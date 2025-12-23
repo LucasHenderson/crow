@@ -163,12 +163,12 @@ export class CadastrarIdioma {
     return !!(this.idiomaSelecionado && this.proficiencia && this.visibilidade);
   }
 
-  podeAvancarEtapa2(): boolean {
-    return !!(this.iconeModuloSelecionado && this.nomeModulo.trim());
-  }
-
   getLetraAlternativa(index: number): string {
     return String.fromCharCode(65 + index);
+  }
+
+  podeAvancarEtapa2(): boolean {
+    return !!(this.iconeModuloSelecionado && this.nomeModulo.trim());
   }
 
   podeFinalizar(): boolean {
@@ -233,6 +233,11 @@ export class CadastrarIdioma {
     }
   }
 
+  removerImagem(event: Event): void {
+    event.stopPropagation();
+    this.imagemPreview = null;
+  }
+
   // SELECIONAR PARES
   adicionarPar(): void {
     if (this.pares.length < 10) {
@@ -255,6 +260,11 @@ export class CadastrarIdioma {
     }
   }
 
+  removerImagemPar(event: Event, index: number): void {
+    event.stopPropagation();
+    this.pares[index].imagem = undefined;
+  }
+
   // QUIZ
   adicionarAlternativa(): void {
     if (this.alternativas.length < 5) {
@@ -268,6 +278,11 @@ export class CadastrarIdioma {
     }
   }
 
+  trackByIndex(index: number): number {
+  return index;
+}
+
+
   onQuizImagemSelecionada(event: any): void {
     const file = event.target.files[0];
     if (file) {
@@ -277,12 +292,17 @@ export class CadastrarIdioma {
     }
   }
 
+  removerImagemQuiz(event: Event): void {
+    event.stopPropagation();
+    this.imagemQuiz = null;
+  }
+
   /**
    * Verifica se é uma URL válida de embed do YouTube
    */
   isYouTubeEmbedUrl(url: string): boolean {
     if (!url) return false;
-    return url.includes('youtube.com/embed/') || url.includes('youtu.be/');
+    return url.includes('youtube.com/embed/') || url.includes('youtu.be/') || url.includes('www.youtube.com');
   }
 
   /**

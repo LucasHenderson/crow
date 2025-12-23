@@ -480,6 +480,12 @@ textarea {
   background: #f8fafc;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .upload-area:hover {
@@ -505,25 +511,83 @@ textarea {
   display: none;
 }
 
-.imagem-preview {
-  max-width: 200px;
-  max-height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-top: 0.8rem;
+.upload-area.has-image {
+  padding: 0;
   border: 2px solid #e2e8f0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
-/* MINIATURA IMAGEM PARES */
-.par-imagem-preview {
-  width: 80px;
-  height: 80px;
+.imagem-preview {
+  width: 100px;
   object-fit: cover;
-  border-radius: 8px;
-  border: 2px solid #e2e8f0;
-  margin-top: 0.5rem;
   display: block;
+  border-radius: 10px;
+}
+
+.btn-remover-imagem {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.95);
+  border: 2px solid white;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-remover-imagem:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.btn-remover-imagem svg {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+/* UPLOAD ÁREA PEQUENA (PARES) */
+.upload-area-small {
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area-small:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.upload-area-small.has-image {
+  padding: 0;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+  min-height: 120px;
+}
+
+.par-imagem-preview {
+  width: 100px;
+  
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
 }
 
 /* MINIATURA QUIZ */
@@ -532,6 +596,7 @@ textarea {
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .quiz-imagem-preview {
@@ -543,9 +608,10 @@ textarea {
 
 .quiz-video-preview {
   width: 100%;
-  max-width: 500px;
-  aspect-ratio: 16/9;
+  max-width: 560px;
+  height: 315px;
   border: none;
+  display: block;
 }
 
 /* RADIO */

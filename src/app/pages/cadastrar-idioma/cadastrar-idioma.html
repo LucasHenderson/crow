@@ -140,12 +140,17 @@
             <div *ngIf="modoFrase === 'traducao'">
               <div class="campo">
                 <label>Imagem (opcional)</label>
-                <div class="upload-area" (click)="uploadImagem.click()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  <p>Clique para selecionar uma imagem</p>
+                <div class="upload-area" [class.has-image]="imagemPreview" (click)="!imagemPreview && uploadImagem.click()">
+                  <ng-container *ngIf="!imagemPreview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p>Clique para selecionar uma imagem</p>
+                  </ng-container>
+                  <img *ngIf="imagemPreview" [src]="imagemPreview" class="imagem-preview" alt="Preview" />
+                  <button *ngIf="imagemPreview" class="btn-remover-imagem" (click)="removerImagem($event)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
                   <input #uploadImagem type="file" accept="image/*" (change)="onImagemSelecionada($event)" />
                 </div>
-                <img *ngIf="imagemPreview" [src]="imagemPreview" class="imagem-preview" />
               </div>
 
               <div class="campo">
@@ -173,15 +178,30 @@
                 <textarea [(ngModel)]="observacoes" placeholder="Adicione contexto ou dicas"></textarea>
               </div>
 
-              <div *ngFor="let link of links; let i = index">
-                <div class="linha-dinamica">
-                  <div class="campo">
-                    <label>Link {{ i + 1 }}</label>
-                    <input type="text" [(ngModel)]="links[i]" placeholder="https://..." />
-                  </div>
-                  <button *ngIf="links.length > 1" class="btn-icone btn-remove" (click)="removerLink(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+              <div *ngFor="let link of links; let i = index; trackBy: trackByIndex">
+              <div class="linha-dinamica">
+                <div class="campo">
+                  <label>Link {{ i + 1 }}</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="links[i]"
+                    placeholder="https://..."
+                  />
                 </div>
+
+                <button
+                  *ngIf="links.length > 1"
+                  class="btn-icone btn-remove"
+                  (click)="removerLink(i)"
+                  type="button"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
               </div>
+            </div>
               <button *ngIf="links.length < 3" class="btn-icone btn-add" (click)="adicionarLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
             </div>
 
@@ -191,11 +211,16 @@
                 <div class="linha-dinamica">
                   <div class="campo">
                     <label>Imagem {{ i + 1 }}</label>
-                    <div class="upload-area" style="padding: 0.8rem;" (click)="fileInput.click()">
-                      <svg style="width: 32px; height: 32px; margin: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <div class="upload-area-small" [class.has-image]="par.imagem" (click)="!par.imagem && fileInput.click()">
+                      <ng-container *ngIf="!par.imagem">
+                        <svg style="width: 32px; height: 32px; margin: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      </ng-container>
+                      <img *ngIf="par.imagem" [src]="par.imagem" class="par-imagem-preview" alt="Preview" />
+                      <button *ngIf="par.imagem" class="btn-remover-imagem" (click)="removerImagemPar($event, i)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
                       <input #fileInput type="file" accept="image/*" (change)="onParImagemSelecionada($event, i)" style="display: none;" />
                     </div>
-                    <img *ngIf="par.imagem" [src]="par.imagem" class="par-imagem-preview" alt="Preview" />
                   </div>
                   <div class="campo">
                     <label>Palavra {{ i + 1 }} *</label>
@@ -238,6 +263,17 @@
               <div class="campo" *ngIf="tipoMidiaQuiz === 'video'">
                 <label>Link do YouTube (Incorporar)</label>
                 <input type="text" [(ngModel)]="videoQuiz" placeholder="https://www.youtube.com/embed/..." />
+
+                <iframe 
+                width="320"
+                 height="180" 
+                 src="https://www.youtube.com/embed/M_v5XphaUOk?si=m4KZONhOwV5LnCRw" 
+                 title="YouTube video player" 
+                 frameborder="0" 
+                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                 referrerpolicy="strict-origin-when-cross-origin" 
+                 allowfullscreen>
+                </iframe>
               </div>
 
               <div class="campo">
@@ -245,15 +281,32 @@
                 <textarea [(ngModel)]="perguntaQuiz" placeholder="Digite a pergunta"></textarea>
               </div>
 
-              <div *ngFor="let alt of alternativas; let i = index">
-                <div class="linha-dinamica">
-                  <div class="campo">
-                    <label>Alternativa {{ getLetraAlternativa(i) }} *</label>
-                    <input type="text" [(ngModel)]="alternativas[i]" placeholder="Digite a alternativa" />
-                  </div>
-                  <button *ngIf="alternativas.length > 2" class="btn-icone btn-remove" (click)="removerAlternativa(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+              <div *ngFor="let alt of alternativas; let i = index; trackBy: trackByIndex">
+              <div class="linha-dinamica">
+                <div class="campo">
+                  <label>Alternativa {{ getLetraAlternativa(i) }} *</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="alternativas[i]"
+                    placeholder="Digite a alternativa"
+                  />
                 </div>
+
+                <button
+                  *ngIf="alternativas.length > 2"
+                  class="btn-icone btn-remove"
+                  (click)="removerAlternativa(i)"
+                  type="button"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                    />
+                  </svg>
+                </button>
               </div>
+            </div>
               <button *ngIf="alternativas.length < 5" class="btn-icone btn-add" (click)="adicionarAlternativa()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
             </div>
 
