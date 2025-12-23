@@ -182,7 +182,7 @@
                   <button *ngIf="links.length > 1" class="btn-icone btn-remove" (click)="removerLink(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                 </div>
               </div>
-              <button class="btn-icone btn-add" (click)="adicionarLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+              <button *ngIf="links.length < 3" class="btn-icone btn-add" (click)="adicionarLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
             </div>
 
             <!-- MODO: SELECIONAR PARES -->
@@ -191,10 +191,11 @@
                 <div class="linha-dinamica">
                   <div class="campo">
                     <label>Imagem {{ i + 1 }}</label>
-                    <div class="upload-area" style="padding: 0.8rem;" (click)="uploadParImagem.click()">
+                    <div class="upload-area" style="padding: 0.8rem;" (click)="fileInput.click()">
                       <svg style="width: 32px; height: 32px; margin: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                      <input #uploadParImagem type="file" accept="image/*" (change)="onParImagemSelecionada($event, i)" />
+                      <input #fileInput type="file" accept="image/*" (change)="onParImagemSelecionada($event, i)" style="display: none;" />
                     </div>
+                    <img *ngIf="par.imagem" [src]="par.imagem" class="par-imagem-preview" alt="Preview" />
                   </div>
                   <div class="campo">
                     <label>Palavra {{ i + 1 }} *</label>

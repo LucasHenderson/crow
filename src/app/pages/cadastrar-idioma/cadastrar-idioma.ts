@@ -2,7 +2,7 @@ import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 
 interface IdiomaOpcao {
   nome: string;
@@ -215,7 +215,9 @@ export class CadastrarIdioma {
   }
 
   adicionarLink(): void {
-    this.links.push('');
+    if (this.links.length < 3) {
+      this.links.push('');
+    }
   }
 
   removerLink(index: number): void {
@@ -273,6 +275,21 @@ export class CadastrarIdioma {
       reader.onload = (e: any) => this.imagemQuiz = e.target.result;
       reader.readAsDataURL(file);
     }
+  }
+
+  /**
+   * Verifica se é uma URL válida de embed do YouTube
+   */
+  isYouTubeEmbedUrl(url: string): boolean {
+    if (!url) return false;
+    return url.includes('youtube.com/embed/') || url.includes('youtu.be/');
+  }
+
+  /**
+   * Retorna URL segura para iframe
+   */
+  getSafeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   cancelar(): void {
