@@ -253,27 +253,67 @@
               </div>
 
               <div class="campo" *ngIf="tipoMidiaQuiz === 'imagem'">
-                <div class="upload-area" (click)="uploadQuizImagem.click()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  <p>Selecionar imagem</p>
-                  <input #uploadQuizImagem type="file" accept="image/*" (change)="onQuizImagemSelecionada($event)" />
-                </div>
-              </div>
+  <label>Imagem do Quiz *</label>
+
+  <div 
+    class="upload-area"
+    [class.has-image]="imagemQuiz"
+    (click)="!imagemQuiz && uploadQuizImagem.click()"
+  >
+    <ng-container *ngIf="!imagemQuiz">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <p>Selecionar imagem</p>
+    </ng-container>
+
+    <img 
+      *ngIf="imagemQuiz" 
+      [src]="imagemQuiz" 
+      class="imagem-preview" 
+      alt="Preview do quiz"
+    />
+
+    <button 
+      *ngIf="imagemQuiz"
+      class="btn-remover-imagem"
+      (click)="removerImagemQuiz($event)"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+
+    <input
+      #uploadQuizImagem
+      type="file"
+      accept="image/*"
+      (change)="onQuizImagemSelecionada($event)"
+      hidden
+    />
+  </div>
+</div>
+
 
               <div class="campo" *ngIf="tipoMidiaQuiz === 'video'">
                 <label>Link do YouTube (Incorporar)</label>
-                <input type="text" [(ngModel)]="videoQuiz" placeholder="https://www.youtube.com/embed/..." />
+                <input type="text" [(ngModel)]="videoQuiz" (ngModelChange)="onVideoQuizChange($event)" placeholder="https://www.youtube.com/embed/..." />
 
-                <iframe 
-                width="320"
-                 height="180" 
-                 src="https://www.youtube.com/embed/M_v5XphaUOk?si=m4KZONhOwV5LnCRw" 
-                 title="YouTube video player" 
-                 frameborder="0" 
-                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                 referrerpolicy="strict-origin-when-cross-origin" 
-                 allowfullscreen>
-                </iframe>
+                <div *ngIf="videoQuizEmbed != null" class="quiz-video-preview">
+                  <iframe 
+                    width="320"
+                    height="180" 
+                    [src]="videoQuizEmbed" 
+                    title="YouTube video player" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerpolicy="strict-origin-when-cross-origin" 
+                    allowfullscreen>
+                  </iframe>
+                </div>
               </div>
 
               <div class="campo">
