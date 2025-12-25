@@ -70,19 +70,19 @@ export class CadastrarIdioma {
   alternativas: string[] = ['', ''];
 
   idiomas: IdiomaOpcao[] = [
-    { nome: 'Alemão', bandeira: 'assets/imgs/Flag_of_Germany.svg.png' },
-    { nome: 'Árabe', bandeira: 'assets/imgs/Saudi_Arabia.svg' },
-    { nome: 'Chinês (Mandarim)', bandeira: 'assets/imgs/China.svg' },
-    { nome: 'Coreano', bandeira: 'assets/imgs/South_Korea.svg.webp' },
-    { nome: 'Espanhol', bandeira: 'assets/imgs/Spain.svg' },
-    { nome: 'Francês', bandeira: 'assets/imgs/Franca.png' },
-    { nome: 'Inglês (Estados Unidos)', bandeira: 'assets/imgs/Flag_of_the_United_States.svg' },
-    { nome: 'Inglês (Reino Unido)', bandeira: 'assets/imgs/United_Kingdom.svg' },
-    { nome: 'Italiano', bandeira: 'assets/imgs/Italy.svg' },
-    { nome: 'Japonês', bandeira: 'assets/imgs/Japan.png' },
-    { nome: 'Português (Brasil)', bandeira: 'assets/imgs/Brazil.svg' },
-    { nome: 'Português (Portugal)', bandeira: 'assets/imgs/Flag_of_Portugal.svg.png' },
-    { nome: 'Russo', bandeira: 'assets/imgs/Russia.svg' }
+    { nome: 'Alemão', bandeira: 'assets/imgs/Germany-Flag.svg.png' },
+    { nome: 'Árabe', bandeira: 'assets/imgs/United-Arab-Emirates-Flag.svg.png' },
+    { nome: 'Chinês (Mandarim)', bandeira: 'assets/imgs/China-Flag.svg' },
+    { nome: 'Coreano', bandeira: 'assets/imgs/South-Korea-Flag.svg.webp' },
+    { nome: 'Espanhol', bandeira: 'assets/imgs/Spain-Flag.svg' },
+    { nome: 'Francês', bandeira: 'assets/imgs/France-Flag.png' },
+    { nome: 'Inglês (Estados Unidos)', bandeira: 'assets/imgs/United-States-Flag.svg' },
+    { nome: 'Inglês (Reino Unido)', bandeira: 'assets/imgs/United-Kingdom-Flag.svg.png' },
+    { nome: 'Italiano', bandeira: 'assets/imgs/Italy-Flag.svg' },
+    { nome: 'Japonês', bandeira: 'assets/imgs/Japan-Flag.png' },
+    { nome: 'Português (Brasil)', bandeira: 'assets/imgs/Brazil-Flag.svg' },
+    { nome: 'Português (Portugal)', bandeira: 'assets/imgs/Portugal-Flag.svg.png' },
+    { nome: 'Russo', bandeira: 'assets/imgs/Russia-Flag.svg' }
   ].sort((a, b) => a.nome.localeCompare(b.nome));
 
   proficiencias = ['Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Fluente'];

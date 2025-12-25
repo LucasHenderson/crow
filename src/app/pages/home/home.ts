@@ -29,28 +29,28 @@ export class Home {
     const exemplos: Idioma[] = [
       {
         nome: 'Inglês',
-        bandeira: '../../../assets/imgs/Flag_of_the_United_States.svg',
+        bandeira: '../../../assets/imgs/United-States-Flag.svg',
         nota: 4,
         modulos: 18,
         descricao: 'Idioma global, utilizado em negócios, tecnologia e viagens ao redor do mundo.'
       },
       {
         nome: 'Japonês',
-        bandeira: '../../../assets/imgs/Japan.png',
+        bandeira: '../../../assets/imgs/Japan-Flag.png',
         nota: 5,
         modulos: 20,
         descricao: 'Idioma rico culturalmente, com foco em escrita complexa e conversação formal.'
       },
       {
         nome: 'Espanhol',
-        bandeira: '../../../assets/imgs/Spain.svg',
+        bandeira: '../../../assets/imgs/Spain-Flag.svg',
         nota: 3,
         modulos: 12,
         descricao: 'Idioma amplamente falado na América Latina, Europa e em diversas comunidades.'
       },
       {
         nome: 'Russo',
-        bandeira: '../../../assets/imgs/Russia.svg',
+        bandeira: '../../../assets/imgs/Russia-Flag.svg',
         nota: 4,
         modulos: 15,
         descricao: 'Idioma desafiador, com alfabeto cirílico próprio e estrutura gramatical complexa.'

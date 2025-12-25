@@ -1,0 +1,207 @@
+<main class="visualizar-idioma">
+  
+  <!-- Header com título e ações -->
+  <header class="header">
+    <div class="header-content">
+      <button class="btn-voltar" (click)="voltar()" title="Voltar">
+        <svg viewBox="0 0 24 24" class="icon-voltar">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      
+      <div class="titulo-wrapper">
+        <h1 class="titulo">{{ idiomaNome }}</h1>
+        <p class="subtitulo">{{ modulos.length }} módulo{{ modulos.length !== 1 ? 's' : '' }} disponíve{{ modulos.length !== 1 ? 'is' : 'l' }}</p>
+      </div>
+    </div>
+
+    <div class="acoes-top">
+      <button class="acao-btn adicionar" (click)="onAdicionarModulo()" title="Adicionar módulo">
+        <svg viewBox="0 0 24 24" class="ico">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+        <span>Adicionar</span>
+      </button>
+
+      <button class="acao-btn editar" (click)="editarIdioma()" title="Editar idioma">
+        <svg viewBox="0 0 24 24" class="ico">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        <span>Editar</span>
+      </button>
+
+      <button class="acao-btn excluir" (click)="excluirIdioma()" title="Excluir idioma">
+        <svg viewBox="0 0 24 24" class="ico">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+        <span>Excluir</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Estatísticas -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-icon modulos-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Total de Módulos</span>
+        <span class="stat-value">{{ modulos.length }}/20</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon selecionados-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Selecionados</span>
+        <span class="stat-value">{{ modulosSelecionados.length }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon progresso-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 6v6l4 2"></path>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Progresso</span>
+        <span class="stat-value">{{ calcularProgresso() }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles de seleção e play -->
+  <div class="controls">
+    <div class="left-controls">
+      <button class="control-btn" (click)="selecionarTodos()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l3 3L22 4"></path>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+        </svg>
+        Selecionar todos
+      </button>
+      <button class="control-btn outline" (click)="limparSelecao()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        Limpar seleção
+      </button>
+    </div>
+
+    <button 
+      class="btn-play" 
+      [class.disabled]="!podeIniciar" 
+      [disabled]="!podeIniciar" 
+      (click)="iniciar()">
+      <svg viewBox="0 0 24 24" class="play-ico">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      <span>INICIAR MÓDULOS</span>
+      <span class="badge-count" *ngIf="modulosSelecionados.length > 0">{{ modulosSelecionados.length }}</span>
+    </button>
+  </div>
+
+  <!-- Grid de módulos -->
+  <section class="modulos" *ngIf="modulos.length > 0">
+    <article
+      class="modulo"
+      *ngFor="let mod of modulos; let i = index"
+      [class.selecionado]="mod.selecionado"
+      (click)="toggleModulo(mod)"
+      [attr.data-index]="i"
+      role="button"
+      tabindex="0"
+      (keydown.enter)="toggleModulo(mod)"
+      (keydown.space)="$event.preventDefault(); toggleModulo(mod)"
+    >
+      <!-- Checkbox customizado -->
+      <div class="checkbox-wrapper" (click)="toggleModulo(mod, $event)">
+        <div class="checkbox" [class.checked]="mod.selecionado">
+          <svg viewBox="0 0 24 24" class="check-icon" *ngIf="mod.selecionado">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Ícone do módulo -->
+      <div class="icone-wrapper">
+        <div class="icone">
+          <svg viewBox="0 0 24 24" class="svg-icone" [innerHTML]="mod.icone"></svg>
+        </div>
+      </div>
+
+      <!-- Informações do módulo -->
+      <div class="info">
+        <h3 class="nome">{{ mod.nome }}</h3>
+        <p class="descricao">Módulo {{ i + 1 }} de {{ modulos.length }}</p>
+      </div>
+
+      <!-- Ações do módulo -->
+      <div class="acoes-modulo">
+        <button
+          class="mini-btn editar-mini"
+          title="Editar módulo"
+          (click)="$event.stopPropagation(); editarModulo(mod)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </button>
+
+        <button
+          class="mini-btn excluir-mini"
+          title="Remover módulo"
+          (click)="$event.stopPropagation(); removerModuloConfirmacao(mod)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Indicador de seleção -->
+      <div class="selection-indicator" *ngIf="mod.selecionado"></div>
+    </article>
+  </section>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="modulos.length === 0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+      <line x1="9" y1="9" x2="15" y2="15"></line>
+      <line x1="15" y1="9" x2="9" y2="15"></line>
+    </svg>
+    <h3>Nenhum módulo cadastrado</h3>
+    <p>Adicione módulos para começar a aprender {{ idiomaNome }}</p>
+    <button class="btn-adicionar-primeiro" (click)="onAdicionarModulo()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="16"></line>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+      </svg>
+      Adicionar Primeiro Módulo
+    </button>
+  </div>
+
+</main>

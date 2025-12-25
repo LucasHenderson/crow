@@ -37,6 +37,10 @@ export const routes: Routes = [{
         path: 'cadastrar-idioma',
         loadComponent: () => import('./pages/cadastrar-idioma/cadastrar-idioma').then((m) => m.CadastrarIdioma),
       },
+      {
+        path: 'visualizar-idioma',
+        loadComponent: () => import('./pages/visualizar-idioma/visualizar-idioma').then((m) => m.VisualizarIdioma),
+      },
     ]
   }
 ];
