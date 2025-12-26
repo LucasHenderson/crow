@@ -20,6 +20,9 @@ export class Home {
 
   idiomas: Idioma[] = [];
 
+  /**
+   * Adiciona um novo idioma à lista (máximo 4)
+   */
   adicionarIdioma(): void {
     if (this.idiomas.length >= 4) {
       console.warn('Limite máximo de 4 idiomas atingido');
@@ -63,15 +66,54 @@ export class Home {
     console.log(`Idioma ${novoIdioma.nome} adicionado com sucesso!`);
   }
 
+  /**
+   * Seleciona um idioma para visualização
+   */
   selecionarIdioma(idioma: Idioma): void {
     console.log('Idioma selecionado:', idioma.nome);
-    // Aqui você pode adicionar navegação ou outras ações
+    // Aqui você pode adicionar navegação para a página de visualização
+    // this.router.navigate(['/visualizar-idioma', idioma.nome]);
   }
 
+  /**
+   * Edita um idioma existente
+   */
+  editarIdioma(idioma: Idioma, index: number): void {
+    const novoNome = prompt('Novo nome do idioma:', idioma.nome);
+    if (!novoNome || !novoNome.trim()) {
+      return;
+    }
+
+    idioma.nome = novoNome.trim();
+    console.log(`Idioma editado para: ${idioma.nome}`);
+    
+    // Aqui você pode navegar para uma página de edição completa
+    // this.router.navigate(['/editar-idioma', index]);
+  }
+
+  /**
+   * Exclui um idioma da lista
+   */
+  excluirIdioma(idioma: Idioma, index: number): void {
+    const confirmar = confirm(`Deseja realmente excluir o idioma "${idioma.nome}"?`);
+    if (!confirmar) {
+      return;
+    }
+
+    this.idiomas.splice(index, 1);
+    console.log(`Idioma "${idioma.nome}" excluído com sucesso!`);
+  }
+
+  /**
+   * Retorna array de booleanos para renderizar estrelas
+   */
   estrelasArray(nota: number): boolean[] {
     return Array.from({ length: 5 }, (_, i) => i < nota);
   }
 
+  /**
+   * Calcula o progresso percentual baseado nos módulos
+   */
   calcularProgresso(modulos: number): number {
     return Math.round((modulos / 20) * 100);
   }

@@ -8,6 +8,7 @@ interface Modulo {
   nome: string;
   icone: SafeHtml;
   selecionado: boolean;
+  frases: number;
 }
 
 @Component({
@@ -19,6 +20,8 @@ interface Modulo {
 })
 export class VisualizarIdioma {
   idiomaNome = 'Japonês';
+  avaliacao = 4.3; // Avaliação de 1 a 5
+  totalAvaliacoes = 2134; // Total de avaliações
   
   // Ícones SVG base (conteúdo interno dos paths/shapes)
   private rawIcons = [
@@ -80,7 +83,8 @@ export class VisualizarIdioma {
       id: this.nextId++,
       nome: nome || `Módulo ${this.nextId - 1}`,
       icone: this.makeIconSvg(iconRaw),
-      selecionado: false
+      selecionado: false,
+      frases: Math.floor(Math.random() * 50) + 1 // Frases aleatórias de 1 a 50
     };
     
     this.modulos.push(modulo);
@@ -132,6 +136,14 @@ export class VisualizarIdioma {
   }
 
   /**
+   * Retorna array de booleanos para renderizar estrelas (arredondamento para cima)
+   */
+  estrelas(nota: number): boolean[] {
+    const notaArredondada = Math.ceil(nota);
+    return Array.from({ length: 5 }, (_, i) => i < notaArredondada);
+  }
+
+  /**
    * Inicia os módulos selecionados
    */
   iniciar(): void {
@@ -180,10 +192,11 @@ export class VisualizarIdioma {
    * Edita um módulo específico
    */
   editarModulo(mod: Modulo): void {
-    const novoNome = prompt('Novo nome do módulo:', mod.nome);
+    const novoNome = prompt('Novo nome do módulo (máximo 80 caracteres):', mod.nome);
     if (!novoNome || !novoNome.trim()) return;
     
-    mod.nome = novoNome.trim();
+    const nomeTruncado = novoNome.trim().substring(0, 80);
+    mod.nome = nomeTruncado;
   }
 
   /**

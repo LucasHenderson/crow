@@ -23,25 +23,7 @@
           <line x1="12" y1="8" x2="12" y2="16"></line>
           <line x1="8" y1="12" x2="16" y2="12"></line>
         </svg>
-        <span>Adicionar</span>
-      </button>
-
-      <button class="acao-btn editar" (click)="editarIdioma()" title="Editar idioma">
-        <svg viewBox="0 0 24 24" class="ico">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-        </svg>
-        <span>Editar</span>
-      </button>
-
-      <button class="acao-btn excluir" (click)="excluirIdioma()" title="Excluir idioma">
-        <svg viewBox="0 0 24 24" class="ico">
-          <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          <line x1="10" y1="11" x2="10" y2="17"></line>
-          <line x1="14" y1="11" x2="14" y2="17"></line>
-        </svg>
-        <span>Excluir</span>
+        <span>Adicionar Módulo</span>
       </button>
     </div>
   </header>
@@ -75,15 +57,24 @@
     </div>
 
     <div class="stat-card">
-      <div class="stat-icon progresso-icon">
+      <div class="stat-icon avaliacao-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M12 6v6l4 2"></path>
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
         </svg>
       </div>
       <div class="stat-info">
-        <span class="stat-label">Progresso</span>
-        <span class="stat-value">{{ calcularProgresso() }}%</span>
+        <span class="stat-label">Avaliação</span>
+        <div class="stat-value-stars">
+          <div class="stars-display">
+            <svg *ngFor="let ativa of estrelas(avaliacao); let j = index"
+                 viewBox="0 0 24 24"
+                 class="star-icon"
+                 [class.active]="ativa">
+              <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </div>
+          <span class="avaliacoes-count">{{ totalAvaliacoes }} avaliações</span>
+        </div>
       </div>
     </div>
   </div>
@@ -152,7 +143,7 @@
       <!-- Informações do módulo -->
       <div class="info">
         <h3 class="nome">{{ mod.nome }}</h3>
-        <p class="descricao">Módulo {{ i + 1 }} de {{ modulos.length }}</p>
+        <p class="descricao">Frases: {{ mod.frases }}/50</p>
       </div>
 
       <!-- Ações do módulo -->
