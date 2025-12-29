@@ -41,6 +41,10 @@ export const routes: Routes = [{
         path: 'visualizar-idioma',
         loadComponent: () => import('./pages/visualizar-idioma/visualizar-idioma').then((m) => m.VisualizarIdioma),
       },
+      {
+        path: 'visualizar-modulo',
+        loadComponent: () => import('./pages/visualizar-modulo/visualizar-modulo').then((m) => m.VisualizarModulo),
+      },
     ]
   }
 ];
