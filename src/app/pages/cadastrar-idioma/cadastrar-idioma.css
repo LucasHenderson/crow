@@ -127,7 +127,6 @@
   backdrop-filter: blur(10px);
   border-radius: 10px;
   padding: 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(59, 130, 246, 0.2);
   position: relative;
 }
@@ -793,6 +792,42 @@ textarea {
   border-radius: 10px;
 }
 
+.linha-pares {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr auto;
+  gap: 0.8rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.linha-pares .campo {
+  margin: 0;
+  min-width: 0;
+}
+
+.btn-par-remove {
+  margin-bottom: 1.5rem;
+}
+
+/* LINHA DE ALTERNATIVA (Campo completo + Botão) */
+.linha-alternativa {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.8rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.campo-alternativa-full {
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.btn-alternativa-remove {
+  margin-bottom: 1.5rem;
+}
+
 /* RESPONSIVO */
 
 /* Tablets em paisagem e desktops menores (até 1024px) */
@@ -857,6 +892,18 @@ textarea {
     width: 38px;
     height: 38px;
   }
+
+    .linha-pares {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .btn-par-remove {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+    margin-top: 0.5rem;
+  }
 }
 
 /* Smartphones grandes (até 600px) */
@@ -918,6 +965,17 @@ textarea {
   
   .quiz-video-preview iframe {
     height: 180px;
+  }
+
+   .linha-alternativa {
+    grid-template-columns: 1fr;
+  }
+
+   .btn-par-remove {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+    margin-top: 0.5rem;
   }
 }
 
@@ -1009,6 +1067,13 @@ textarea {
   .acoes {
     padding-top: 1.5rem;
   }
+
+   .btn-par-remove {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+    margin-top: 0.5rem;
+  }
 }
 
 /* Smartphones muito pequenos (até 360px) */
@@ -1071,6 +1136,13 @@ textarea {
   .upload-area svg {
     width: 36px;
     height: 36px;
+  }
+
+   .btn-par-remove {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 0;
+    margin-top: 0.5rem;
   }
 }
 

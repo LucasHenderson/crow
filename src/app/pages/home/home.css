@@ -182,6 +182,15 @@
   font-size: 1.05rem;
   color: #1e293b;
   letter-spacing: 0.05em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  max-width: 100%;
+  line-height: 1.3;
+  min-height: 2.6em;
 }
 
 /* AÇÕES DO CARD (Botões Editar e Excluir) */
@@ -503,6 +512,7 @@
     top: 8px;
     right: 8px;
     gap: 0.4rem;
+    transform: translateY(0);
   }
 
   .mini-btn {

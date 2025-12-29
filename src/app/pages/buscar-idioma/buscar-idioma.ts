@@ -1,7 +1,8 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+
 
 type Proficiencia = 'iniciante' | 'basico' | 'intermediario' | 'avancado' | 'fluente';
 
@@ -19,7 +20,7 @@ interface Idioma {
 @Component({
   selector: 'app-buscar-idioma',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './buscar-idioma.html',
   styleUrl: './buscar-idioma.css',
 })

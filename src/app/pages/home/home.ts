@@ -79,12 +79,13 @@ export class Home {
    * Edita um idioma existente
    */
   editarIdioma(idioma: Idioma, index: number): void {
-    const novoNome = prompt('Novo nome do idioma:', idioma.nome);
+    const novoNome = prompt('Novo nome do idioma (máximo 80 caracteres):', idioma.nome);
     if (!novoNome || !novoNome.trim()) {
       return;
     }
 
-    idioma.nome = novoNome.trim();
+    const nomeTruncado = novoNome.trim().substring(0, 80);
+    idioma.nome = nomeTruncado;
     console.log(`Idioma editado para: ${idioma.nome}`);
     
     // Aqui você pode navegar para uma página de edição completa
