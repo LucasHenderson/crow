@@ -84,7 +84,7 @@ export class VisualizarModulo implements OnInit {
     // Aqui você buscaria os dados do módulo do backend ou localStorage
     // Por enquanto, vamos usar dados simulados
     
-    const iconeSVG = '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>';
+    const iconeSVG = '<svg _ngcontent-ng-c1290226930="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
     this.moduloIcone = this.sanitizer.bypassSecurityTrustHtml(iconeSVG);
   }
 
@@ -95,7 +95,7 @@ export class VisualizarModulo implements OnInit {
         id: 1,
         modo: 'traducao',
         modoNome: 'Tradução Direta',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/>'),
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg></svg>'),
         traducaoCompleta: 'Bom dia! Como você está?',
         palavras: [
           { palavra: 'Bom dia', traducao: 'Good morning' },
@@ -109,7 +109,7 @@ export class VisualizarModulo implements OnInit {
         id: 2,
         modo: 'pares',
         modoNome: 'Selecionar Pares',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'),
         pares: [
           { palavra: 'Gato', traducao: 'Cat', imagem: 'assets/imgs/cat.jpg' },
           { palavra: 'Cachorro', traducao: 'Dog', imagem: 'assets/imgs/dog.jpg' },
@@ -120,7 +120,7 @@ export class VisualizarModulo implements OnInit {
         id: 3,
         modo: 'quiz',
         modoNome: 'Quiz',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
         imagemQuiz: 'assets/imgs/quiz-example.jpg',
         pergunta: 'Qual é a tradução correta de "Hello" em português?',
         alternativas: ['Olá', 'Tchau', 'Bom dia', 'Boa noite']
@@ -129,7 +129,7 @@ export class VisualizarModulo implements OnInit {
         id: 4,
         modo: 'quiz',
         modoNome: 'Quiz',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
         videoQuiz: this.sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/E8N8CAihLT0?si=GX96kXDofoDg6oAM'),
         pergunta: 'Com base no vídeo, qual é o tema principal?',
         alternativas: ['Música', 'História', 'Ciência', 'Tecnologia']
@@ -138,13 +138,121 @@ export class VisualizarModulo implements OnInit {
         id: 5,
         modo: 'traducao',
         modoNome: 'Tradução Direta',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/>'),
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>'),
         traducaoCompleta: 'Muito obrigado pela ajuda!',
         palavras: [
           { palavra: 'Muito obrigado', traducao: 'Thank you very much' },
           { palavra: 'pela ajuda', traducao: 'for the help' }
         ]
-      }
+      },
+      {
+        id: 6,
+        modo: 'traducao',
+        modoNome: 'Tradução Direta',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>'),
+        traducaoCompleta: 'Bom dia! Como você está?',
+        palavras: [
+          { palavra: 'Bom dia', traducao: 'Good morning' },
+          { palavra: 'Como você está?', traducao: 'How are you?' }
+        ],
+        imagem: 'assets/imgs/example.jpg',
+        observacoes: 'Expressão formal comum em contextos profissionais.',
+        links: ['https://www.exemplo.com/artigo1', 'https://www.exemplo.com/artigo2']
+      },
+      {
+        id: 7,
+        modo: 'pares',
+        modoNome: 'Selecionar Pares',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'),
+        pares: [
+          { palavra: 'Gato', traducao: 'Cat', imagem: 'assets/imgs/cat.jpg' },
+          { palavra: 'Cachorro', traducao: 'Dog', imagem: 'assets/imgs/dog.jpg' },
+          { palavra: 'Pássaro', traducao: 'Bird' }
+        ]
+      },
+      {
+        id: 8,
+        modo: 'quiz',
+        modoNome: 'Quiz',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
+        imagemQuiz: 'assets/imgs/quiz-example.jpg',
+        pergunta: 'Qual é a tradução correta de "Hello" em português?',
+        alternativas: ['Olá', 'Tchau', 'Bom dia', 'Boa noite']
+      },
+      {
+        id: 9,
+        modo: 'quiz',
+        modoNome: 'Quiz',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
+        videoQuiz: this.sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/E8N8CAihLT0?si=GX96kXDofoDg6oAM'),
+        pergunta: 'Com base no vídeo, qual é o tema principal?',
+        alternativas: ['Música', 'História', 'Ciência', 'Tecnologia']
+      },
+      {
+        id: 10,
+        modo: 'traducao',
+        modoNome: 'Tradução Direta',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>'),
+        traducaoCompleta: 'Muito obrigado pela ajuda!',
+        palavras: [
+          { palavra: 'Muito obrigado', traducao: 'Thank you very much' },
+          { palavra: 'pela ajuda', traducao: 'for the help' }
+        ]
+      },
+      {
+        id: 11,
+        modo: 'traducao',
+        modoNome: 'Tradução Direta',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>'),
+        traducaoCompleta: 'Bom dia! Como você está?',
+        palavras: [
+          { palavra: 'Bom dia', traducao: 'Good morning' },
+          { palavra: 'Como você está?', traducao: 'How are you?' }
+        ],
+        imagem: 'assets/imgs/example.jpg',
+        observacoes: 'Expressão formal comum em contextos profissionais.',
+        links: ['https://www.exemplo.com/artigo1', 'https://www.exemplo.com/artigo2']
+      },
+      {
+        id: 12,
+        modo: 'pares',
+        modoNome: 'Selecionar Pares',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'),
+        pares: [
+          { palavra: 'Gato', traducao: 'Cat', imagem: 'assets/imgs/cat.jpg' },
+          { palavra: 'Cachorro', traducao: 'Dog', imagem: 'assets/imgs/dog.jpg' },
+          { palavra: 'Pássaro', traducao: 'Bird' }
+        ]
+      },
+      {
+        id: 13,
+        modo: 'quiz',
+        modoNome: 'Quiz',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
+        imagemQuiz: 'assets/imgs/quiz-example.jpg',
+        pergunta: 'Qual é a tradução correta de "Hello" em português?',
+        alternativas: ['Olá', 'Tchau', 'Bom dia', 'Boa noite']
+      },
+      {
+        id: 14,
+        modo: 'quiz',
+        modoNome: 'Quiz',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
+        videoQuiz: this.sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/E8N8CAihLT0?si=GX96kXDofoDg6oAM'),
+        pergunta: 'Com base no vídeo, qual é o tema principal?',
+        alternativas: ['Música', 'História', 'Ciência', 'Tecnologia']
+      },
+      {
+        id: 15,
+        modo: 'traducao',
+        modoNome: 'Tradução Direta',
+        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>'),
+        traducaoCompleta: 'Muito obrigado pela ajuda!',
+        palavras: [
+          { palavra: 'Muito obrigado', traducao: 'Thank you very much' },
+          { palavra: 'pela ajuda', traducao: 'for the help' }
+        ]
+      },
     ];
 
     this.totalFrases = this.frases.length;
@@ -210,7 +318,7 @@ export class VisualizarModulo implements OnInit {
   }
 
   voltarParaLista(): void {
-    this.router.navigate(['/buscar-idioma']);
+    this.router.navigate(['/visualizar-idioma']);
   }
 
   adicionarFrase(): void {
