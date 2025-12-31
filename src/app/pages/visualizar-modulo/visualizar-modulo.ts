@@ -101,7 +101,7 @@ export class VisualizarModulo implements OnInit {
           { palavra: 'Bom dia', traducao: 'Good morning' },
           { palavra: 'Como você está?', traducao: 'How are you?' }
         ],
-        imagem: 'assets/imgs/example.jpg',
+        imagem: '../../../assets/imgs/United-States-Flag.svg',
         observacoes: 'Expressão formal comum em contextos profissionais.',
         links: ['https://www.exemplo.com/artigo1', 'https://www.exemplo.com/artigo2']
       },
@@ -111,8 +111,8 @@ export class VisualizarModulo implements OnInit {
         modoNome: 'Selecionar Pares',
         modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'),
         pares: [
-          { palavra: 'Gato', traducao: 'Cat', imagem: 'assets/imgs/cat.jpg' },
-          { palavra: 'Cachorro', traducao: 'Dog', imagem: 'assets/imgs/dog.jpg' },
+          { palavra: 'Gato', traducao: 'Cat', imagem: '../../../assets/imgs/logo.png' },
+          { palavra: 'Cachorro', traducao: 'Dog', imagem: '../../../assets/imgs/United-States-Flag.svg' },
           { palavra: 'Pássaro', traducao: 'Bird' }
         ]
       },
@@ -121,7 +121,7 @@ export class VisualizarModulo implements OnInit {
         modo: 'quiz',
         modoNome: 'Quiz',
         modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
-        imagemQuiz: 'assets/imgs/quiz-example.jpg',
+        imagemQuiz: '../../../assets/imgs/Brazil-Flag.svg',
         pergunta: 'Qual é a tradução correta de "Hello" em português?',
         alternativas: ['Olá', 'Tchau', 'Bom dia', 'Boa noite']
       },
