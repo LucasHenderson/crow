@@ -1,0 +1,323 @@
+<main class="jogar">
+  <div class="jogar-container">
+
+    <!-- HEADER DO JOGO -->
+    <div class="jogo-header" *ngIf="!jogoFinalizado">
+      <div class="progresso-info">
+        <span class="etapa-atual">Etapa {{ etapaAtual }} / {{ totalEtapas }}</span>
+        <div class="barra-progresso">
+          <div class="barra-preenchida" [style.width.%]="(etapaAtual / totalEtapas) * 100"></div>
+        </div>
+      </div>
+      <div class="pontuacao">
+        <div class="pontos-item acertos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>{{ acertos }}</span>
+        </div>
+        <div class="pontos-item erros">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          <span>{{ erros }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA DE JOGO -->
+    <div class="jogo-conteudo" *ngIf="!jogoFinalizado && fraseAtual">
+
+      <!-- MODO: TRADUÇÃO DIRETA -->
+      <div class="modo-traducao" *ngIf="fraseAtual.modo === 'traducao'">
+        <div class="imagem-container">
+          <img *ngIf="fraseAtual.imagem" [src]="fraseAtual.imagem" alt="Imagem da frase" />
+          <div *ngIf="!fraseAtual.imagem" class="imagem-padrao">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <button class="btn-info" (click)="toggleInfo()" *ngIf="fraseAtual.observacoes || (fraseAtual.links && fraseAtual.links.length > 0)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="info-box" *ngIf="mostrarInfo">
+          <div class="info-conteudo">
+            <h3>Informações Adicionais</h3>
+            <div class="info-observacoes" *ngIf="fraseAtual.observacoes">
+              <label>Observações:</label>
+              <p>{{ fraseAtual.observacoes }}</p>
+            </div>
+            <div class="info-links" *ngIf="fraseAtual.links && fraseAtual.links.length > 0">
+              <label>Links úteis:</label>
+              <a *ngFor="let link of fraseAtual.links" [href]="link" target="_blank" rel="noopener noreferrer">{{ link }}</a>
+            </div>
+            <button class="btn-fechar-info" (click)="toggleInfo()">Fechar</button>
+          </div>
+        </div>
+
+        <div class="traducao-completa">
+          <h2>{{ fraseAtual.traducaoCompleta }}</h2>
+        </div>
+
+        <div class="area-resposta">
+          <div class="palavras-selecionadas">
+            <div 
+              class="palavra-slot" 
+              *ngFor="let palavra of palavrasSelecionadas; let i = index"
+              (click)="removerPalavra(i)">
+              <span *ngIf="palavra">{{ palavra.traducao }}</span>
+            </div>
+          </div>
+
+          <div class="palavras-disponiveis">
+            <button 
+              class="palavra-btn" 
+              *ngFor="let palavra of palavrasEmbaralhadas; let i = index"
+              [class.usado]="palavra.usado"
+              [disabled]="palavra.usado"
+              (click)="selecionarPalavra(palavra, i)">
+              {{ palavra.traducao }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODO: SELECIONAR PARES -->
+      <div class="modo-pares" *ngIf="fraseAtual.modo === 'pares'">
+        <h2 class="instrucao">Selecione os pares corretos</h2>
+        
+        <div class="pares-container">
+          <div class="coluna-palavras">
+            <h3>Palavras</h3>
+            <div 
+              class="par-item"
+              *ngFor="let par of paresEmbaralhados; let i = index"
+              [class.selecionado]="palavraSelecionada === i"
+              (click)="selecionarPalavraColuna(i)">
+              <img *ngIf="par.imagem" [src]="par.imagem" alt="Imagem" />
+              <div *ngIf="!par.imagem" class="par-imagem-padrao">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </div>
+              <span>{{ par.palavra }}</span>
+            </div>
+          </div>
+
+          <div class="coluna-traducoes">
+            <h3>Traduções</h3>
+            <div 
+              class="par-item"
+              *ngFor="let par of traducoesEmbaralhadas; let i = index"
+              [class.selecionado]="traducaoSelecionada === i"
+              [class.conectado]="paresSelecionados[i] !== undefined"
+              (click)="selecionarTraducaoColuna(i)">
+              <span>{{ par.traducao }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="conexoes-feitas" *ngIf="getConexoesKeys().length > 0">
+          <h4>Conexões realizadas:</h4>
+          <div class="conexao-item" *ngFor="let key of getConexoesKeys()">
+            <span class="conexao-palavra">{{ paresEmbaralhados[paresSelecionados[+key]].palavra }}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+            <span class="conexao-traducao">{{ traducoesEmbaralhadas[+key].traducao }}</span>
+            <button class="btn-remover-conexao" (click)="removerConexao(key)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODO: QUIZ -->
+      <div class="modo-quiz" *ngIf="fraseAtual.modo === 'quiz'">
+        <div class="quiz-midia">
+          <img *ngIf="fraseAtual.imagemQuiz" [src]="fraseAtual.imagemQuiz" alt="Imagem do quiz" />
+          <iframe 
+            *ngIf="fraseAtual.videoQuiz"
+            [src]="fraseAtual.videoQuiz"
+            title="Vídeo do quiz"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+          <div *ngIf="!fraseAtual.imagemQuiz && !fraseAtual.videoQuiz" class="quiz-imagem-padrao">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="quiz-pergunta">
+          <h2>{{ fraseAtual.pergunta }}</h2>
+        </div>
+
+        <div class="quiz-alternativas">
+          <div 
+            class="alternativa"
+            *ngFor="let alt of fraseAtual.alternativas; let i = index"
+            [class.selecionada]="alternativaSelecionada === i"
+            (click)="selecionarAlternativa(i)">
+            <div class="alternativa-letra">{{ getLetraAlternativa(i) }}</div>
+            <span class="alternativa-texto">{{ alt }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTÃO VERIFICAR -->
+      <div class="acoes-jogo">
+        <button 
+          class="btn-verificar"
+          [disabled]="!podeVerificar()"
+          (click)="verificarResposta()">
+          Verificar Resposta
+        </button>
+      </div>
+
+    </div>
+
+    <!-- MODAL DE RESULTADO -->
+    <div class="modal-overlay" *ngIf="mostrarResultado" (click)="fecharModal()">
+      <div class="modal-resultado" (click)="$event.stopPropagation()">
+        <div class="modal-header" [class.correto]="respostaCorreta" [class.incorreto]="!respostaCorreta">
+          <svg *ngIf="respostaCorreta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <svg *ngIf="!respostaCorreta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          <h2>{{ respostaCorreta ? 'Resposta Correta!' : 'Resposta Incorreta' }}</h2>
+        </div>
+
+        <div class="modal-conteudo">
+          <p *ngIf="respostaCorreta">Parabéns! Você acertou a resposta.</p>
+          
+          <div *ngIf="!respostaCorreta && mensagemErro">
+            <p class="erro-msg">{{ mensagemErro }}</p>
+            <div class="resposta-correta">
+              <h4>Resposta correta:</h4>
+              <p>{{ respostaCorretaTexto }}</p>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-continuar" (click)="proximaEtapa()">
+          {{ respostaCorreta ? 'Continuar' : 'Ok, Entendi' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- TELA DE RESULTADOS FINAIS -->
+    <div class="resultados-finais" *ngIf="jogoFinalizado">
+      <div class="resultados-header">
+        <div class="placar-final">
+          <div class="placar-circle">
+            <svg viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="90" class="circle-bg"/>
+              <circle cx="100" cy="100" r="90" class="circle-progress" 
+                [style.stroke-dasharray]="circumference"
+                [style.stroke-dashoffset]="progressOffset"/>
+            </svg>
+            <div class="placar-texto">
+              <span class="porcentagem">{{ porcentagemAcertos }}%</span>
+              <span class="label">Acertos</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="estatisticas">
+          <div class="stat-item acertos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <div class="stat-info">
+              <span class="stat-numero">{{ acertos }}</span>
+              <span class="stat-label">Acertos</span>
+            </div>
+          </div>
+          <div class="stat-item erros">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            <div class="stat-info">
+              <span class="stat-numero">{{ erros }}</span>
+              <span class="stat-label">Erros</span>
+            </div>
+          </div>
+          <div class="stat-item total">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <div class="stat-info">
+              <span class="stat-numero">{{ totalEtapas }}</span>
+              <span class="stat-label">Total</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="historico-respostas">
+        <h3>Histórico de Respostas</h3>
+        <div class="resposta-historico" *ngFor="let resposta of historicoRespostas; let i = index">
+          <div class="resposta-numero">
+            <span>{{ i + 1 }}</span>
+          </div>
+          <div class="resposta-detalhes">
+            <div class="resposta-status" [class.correto]="resposta.correto" [class.incorreto]="!resposta.correto">
+              <svg *ngIf="resposta.correto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <svg *ngIf="!resposta.correto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              <span>{{ resposta.correto ? 'Correto' : 'Incorreto' }}</span>
+            </div>
+            <p class="resposta-texto">{{ resposta.texto }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="acoes-finais">
+        <button class="btn-jogar-novamente" (click)="jogarNovamente()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          Jogar Novamente
+        </button>
+        <button class="btn-voltar-idioma" (click)="voltarAoIdioma()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Voltar ao Idioma
+        </button>
+      </div>
+    </div>
+
+  </div>
+</main>

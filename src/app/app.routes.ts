@@ -45,6 +45,10 @@ export const routes: Routes = [{
         path: 'visualizar-modulo',
         loadComponent: () => import('./pages/visualizar-modulo/visualizar-modulo').then((m) => m.VisualizarModulo),
       },
+      {
+        path: 'jogar',
+        loadComponent: () => import('./pages/jogar/jogar').then((m) => m.Jogar),
+      },
     ]
   }
 ];
