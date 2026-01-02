@@ -34,6 +34,7 @@ export class CadastrarIdioma {
 
   // ETAPA 1: Dados do Idioma
   idiomaSelecionado: IdiomaOpcao | null = null;
+  descricaoIdioma = ''; // ✅ NOVO CAMPO
   proficiencia = '';
   visibilidade: 'publico' | 'privado' = 'publico';
   mostrarIdiomas = false;
@@ -68,6 +69,7 @@ export class CadastrarIdioma {
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
   alternativas: string[] = ['', ''];
+  respostaCorreta: number | null = null; // ✅ NOVO CAMPO - índice da resposta correta
 
   idiomas: IdiomaOpcao[] = [
     { nome: 'Alemão', bandeira: 'assets/imgs/Germany-Flag.svg.png' },
@@ -162,7 +164,8 @@ export class CadastrarIdioma {
   }
 
   podeAvancarEtapa1(): boolean {
-    return !!(this.idiomaSelecionado && this.proficiencia && this.visibilidade);
+    // ✅ Agora inclui validação da descrição
+    return !!(this.idiomaSelecionado && this.descricaoIdioma.trim() && this.proficiencia && this.visibilidade);
   }
 
   getLetraAlternativa(index: number): string {
@@ -187,7 +190,8 @@ export class CadastrarIdioma {
 
     if (this.modoFrase === 'quiz') {
       const alternativasValidas = this.alternativas.every(a => a.trim());
-      return !!(this.perguntaQuiz.trim() && alternativasValidas);
+      // ✅ Agora também valida se a resposta correta foi marcada
+      return !!(this.perguntaQuiz.trim() && alternativasValidas && this.respostaCorreta !== null);
     }
 
     return false;
@@ -227,17 +231,16 @@ export class CadastrarIdioma {
   }
 
   onImagemSelecionada(event: any): void {
-  const file = event.target.files[0];
-  if (!file) return;
+    const file = event.target.files[0];
+    if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    this.imagemPreview = reader.result as string;
-    this.cdr.detectChanges(); // 👈 atualização imediata
-  };
-  reader.readAsDataURL(file);
-}
-
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imagemPreview = reader.result as string;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+  }
 
   removerImagem(event: Event): void {
     event.stopPropagation();
@@ -258,21 +261,18 @@ export class CadastrarIdioma {
   }
 
   onParImagemSelecionada(event: any, index: number): void {
-  const file = event.target.files?.[0];
-  if (!file) return;
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const reader = new FileReader();
+    const reader = new FileReader();
 
-  reader.onload = (e: any) => {
-    this.pares[index].imagem = e.target.result;
+    reader.onload = (e: any) => {
+      this.pares[index].imagem = e.target.result;
+      this.cdr.detectChanges();
+    };
 
-    // 🔥 FORÇA atualização imediata da tela
-    this.cdr.detectChanges();
-  };
-
-  reader.readAsDataURL(file);
-}
-
+    reader.readAsDataURL(file);
+  }
 
   removerImagemPar(event: Event, index: number): void {
     event.stopPropagation();
@@ -289,77 +289,74 @@ export class CadastrarIdioma {
   removerAlternativa(index: number): void {
     if (this.alternativas.length > 2) {
       this.alternativas.splice(index, 1);
+      // ✅ Se remover a alternativa marcada como correta, reseta
+      if (this.respostaCorreta === index) {
+        this.respostaCorreta = null;
+      } else if (this.respostaCorreta !== null && this.respostaCorreta > index) {
+        this.respostaCorreta--;
+      }
     }
+  }
+
+  // ✅ NOVA FUNÇÃO para marcar resposta correta
+  marcarRespostaCorreta(index: number): void {
+    this.respostaCorreta = index;
   }
 
   trackByIndex(index: number): number {
-  return index;
-}
-
-
-onQuizImagemSelecionada(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  if (!input.files?.length) return;
-
-  const file = input.files[0];
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    this.imagemQuiz = reader.result as string;
-    this.cdr.detectChanges();
-  };
-
-  reader.readAsDataURL(file);
-}
-
-
-
-removerImagemQuiz(event: Event): void {
-  event.stopPropagation();
-  this.imagemQuiz = null;
-}
-
-onVideoQuizChange(url: string): void {
-  if (!url || !url.trim()) {
-    this.videoQuizEmbed = null;
-    return;
+    return index;
   }
 
-  let embedUrl = '';
+  onQuizImagemSelecionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
 
-  // 1️⃣ Já é link embed → usa direto
-  if (url.includes('youtube.com/embed/')) {
-    embedUrl = url;
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.imagemQuiz = reader.result as string;
+      this.cdr.detectChanges();
+    };
+
+    reader.readAsDataURL(file);
   }
 
-  // 2️⃣ Link padrão: youtube.com/watch?v=
-  else if (url.includes('youtube.com/watch')) {
-    const videoIdMatch = url.match(/[?&]v=([^&]+)/);
-    if (videoIdMatch && videoIdMatch[1]) {
-      embedUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+  removerImagemQuiz(event: Event): void {
+    event.stopPropagation();
+    this.imagemQuiz = null;
+  }
+
+  onVideoQuizChange(url: string): void {
+    if (!url || !url.trim()) {
+      this.videoQuizEmbed = null;
+      return;
     }
-  }
 
-  // 3️⃣ Link curto: youtu.be/
-  else if (url.includes('youtu.be/')) {
-    const videoIdMatch = url.match(/youtu\.be\/([^?]+)/);
-    if (videoIdMatch && videoIdMatch[1]) {
-      const params = url.includes('?') ? url.substring(url.indexOf('?')) : '';
-      embedUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}${params}`;
+    let embedUrl = '';
+
+    if (url.includes('youtube.com/embed/')) {
+      embedUrl = url;
+    } else if (url.includes('youtube.com/watch')) {
+      const videoIdMatch = url.match(/[?&]v=([^&]+)/);
+      if (videoIdMatch && videoIdMatch[1]) {
+        embedUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+      }
+    } else if (url.includes('youtu.be/')) {
+      const videoIdMatch = url.match(/youtu\.be\/([^?]+)/);
+      if (videoIdMatch && videoIdMatch[1]) {
+        const params = url.includes('?') ? url.substring(url.indexOf('?')) : '';
+        embedUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}${params}`;
+      }
     }
+
+    if (!embedUrl) {
+      this.videoQuizEmbed = null;
+      return;
+    }
+
+    this.videoQuizEmbed = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
-
-  // Se não conseguiu converter, invalida
-  if (!embedUrl) {
-    this.videoQuizEmbed = null;
-    return;
-  }
-
-  // Sanitiza para uso no iframe
-  this.videoQuizEmbed =
-    this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
-}
-
 
   cancelar(): void {
     if (confirm('Deseja realmente cancelar? Todos os dados serão perdidos.')) {
@@ -371,6 +368,7 @@ onVideoQuizChange(url: string): void {
     const cadastro = {
       etapa1: {
         idioma: this.idiomaSelecionado,
+        descricao: this.descricaoIdioma, // ✅ INCLUÍDO
         proficiencia: this.proficiencia,
         visibilidade: this.visibilidade
       },
@@ -410,7 +408,8 @@ onVideoQuizChange(url: string): void {
         imagem: this.imagemQuiz,
         video: this.videoQuiz,
         pergunta: this.perguntaQuiz,
-        alternativas: this.alternativas
+        alternativas: this.alternativas,
+        respostaCorreta: this.respostaCorreta // ✅ INCLUÍDO
       };
     }
     return null;

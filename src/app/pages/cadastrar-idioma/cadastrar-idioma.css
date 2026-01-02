@@ -836,8 +836,8 @@ textarea {
   margin-bottom: 1.5rem;
 }
 
-/* LINHA DE ALTERNATIVA (Campo completo + Botão) */
-.linha-alternativa {
+/* ✅ ESTILOS PARA O QUIZ COM CHECKBOX DE RESPOSTA CORRETA */
+.linha-alternativa-quiz {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.8rem;
@@ -845,10 +845,61 @@ textarea {
   margin-bottom: 1rem;
 }
 
-.campo-alternativa-full {
+.campo-alternativa-com-checkbox {
   margin: 0;
   min-width: 0;
   width: 100%;
+}
+
+.alternativa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.alternativa-header > label {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.checkbox-resposta-correta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+}
+
+.checkbox-resposta-correta:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.checkbox-resposta-correta input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #10b981;
+  flex-shrink: 0;
+}
+
+.checkbox-resposta-correta label {
+  margin: 0;
+  cursor: pointer;
+  color: rgba(16, 185, 129, 0.9);
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.checkbox-resposta-correta input[type="checkbox"]:checked + label {
+  color: #10b981;
 }
 
 .btn-alternativa-remove {
@@ -1170,6 +1221,10 @@ textarea {
     max-width: none;
     margin-bottom: 0;
     margin-top: 0.5rem;
+  }
+
+  .checkbox-resposta-correta label {
+    font-size: 0.7rem;
   }
 }
 
