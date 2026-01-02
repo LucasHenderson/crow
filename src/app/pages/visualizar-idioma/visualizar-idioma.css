@@ -153,6 +153,39 @@
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
+.acao-btn.denunciar {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.acao-btn.denunciar:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.acao-btn.avaliar {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+}
+
+.acao-btn.avaliar:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+}
+
+.acao-btn.importar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.acao-btn.importar:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
 /* ESTATÍSTICAS */
 .stats-container {
   max-width: 1400px;
@@ -487,6 +520,7 @@
 
 .icone-wrapper {
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .icone {
@@ -507,6 +541,12 @@
   transform: scale(1.05);
 }
 
+.icone-wrapper:hover .icone {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: scale(1.1);
+}
+
 .svg-icone {
   width: 32px;
   height: 32px;
@@ -520,6 +560,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  cursor: pointer;
+}
+
+.info:hover .nome {
+  color: #3b82f6;
 }
 
 .nome {
@@ -534,6 +579,7 @@
   -webkit-box-orient: vertical;
   word-break: break-word;
   max-width: 100%;
+  transition: color 0.3s ease;
 }
 
 .descricao {

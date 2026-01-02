@@ -12,12 +12,13 @@
       
       <div class="titulo-wrapper">
         <h1 class="titulo">{{ idiomaNome }}</h1>
-        <p class="subtitulo">{{ modulos.length }} módulo{{ modulos.length !== 1 ? 's' : '' }} disponíve{{ modulos.length !== 1 ? 'is' : 'l' }}</p>
+        <p class="subtitulo">{{ descricao }}</p>
       </div>
     </div>
 
     <div class="acoes-top">
-      <button class="acao-btn adicionar" (click)="onAdicionarModulo()" title="Adicionar módulo">
+      <!-- Botão para proprietário -->
+      <button class="acao-btn adicionar" *ngIf="isProprietario" (click)="onAdicionarModulo()" title="Adicionar módulo">
         <svg viewBox="0 0 24 24" class="ico">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="16"></line>
@@ -25,6 +26,34 @@
         </svg>
         <span>Adicionar Módulo</span>
       </button>
+
+      <!-- Botões para não proprietário -->
+      <ng-container *ngIf="!isProprietario">
+        <button class="acao-btn denunciar" (click)="denunciarIdioma()" title="Denunciar idioma">
+          <svg viewBox="0 0 24 24" class="ico">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Denunciar</span>
+        </button>
+
+        <button class="acao-btn avaliar" (click)="avaliarIdioma()" title="Avaliar idioma">
+          <svg viewBox="0 0 24 24" class="ico">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Avaliar</span>
+        </button>
+
+        <button class="acao-btn importar" (click)="importarIdioma()" title="Importar idioma">
+          <svg viewBox="0 0 24 24" class="ico">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Importar</span>
+        </button>
+      </ng-container>
     </div>
   </header>
 
@@ -134,14 +163,14 @@
       </div>
 
       <!-- Ícone do módulo -->
-      <div class="icone-wrapper">
+      <div class="icone-wrapper" (click)="visualizarModulo(mod, $event)">
         <div class="icone">
           <svg viewBox="0 0 24 24" class="svg-icone" [innerHTML]="mod.icone"></svg>
         </div>
       </div>
 
       <!-- Informações do módulo -->
-      <div class="info">
+      <div class="info" (click)="visualizarModulo(mod, $event)">
         <h3 class="nome">{{ mod.nome }}</h3>
         <p class="descricao">Frases: {{ mod.frases }}/50</p>
       </div>

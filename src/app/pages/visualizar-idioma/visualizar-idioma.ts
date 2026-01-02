@@ -20,6 +20,8 @@ interface Modulo {
 })
 export class VisualizarIdioma {
   idiomaNome = 'Japonês';
+  descricao = 'Aprender japonês básico para viagens e conversação do dia a dia';
+  isProprietario = false; // Indica se o usuário é proprietário do idioma
   avaliacao = 4.3; // Avaliação de 1 a 5
   totalAvaliacoes = 2134; // Total de avaliações
   
@@ -220,5 +222,43 @@ export class VisualizarIdioma {
   voltar(): void {
     // this.router.navigate(['/idiomas']);
     window.history.back();
+  }
+
+  /**
+   * Navega para a página de visualização do módulo
+   */
+  visualizarModulo(mod: Modulo, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    console.log('Visualizando módulo:', mod.nome);
+    this.router.navigate(['/visualizar-modulo']);
+  }
+
+  /**
+   * Denuncia o idioma
+   */
+  denunciarIdioma(): void {
+    console.log('Denunciando idioma:', this.idiomaNome);
+    alert(`Abrir formulário de denúncia do idioma "${this.idiomaNome}"`);
+  }
+
+  /**
+   * Avalia o idioma
+   */
+  avaliarIdioma(): void {
+    console.log('Avaliando idioma:', this.idiomaNome);
+    alert(`Abrir formulário de avaliação do idioma "${this.idiomaNome}"`);
+  }
+
+  /**
+   * Importa o idioma para a conta do usuário
+   */
+  importarIdioma(): void {
+    const confirmar = confirm(`Deseja importar o idioma "${this.idiomaNome}" para sua conta?`);
+    if (!confirmar) return;
+    
+    console.log('Importando idioma:', this.idiomaNome);
+    alert('Idioma importado com sucesso!');
   }
 }
