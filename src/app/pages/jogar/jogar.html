@@ -102,6 +102,8 @@
               class="par-item"
               *ngFor="let par of paresEmbaralhados; let i = index"
               [class.selecionado]="palavraSelecionada === i"
+              [class.conectado]="getCorConexaoPalavra(i) !== null"
+              [style.border-color]="getCorConexaoPalavra(i)"
               (click)="selecionarPalavraColuna(i)">
               <img *ngIf="par.imagem" [src]="par.imagem" alt="Imagem" />
               <div *ngIf="!par.imagem" class="par-imagem-padrao">
@@ -122,6 +124,7 @@
               *ngFor="let par of traducoesEmbaralhadas; let i = index"
               [class.selecionado]="traducaoSelecionada === i"
               [class.conectado]="paresSelecionados[i] !== undefined"
+              [style.border-color]="getCorConexaoTraducao(i)"
               (click)="selecionarTraducaoColuna(i)">
               <span>{{ par.traducao }}</span>
             </div>
@@ -130,7 +133,7 @@
 
         <div class="conexoes-feitas" *ngIf="getConexoesKeys().length > 0">
           <h4>Conexões realizadas:</h4>
-          <div class="conexao-item" *ngFor="let key of getConexoesKeys()">
+          <div class="conexao-item" *ngFor="let key of getConexoesKeys()" [style.border-left-color]="coresPares[getConexoesKeys().indexOf(key)]">
             <span class="conexao-palavra">{{ paresEmbaralhados[paresSelecionados[+key]].palavra }}</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="12" x2="19" y2="12"/>
@@ -175,7 +178,7 @@
         <div class="quiz-alternativas">
           <div 
             class="alternativa"
-            *ngFor="let alt of fraseAtual.alternativas; let i = index"
+            *ngFor="let alt of fraseAtual.alternativasEmbaralhadas; let i = index"
             [class.selecionada]="alternativaSelecionada === i"
             (click)="selecionarAlternativa(i)">
             <div class="alternativa-letra">{{ getLetraAlternativa(i) }}</div>

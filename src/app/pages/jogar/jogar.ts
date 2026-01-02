@@ -33,7 +33,9 @@ interface Frase {
   videoQuiz?: SafeResourceUrl;
   pergunta?: string;
   alternativas?: string[];
+  alternativasEmbaralhadas?: string[];
   respostaCorretaIndex?: number;
+  respostaCorretaTexto?: string;
 }
 
 interface HistoricoResposta {
@@ -52,7 +54,7 @@ export class Jogar implements OnInit {
   
   // Controle do jogo
   etapaAtual: number = 1;
-  totalEtapas: number = 15;
+  totalEtapas: number = 4;
   frases: Frase[] = [];
   fraseAtual: Frase | null = null;
   
@@ -79,6 +81,18 @@ export class Jogar implements OnInit {
   paresSelecionados: { [key: number]: number } = {};
   traducoesEmbaralhadas: Par[] = [];
   paresEmbaralhados: Par[] = [];
+  coresPares: string[] = [
+    '#ef4444', // vermelho
+    '#3b82f6', // azul
+    '#10b981', // verde
+    '#f59e0b', // laranja
+    '#8b5cf6', // roxo
+    '#ec4899', // rosa
+    '#14b8a6', // teal
+    '#f97316', // laranja escuro
+    '#06b6d4', // ciano
+    '#a855f7'  // roxo claro
+  ];
   
   // Modo: Quiz
   alternativaSelecionada: number | null = null;
@@ -133,13 +147,23 @@ export class Jogar implements OnInit {
           { palavra: 'Pássaro', traducao: 'Bird' }
         ]
       },
-      // Quiz
+      // Quiz com imagem
       {
         modo: 'quiz',
-        imagemQuiz: '',
+        imagemQuiz: 'assets/imgs/quiz.jpg',
         pergunta: 'Qual é a tradução de "Hello"?',
         alternativas: ['Olá', 'Tchau', 'Bom dia', 'Boa noite'],
-        respostaCorretaIndex: 0
+        respostaCorretaIndex: 0,
+        respostaCorretaTexto: 'Olá'
+      },
+      // Quiz com vídeo do YouTube
+      {
+        modo: 'quiz',
+        videoQuiz: this.sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/dQw4w9WgXcQ'),
+        pergunta: 'Com base no vídeo, qual idioma está sendo falado?',
+        alternativas: ['Inglês', 'Espanhol', 'Francês', 'Alemão'],
+        respostaCorretaIndex: 0,
+        respostaCorretaTexto: 'Inglês'
       }
       // ... adicione mais frases para completar 15
     ];
@@ -167,6 +191,27 @@ export class Jogar implements OnInit {
       this.prepararTraducao();
     } else if (this.fraseAtual.modo === 'pares') {
       this.prepararPares();
+    } else if (this.fraseAtual.modo === 'quiz') {
+      this.prepararQuiz();
+    }
+  }
+
+  prepararQuiz(): void {
+    if (this.fraseAtual && this.fraseAtual.alternativas) {
+      // Cria um array de índices das alternativas originais
+      const indicesOriginais = this.fraseAtual.alternativas.map((_, i) => i);
+      
+      // Embaralha os índices
+      const indicesEmbaralhados = [...indicesOriginais].sort(() => Math.random() - 0.5);
+      
+      // Cria array de alternativas embaralhadas
+      this.fraseAtual.alternativasEmbaralhadas = indicesEmbaralhados.map(
+        i => this.fraseAtual!.alternativas![i]
+      );
+      
+      // Atualiza o índice da resposta correta para a nova posição
+      const respostaOriginal = this.fraseAtual.alternativas[this.fraseAtual.respostaCorretaIndex!];
+      this.fraseAtual.respostaCorretaIndex = this.fraseAtual.alternativasEmbaralhadas.indexOf(respostaOriginal);
     }
   }
 
@@ -218,7 +263,12 @@ export class Jogar implements OnInit {
 
   // SELECIONAR PARES
   selecionarPalavraColuna(index: number): void {
-    if (this.paresSelecionados[this.traducaoSelecionada!] === index) return;
+    // Verifica se a palavra já está conectada
+    const jaConectada = Object.keys(this.paresSelecionados).find(
+      key => this.paresSelecionados[+key] === index
+    );
+    
+    if (jaConectada) return;
     
     this.palavraSelecionada = index;
     
@@ -351,7 +401,7 @@ export class Jogar implements OnInit {
       });
     } else {
       this.erros++;
-      const alternativaCorreta = this.fraseAtual!.alternativas![this.fraseAtual!.respostaCorretaIndex!];
+      const alternativaCorreta = this.fraseAtual!.alternativasEmbaralhadas![this.fraseAtual!.respostaCorretaIndex!];
       const letra = this.getLetraAlternativa(this.fraseAtual!.respostaCorretaIndex!);
       this.mensagemErro = 'Alternativa incorreta.';
       this.respostaCorretaTexto = `${letra}) ${alternativaCorreta}`;
@@ -413,6 +463,30 @@ export class Jogar implements OnInit {
 
   getConexoesKeys(): string[] {
     return Object.keys(this.paresSelecionados);
+  }
+
+  getCorConexaoPalavra(indexPalavra: number): string | null {
+    // Procura se essa palavra está conectada a alguma tradução
+    const traducaoIndex = Object.keys(this.paresSelecionados).find(
+      key => this.paresSelecionados[+key] === indexPalavra
+    );
+    
+    if (traducaoIndex !== undefined) {
+      const ordemConexao = this.getConexoesKeys().indexOf(traducaoIndex);
+      return this.coresPares[ordemConexao];
+    }
+    
+    return null;
+  }
+
+  getCorConexaoTraducao(indexTraducao: number): string | null {
+    // Verifica se essa tradução está conectada
+    if (this.paresSelecionados[indexTraducao] !== undefined) {
+      const ordemConexao = this.getConexoesKeys().indexOf(String(indexTraducao));
+      return this.coresPares[ordemConexao];
+    }
+    
+    return null;
   }
 
   Object = Object;
