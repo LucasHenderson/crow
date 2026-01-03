@@ -69,4 +69,185 @@
 
   </div>
 
+  <!-- ========== MODAL DE EDIÇÃO ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalEdicao" (click)="fecharModalEdicao()">
+    <div class="modal-container" (click)="$event.stopPropagation(); fecharDropdownsEdicao($event)">
+      
+      <div class="modal-header">
+        <h2>Editar Idioma</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalEdicao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="bandeira-section">
+          <div class="bandeira-preview">
+            <img *ngIf="idiomaSelecionadoEdicao" [src]="idiomaSelecionadoEdicao.bandeira" [alt]="'Bandeira ' + idiomaSelecionadoEdicao.nome" />
+            <div class="bandeira-placeholder" *ngIf="!idiomaSelecionadoEdicao">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <p>Selecione um idioma</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Nome *</label>
+          <input type="text" 
+                 [(ngModel)]="nomeEdicao" 
+                 placeholder="Digite o nome do idioma"
+                 maxlength="80" />
+        </div>
+
+        <div class="campo">
+          <label>Idioma *</label>
+          <div class="select" 
+               [class.active]="mostrarIdiomasEdicao" 
+               [class.placeholder]="!idiomaSelecionadoEdicao" 
+               (click)="toggleIdiomasEdicao()">
+            {{ idiomaSelecionadoEdicao?.nome || 'Selecione um idioma' }}
+          </div>
+          <div class="dropdown" *ngIf="mostrarIdiomasEdicao">
+            <input type="text" 
+                   placeholder="Buscar..." 
+                   [(ngModel)]="buscaIdiomaEdicao" 
+                   (click)="$event.stopPropagation()" />
+            <div class="option" 
+                 *ngFor="let idioma of idiomasFiltradosEdicao" 
+                 (click)="selecionarIdiomaEdicao(idioma)">
+              {{ idioma.nome }}
+            </div>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Descrição *</label>
+          <textarea [(ngModel)]="descricaoEdicao" 
+                    placeholder="Descreva o que você aprenderá neste idioma..."></textarea>
+        </div>
+
+        <div class="campo">
+          <label>Proficiência *</label>
+          <div class="select" 
+               [class.active]="mostrarProficienciaEdicao" 
+               [class.placeholder]="!proficienciaEdicao" 
+               (click)="toggleProficienciaEdicao()">
+            {{ proficienciaEdicao || 'Selecione a proficiência' }}
+          </div>
+          <div class="dropdown" *ngIf="mostrarProficienciaEdicao">
+            <div class="option" 
+                 [class.nivel-iniciante]="nivel === 'Iniciante'" 
+                 [class.nivel-basico]="nivel === 'Básico'" 
+                 [class.nivel-intermediario]="nivel === 'Intermediário'" 
+                 [class.nivel-avancado]="nivel === 'Avançado'" 
+                 [class.nivel-fluente]="nivel === 'Fluente'" 
+                 *ngFor="let nivel of proficiencias" 
+                 (click)="selecionarProficienciaEdicao(nivel)">
+              {{ nivel }}
+            </div>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Visibilidade *</label>
+          <div class="radio-group">
+            <div class="radio-option" 
+                 [class.selected]="visibilidadeEdicao === 'publico'" 
+                 (click)="visibilidadeEdicao = 'publico'">
+              <input type="radio" 
+                     id="publico-edicao" 
+                     value="publico" 
+                     [(ngModel)]="visibilidadeEdicao" />
+              <label for="publico-edicao">Público</label>
+            </div>
+            <div class="radio-option" 
+                 [class.selected]="visibilidadeEdicao === 'privado'" 
+                 (click)="visibilidadeEdicao = 'privado'">
+              <input type="radio" 
+                     id="privado-edicao" 
+                     value="privado" 
+                     [(ngModel)]="visibilidadeEdicao" />
+              <label for="privado-edicao">Privado</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalEdicao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-salvar-modal" 
+                (click)="salvarEdicao()" 
+                [disabled]="!podeAvancarEdicao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE EXCLUSÃO ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalExclusao" (click)="fecharModalExclusao()">
+    <div class="modal-container modal-exclusao" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Confirmar Exclusão</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalExclusao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alerta-exclusao">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <h3>Atenção!</h3>
+          <p>Você está prestes a excluir o idioma <strong>"{{ idiomaEmExclusao?.nome }}"</strong>.</p>
+          <p class="texto-alerta">Esta ação é <strong>irreversível</strong> e todos os dados associados a este idioma serão permanentemente removidos.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalExclusao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-confirmar-exclusao" (click)="confirmarExclusao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          Confirmar Exclusão
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </main>
