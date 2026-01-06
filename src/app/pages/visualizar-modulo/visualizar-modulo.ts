@@ -323,7 +323,7 @@ export class VisualizarModulo implements OnInit {
 
   adicionarFrase(): void {
     // Navegar para página de cadastro de frase
-    this.router.navigate(['/cadastrar-frase', this.moduloId]);
+    this.router.navigate(['/cadastrar-frase']);
   }
 
   editarFrase(frase: Frase): void {

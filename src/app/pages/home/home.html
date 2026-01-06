@@ -99,14 +99,6 @@
         </div>
 
         <div class="campo">
-          <label>Nome *</label>
-          <input type="text" 
-                 [(ngModel)]="nomeEdicao" 
-                 placeholder="Digite o nome do idioma"
-                 maxlength="80" />
-        </div>
-
-        <div class="campo">
           <label>Idioma *</label>
           <div class="select" 
                [class.active]="mostrarIdiomasEdicao" 
@@ -125,6 +117,14 @@
               {{ idioma.nome }}
             </div>
           </div>
+        </div>
+
+        <div class="campo">
+          <label>Nome *</label>
+          <input type="text" 
+                 [(ngModel)]="nomeEdicao" 
+                 placeholder="Digite o nome do idioma"
+                 maxlength="80" />
         </div>
 
         <div class="campo">

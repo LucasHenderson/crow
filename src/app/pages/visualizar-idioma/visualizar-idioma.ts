@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -83,7 +83,8 @@ export class VisualizarIdioma {
 
   constructor(
     private sanitizer: DomSanitizer,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.addModule('Saudações');
     this.addModule('Vocabulário Básico');
@@ -367,6 +368,8 @@ export class VisualizarIdioma {
     this.mensagemSucesso = mensagem;
     this.mostrarMensagemSucesso = true;
     
+    this.cdr.detectChanges();
+
     setTimeout(() => {
       this.mostrarMensagemSucesso = false;
     }, 4000);
