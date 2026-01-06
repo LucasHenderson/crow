@@ -153,7 +153,6 @@
       (keydown.enter)="toggleModulo(mod)"
       (keydown.space)="$event.preventDefault(); toggleModulo(mod)"
     >
-      <!-- Checkbox customizado -->
       <div class="checkbox-wrapper" (click)="toggleModulo(mod, $event)">
         <div class="checkbox" [class.checked]="mod.selecionado">
           <svg viewBox="0 0 24 24" class="check-icon" *ngIf="mod.selecionado">
@@ -162,20 +161,17 @@
         </div>
       </div>
 
-      <!-- Ícone do módulo -->
       <div class="icone-wrapper" (click)="visualizarModulo(mod, $event)">
         <div class="icone">
           <svg viewBox="0 0 24 24" class="svg-icone" [innerHTML]="mod.icone"></svg>
         </div>
       </div>
 
-      <!-- Informações do módulo -->
       <div class="info" (click)="visualizarModulo(mod, $event)">
         <h3 class="nome">{{ mod.nome }}</h3>
         <p class="descricao">Frases: {{ mod.frases }}/50</p>
       </div>
 
-      <!-- Ações do módulo -->
       <div class="acoes-modulo">
         <button
           class="mini-btn editar-mini"
@@ -200,7 +196,6 @@
         </button>
       </div>
 
-      <!-- Indicador de seleção -->
       <div class="selection-indicator" *ngIf="mod.selecionado"></div>
     </article>
   </section>
@@ -222,6 +217,266 @@
       </svg>
       Adicionar Primeiro Módulo
     </button>
+  </div>
+
+  <!-- ========== MODAL DE DENÚNCIA ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalDenuncia" (click)="fecharModalDenuncia()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Denunciar Idioma</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalDenuncia()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="instrucao-denuncia">Selecione os tipos de conteúdo inapropriado encontrados neste idioma:</p>
+        
+        <div class="opcoes-denuncia">
+          <label class="checkbox-denuncia" [class.checked]="denunciaImagensInapropriadas">
+            <input type="checkbox" [(ngModel)]="denunciaImagensInapropriadas" />
+            <span class="checkmark"></span>
+            <span class="label-text">Imagens Inapropriadas</span>
+          </label>
+
+          <label class="checkbox-denuncia" [class.checked]="denunciaVideosInapropriados">
+            <input type="checkbox" [(ngModel)]="denunciaVideosInapropriados" />
+            <span class="checkmark"></span>
+            <span class="label-text">Vídeos Inapropriados</span>
+          </label>
+
+          <label class="checkbox-denuncia" [class.checked]="denunciaLinksInapropriados">
+            <input type="checkbox" [(ngModel)]="denunciaLinksInapropriados" />
+            <span class="checkmark"></span>
+            <span class="label-text">Links Inapropriados</span>
+          </label>
+
+          <label class="checkbox-denuncia" [class.checked]="denunciaFrasesInapropriadas">
+            <input type="checkbox" [(ngModel)]="denunciaFrasesInapropriadas" />
+            <span class="checkmark"></span>
+            <span class="label-text">Frases Inapropriadas</span>
+          </label>
+
+          <label class="checkbox-denuncia" [class.checked]="denunciaOutros">
+            <input type="checkbox" [(ngModel)]="denunciaOutros" />
+            <span class="checkmark"></span>
+            <span class="label-text">Outros (descreva)</span>
+          </label>
+        </div>
+
+        <div class="campo" *ngIf="denunciaOutros">
+          <label>Descrição *</label>
+          <textarea [(ngModel)]="denunciaDescricao" 
+                    placeholder="Descreva o problema encontrado..."
+                    rows="4"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalDenuncia()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-enviar-modal" 
+                (click)="enviarDenuncia()" 
+                [disabled]="!podeEnviarDenuncia">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          Enviar Denúncia
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE AVALIAÇÃO ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalAvaliacao" (click)="fecharModalAvaliacao()">
+    <div class="modal-container modal-avaliacao" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Avaliar Idioma</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalAvaliacao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="instrucao-avaliacao">Qual nota você daria para este idioma?</p>
+        
+        <div class="estrelas-avaliacao">
+          <svg *ngFor="let i of [1, 2, 3, 4, 5]"
+               viewBox="0 0 24 24"
+               class="estrela-avaliacao"
+               [class.active]="i <= (notaHover || notaAvaliacao)"
+               (click)="selecionarNota(i)"
+               (mouseenter)="hoverNota(i)"
+               (mouseleave)="resetHover()">
+            <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+          </svg>
+        </div>
+
+        <p class="nota-selecionada" *ngIf="notaAvaliacao > 0">
+          Você selecionou: <strong>{{ notaAvaliacao }} estrela{{ notaAvaliacao > 1 ? 's' : '' }}</strong>
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalAvaliacao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-enviar-modal" 
+                (click)="enviarAvaliacao()" 
+                [disabled]="notaAvaliacao === 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          Enviar Avaliação
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE IMPORTAÇÃO ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalImportacao" (click)="fecharModalImportacao()">
+    <div class="modal-container modal-importacao" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Importar Idioma</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalImportacao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Etapa: Confirmação (< 4 idiomas) -->
+        <div *ngIf="etapaImportacao === 'confirmacao'">
+          <div class="icone-confirmacao">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </div>
+          <p class="texto-confirmacao">
+            Deseja importar o idioma <strong>"{{ idiomaNome }}"</strong> para sua conta?
+          </p>
+          <p class="texto-info">
+            Você poderá acessar todos os módulos e frases deste idioma.
+          </p>
+        </div>
+
+        <!-- Etapa: Exclusão (4 idiomas) -->
+        <div *ngIf="etapaImportacao === 'exclusao'">
+          <div class="alerta-limite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <h3>Limite Atingido!</h3>
+            <p>Você já possui 4 idiomas cadastrados. Para importar <strong>"{{ idiomaNome }}"</strong>, é necessário excluir pelo menos 1 idioma.</p>
+          </div>
+
+          <div class="lista-idiomas-usuario">
+            <p class="titulo-lista">Selecione o(s) idioma(s) que deseja excluir:</p>
+            
+            <div class="idioma-usuario-item"
+                 *ngFor="let idioma of idiomasUsuario"
+                 [class.selecionado]="idioma.selecionado"
+                 (click)="toggleIdiomaImportacao(idioma)">
+              <div class="checkbox-idioma">
+                <div class="check" [class.checked]="idioma.selecionado">
+                  <svg viewBox="0 0 24 24" *ngIf="idioma.selecionado">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <img [src]="idioma.bandeira" [alt]="'Bandeira ' + idioma.nome" />
+              <span>{{ idioma.nome }}</span>
+            </div>
+          </div>
+
+          <div class="alerta-exclusao-importacao" *ngIf="idiomasSelecionadosParaExclusao.length > 0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>A exclusão do(s) idioma(s) selecionado(s) é <strong>irreversível</strong>. Todos os dados serão removidos permanentemente.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalImportacao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+
+        <button class="btn-confirmar-importacao" 
+                *ngIf="etapaImportacao === 'confirmacao'"
+                (click)="confirmarImportacao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Confirmar Importação
+        </button>
+
+        <button class="btn-excluir-importar" 
+                *ngIf="etapaImportacao === 'exclusao'"
+                (click)="excluirEImportar()"
+                [disabled]="!podeExcluirEImportar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          Excluir e Importar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== MENSAGEM DE SUCESSO ========== -->
+  <div class="mensagem-sucesso" *ngIf="mostrarMensagemSucesso" [@slideIn]>
+    <div class="sucesso-content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <p>{{ mensagemSucesso }}</p>
+      <button class="btn-fechar-sucesso" (click)="fecharMensagemSucesso()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
   </div>
 
 </main>

@@ -50,7 +50,13 @@
               </div>
             </div>
 
-            <!-- ✅ NOVO CAMPO DE DESCRIÇÃO -->
+            <!-- ✅ NOVO CAMPO DE NOME -->
+            <div class="campo">
+              <label>Nome *</label>
+              <input type="text" [(ngModel)]="nomeIdioma" placeholder="Ex: Japonês para Viagens" maxlength="80" />
+            </div>
+
+            <!-- CAMPO DE DESCRIÇÃO -->
             <div class="campo">
               <label>Descrição *</label>
               <textarea [(ngModel)]="descricaoIdioma" placeholder="Descreva o que você aprenderá neste idioma..."></textarea>
@@ -326,7 +332,7 @@
                 <textarea [(ngModel)]="perguntaQuiz" placeholder="Digite a pergunta"></textarea>
               </div>
 
-              <!-- ✅ ALTERNATIVAS COM MARCADOR DE RESPOSTA CORRETA -->
+              <!-- ✅ ALTERNATIVAS COM RADIO DE RESPOSTA CORRETA (PADRÃO ALTERNATIVA A) -->
               <div *ngFor="let alt of alternativas; let i = index; trackBy: trackByIndex">
                 <div class="linha-alternativa-quiz">
                   <div class="campo-alternativa-com-checkbox">
@@ -334,7 +340,8 @@
                       <label>Alternativa {{ getLetraAlternativa(i) }} *</label>
                       <div class="checkbox-resposta-correta">
                         <input 
-                          type="checkbox" 
+                          type="radio" 
+                          name="resposta-correta"
                           [id]="'resposta-' + i"
                           [checked]="respostaCorreta === i"
                           (change)="marcarRespostaCorreta(i)"

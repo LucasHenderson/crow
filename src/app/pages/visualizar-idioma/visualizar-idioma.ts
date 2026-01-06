@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 
@@ -11,21 +12,49 @@ interface Modulo {
   frases: number;
 }
 
+interface IdiomaUsuario {
+  nome: string;
+  bandeira: string;
+  selecionado: boolean;
+}
+
 @Component({
   selector: 'app-visualizar-idioma',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './visualizar-idioma.html',
   styleUrl: './visualizar-idioma.css',
 })
 export class VisualizarIdioma {
   idiomaNome = 'Japonês';
   descricao = 'Aprender japonês básico para viagens e conversação do dia a dia';
-  isProprietario = false; // Indica se o usuário é proprietário do idioma
-  avaliacao = 4.3; // Avaliação de 1 a 5
-  totalAvaliacoes = 2134; // Total de avaliações
+  isProprietario = false;
+  avaliacao = 4.3;
+  totalAvaliacoes = 2134;
   
-  // Ícones SVG base (conteúdo interno dos paths/shapes)
+  // Controle dos modais
+  mostrarModalDenuncia = false;
+  mostrarModalAvaliacao = false;
+  mostrarModalImportacao = false;
+  mostrarMensagemSucesso = false;
+  mensagemSucesso = '';
+  
+  // Dados de denúncia
+  denunciaImagensInapropriadas = false;
+  denunciaVideosInapropriados = false;
+  denunciaLinksInapropriados = false;
+  denunciaFrasesInapropriadas = false;
+  denunciaOutros = false;
+  denunciaDescricao = '';
+  
+  // Dados de avaliação
+  notaAvaliacao = 0;
+  notaHover = 0;
+  
+  // Dados de importação
+  idiomasUsuario: IdiomaUsuario[] = [];
+  etapaImportacao: 'confirmacao' | 'exclusao' | 'sucesso' = 'confirmacao';
+  
   private rawIcons = [
     `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
     `<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>`,
@@ -56,24 +85,20 @@ export class VisualizarIdioma {
     private sanitizer: DomSanitizer,
     private router: Router
   ) {
-    // Criar módulos iniciais
     this.addModule('Saudações');
     this.addModule('Vocabulário Básico');
     this.addModule('Frases Comuns');
     this.addModule('Números e Contagem');
     this.addModule('Dias da Semana');
+    
+    // Simular idiomas do usuário (para teste)
+    this.carregarIdiomasUsuario();
   }
 
-  /**
-   * Sanitiza o conteúdo SVG interno
-   */
   private makeIconSvg(raw: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(raw);
   }
 
-  /**
-   * Adiciona um novo módulo
-   */
   addModule(nome?: string): void {
     if (this.modulos.length >= 20) {
       alert('Limite de 20 módulos atingido.');
@@ -86,15 +111,12 @@ export class VisualizarIdioma {
       nome: nome || `Módulo ${this.nextId - 1}`,
       icone: this.makeIconSvg(iconRaw),
       selecionado: false,
-      frases: Math.floor(Math.random() * 50) + 1 // Frases aleatórias de 1 a 50
+      frases: Math.floor(Math.random() * 50) + 1
     };
     
     this.modulos.push(modulo);
   }
 
-  /**
-   * Alterna seleção de um módulo
-   */
   toggleModulo(mod: Modulo, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -102,66 +124,39 @@ export class VisualizarIdioma {
     mod.selecionado = !mod.selecionado;
   }
 
-  /**
-   * Seleciona todos os módulos
-   */
   selecionarTodos(): void {
     this.modulos.forEach(m => m.selecionado = true);
   }
 
-  /**
-   * Limpa todas as seleções
-   */
   limparSelecao(): void {
     this.modulos.forEach(m => m.selecionado = false);
   }
 
-  /**
-   * Retorna array de módulos selecionados
-   */
   get modulosSelecionados(): Modulo[] {
     return this.modulos.filter(m => m.selecionado);
   }
 
-  /**
-   * Verifica se pode iniciar (tem pelo menos um módulo selecionado)
-   */
   get podeIniciar(): boolean {
     return this.modulosSelecionados.length > 0;
   }
 
-  /**
-   * Calcula o progresso percentual baseado no número de módulos
-   */
   calcularProgresso(): number {
     return Math.round((this.modulos.length / 20) * 100);
   }
 
-  /**
-   * Retorna array de booleanos para renderizar estrelas (arredondamento para cima)
-   */
   estrelas(nota: number): boolean[] {
     const notaArredondada = Math.ceil(nota);
     return Array.from({ length: 5 }, (_, i) => i < notaArredondada);
   }
 
-  /**
-   * Inicia os módulos selecionados
-   */
   iniciar(): void {
     if (!this.podeIniciar) return;
     
     const ids = this.modulosSelecionados.map(m => m.id);
     console.log('Iniciando módulos:', ids);
     alert(`Iniciando ${this.modulosSelecionados.length} módulo(s) selecionado(s)!`);
-    
-    // Aqui você pode navegar para a página de exercícios
-    // this.router.navigate(['/exercicios'], { queryParams: { modulos: ids.join(',') } });
   }
 
-  /**
-   * Abre modal/página para adicionar novo módulo
-   */
   onAdicionarModulo(): void {
     const nome = prompt('Nome do novo módulo:');
     if (!nome || !nome.trim()) return;
@@ -169,30 +164,6 @@ export class VisualizarIdioma {
     this.addModule(nome.trim());
   }
 
-  /**
-   * Edita o idioma
-   */
-  editarIdioma(): void {
-    console.log('Editando idioma:', this.idiomaNome);
-    alert(`Abrir editor do idioma "${this.idiomaNome}"`);
-    // this.router.navigate(['/editar-idioma', idiomaId]);
-  }
-
-  /**
-   * Exclui o idioma
-   */
-  excluirIdioma(): void {
-    const confirmar = confirm(`Deseja realmente excluir o idioma "${this.idiomaNome}"?`);
-    if (!confirmar) return;
-    
-    console.log('Idioma excluído:', this.idiomaNome);
-    alert('Idioma excluído com sucesso!');
-    // this.router.navigate(['/idiomas']);
-  }
-
-  /**
-   * Edita um módulo específico
-   */
   editarModulo(mod: Modulo): void {
     const novoNome = prompt('Novo nome do módulo (máximo 80 caracteres):', mod.nome);
     if (!novoNome || !novoNome.trim()) return;
@@ -201,9 +172,6 @@ export class VisualizarIdioma {
     mod.nome = nomeTruncado;
   }
 
-  /**
-   * Remove um módulo com confirmação
-   */
   removerModuloConfirmacao(mod: Modulo): void {
     if (this.modulos.length <= 1) {
       alert('Deve existir pelo menos 1 módulo.');
@@ -216,17 +184,10 @@ export class VisualizarIdioma {
     this.modulos = this.modulos.filter(m => m.id !== mod.id);
   }
 
-  /**
-   * Volta para a página anterior
-   */
   voltar(): void {
-    // this.router.navigate(['/idiomas']);
     window.history.back();
   }
 
-  /**
-   * Navega para a página de visualização do módulo
-   */
   visualizarModulo(mod: Modulo, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -235,30 +196,183 @@ export class VisualizarIdioma {
     this.router.navigate(['/visualizar-modulo']);
   }
 
-  /**
-   * Denuncia o idioma
-   */
+  // ===== MODAL DE DENÚNCIA =====
+  
   denunciarIdioma(): void {
-    console.log('Denunciando idioma:', this.idiomaNome);
-    alert(`Abrir formulário de denúncia do idioma "${this.idiomaNome}"`);
+    this.mostrarModalDenuncia = true;
   }
 
-  /**
-   * Avalia o idioma
-   */
-  avaliarIdioma(): void {
-    console.log('Avaliando idioma:', this.idiomaNome);
-    alert(`Abrir formulário de avaliação do idioma "${this.idiomaNome}"`);
+  fecharModalDenuncia(): void {
+    this.mostrarModalDenuncia = false;
+    this.limparCamposDenuncia();
   }
 
-  /**
-   * Importa o idioma para a conta do usuário
-   */
-  importarIdioma(): void {
-    const confirmar = confirm(`Deseja importar o idioma "${this.idiomaNome}" para sua conta?`);
-    if (!confirmar) return;
+  limparCamposDenuncia(): void {
+    this.denunciaImagensInapropriadas = false;
+    this.denunciaVideosInapropriados = false;
+    this.denunciaLinksInapropriados = false;
+    this.denunciaFrasesInapropriadas = false;
+    this.denunciaOutros = false;
+    this.denunciaDescricao = '';
+  }
+
+  get podeEnviarDenuncia(): boolean {
+    const temDenuncia = this.denunciaImagensInapropriadas || 
+                        this.denunciaVideosInapropriados || 
+                        this.denunciaLinksInapropriados || 
+                        this.denunciaFrasesInapropriadas || 
+                        this.denunciaOutros;
     
+    if (this.denunciaOutros) {
+      return temDenuncia && this.denunciaDescricao.trim().length > 0;
+    }
+    
+    return temDenuncia;
+  }
+
+  enviarDenuncia(): void {
+    if (!this.podeEnviarDenuncia) return;
+    
+    console.log('Denúncia enviada:', {
+      imagens: this.denunciaImagensInapropriadas,
+      videos: this.denunciaVideosInapropriados,
+      links: this.denunciaLinksInapropriados,
+      frases: this.denunciaFrasesInapropriadas,
+      outros: this.denunciaOutros,
+      descricao: this.denunciaDescricao
+    });
+    
+    this.fecharModalDenuncia();
+    this.exibirMensagemSucesso('Obrigado por sua colaboração! A moderação verificará e agirá assim que possível.');
+  }
+
+  // ===== MODAL DE AVALIAÇÃO =====
+  
+  avaliarIdioma(): void {
+    this.notaAvaliacao = 0;
+    this.notaHover = 0;
+    this.mostrarModalAvaliacao = true;
+  }
+
+  fecharModalAvaliacao(): void {
+    this.mostrarModalAvaliacao = false;
+    this.notaAvaliacao = 0;
+    this.notaHover = 0;
+  }
+
+  selecionarNota(nota: number): void {
+    this.notaAvaliacao = nota;
+  }
+
+  hoverNota(nota: number): void {
+    this.notaHover = nota;
+  }
+
+  resetHover(): void {
+    this.notaHover = 0;
+  }
+
+  enviarAvaliacao(): void {
+    if (this.notaAvaliacao === 0) return;
+    
+    // Calcular nova média
+    const somaTotal = (this.avaliacao * this.totalAvaliacoes) + this.notaAvaliacao;
+    const novoTotal = this.totalAvaliacoes + 1;
+    let novaMedia = somaTotal / novoTotal;
+    
+    // Arredondar para 5 se >= 4.5
+    if (novaMedia >= 4.5) {
+      novaMedia = 5;
+    }
+    
+    this.avaliacao = novaMedia;
+    this.totalAvaliacoes = novoTotal;
+    
+    console.log('Avaliação enviada:', this.notaAvaliacao);
+    console.log('Nova média:', this.avaliacao);
+    
+    this.fecharModalAvaliacao();
+    this.exibirMensagemSucesso('Avaliação enviada com sucesso! Obrigado pelo seu feedback.');
+  }
+
+  // ===== MODAL DE IMPORTAÇÃO =====
+  
+  importarIdioma(): void {
+    this.carregarIdiomasUsuario();
+    
+    if (this.idiomasUsuario.length >= 4) {
+      this.etapaImportacao = 'exclusao';
+    } else {
+      this.etapaImportacao = 'confirmacao';
+    }
+    
+    this.mostrarModalImportacao = true;
+  }
+
+  fecharModalImportacao(): void {
+    this.mostrarModalImportacao = false;
+    this.etapaImportacao = 'confirmacao';
+    this.limparSelecaoIdiomas();
+  }
+
+  carregarIdiomasUsuario(): void {
+    // Simular idiomas do usuário (substituir por dados reais)
+    this.idiomasUsuario = [
+      { nome: 'Inglês', bandeira: '../../../assets/imgs/United-States-Flag.svg', selecionado: false },
+      { nome: 'Espanhol', bandeira: '../../../assets/imgs/Spain-Flag.svg', selecionado: false },
+      { nome: 'Francês', bandeira: '../../../assets/imgs/France-Flag.png', selecionado: false },
+      { nome: 'Alemão', bandeira: '../../../assets/imgs/Germany-Flag.svg.png', selecionado: false }
+    ];
+  }
+
+  limparSelecaoIdiomas(): void {
+    this.idiomasUsuario.forEach(i => i.selecionado = false);
+  }
+
+  toggleIdiomaImportacao(idioma: IdiomaUsuario): void {
+    idioma.selecionado = !idioma.selecionado;
+  }
+
+  get idiomasSelecionadosParaExclusao(): IdiomaUsuario[] {
+    return this.idiomasUsuario.filter(i => i.selecionado);
+  }
+
+  get podeExcluirEImportar(): boolean {
+    return this.idiomasSelecionadosParaExclusao.length > 0;
+  }
+
+  confirmarImportacao(): void {
     console.log('Importando idioma:', this.idiomaNome);
-    alert('Idioma importado com sucesso!');
+    this.fecharModalImportacao();
+    this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
+  }
+
+  excluirEImportar(): void {
+    if (!this.podeExcluirEImportar) return;
+    
+    const nomesExcluidos = this.idiomasSelecionadosParaExclusao.map(i => i.nome).join(', ');
+    console.log('Excluindo idiomas:', nomesExcluidos);
+    console.log('Importando idioma:', this.idiomaNome);
+    
+    // Remover idiomas selecionados
+    this.idiomasUsuario = this.idiomasUsuario.filter(i => !i.selecionado);
+    
+    this.fecharModalImportacao();
+    this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
+  }
+
+  // ===== MENSAGEM DE SUCESSO =====
+  
+  exibirMensagemSucesso(mensagem: string): void {
+    this.mensagemSucesso = mensagem;
+    this.mostrarMensagemSucesso = true;
+    
+    setTimeout(() => {
+      this.mostrarMensagemSucesso = false;
+    }, 4000);
+  }
+
+  fecharMensagemSucesso(): void {
+    this.mostrarMensagemSucesso = false;
   }
 }

@@ -34,7 +34,8 @@ export class CadastrarIdioma {
 
   // ETAPA 1: Dados do Idioma
   idiomaSelecionado: IdiomaOpcao | null = null;
-  descricaoIdioma = ''; // ✅ NOVO CAMPO
+  nomeIdioma = ''; // ✅ NOVO CAMPO
+  descricaoIdioma = '';
   proficiencia = '';
   visibilidade: 'publico' | 'privado' = 'publico';
   mostrarIdiomas = false;
@@ -69,7 +70,7 @@ export class CadastrarIdioma {
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
   alternativas: string[] = ['', ''];
-  respostaCorreta: number | null = null; // ✅ NOVO CAMPO - índice da resposta correta
+  respostaCorreta: number = 0; // ✅ MODIFICADO - Agora inicia com 0 (Alternativa A) por padrão
 
   idiomas: IdiomaOpcao[] = [
     { nome: 'Alemão', bandeira: 'assets/imgs/Germany-Flag.svg.png' },
@@ -164,8 +165,8 @@ export class CadastrarIdioma {
   }
 
   podeAvancarEtapa1(): boolean {
-    // ✅ Agora inclui validação da descrição
-    return !!(this.idiomaSelecionado && this.descricaoIdioma.trim() && this.proficiencia && this.visibilidade);
+    // ✅ Agora inclui validação do nome e descrição
+    return !!(this.idiomaSelecionado && this.nomeIdioma.trim() && this.descricaoIdioma.trim() && this.proficiencia && this.visibilidade);
   }
 
   getLetraAlternativa(index: number): string {
@@ -190,7 +191,7 @@ export class CadastrarIdioma {
 
     if (this.modoFrase === 'quiz') {
       const alternativasValidas = this.alternativas.every(a => a.trim());
-      // ✅ Agora também valida se a resposta correta foi marcada
+      // ✅ A resposta correta sempre estará definida (não pode ser null)
       return !!(this.perguntaQuiz.trim() && alternativasValidas && this.respostaCorreta !== null);
     }
 
@@ -289,16 +290,16 @@ export class CadastrarIdioma {
   removerAlternativa(index: number): void {
     if (this.alternativas.length > 2) {
       this.alternativas.splice(index, 1);
-      // ✅ Se remover a alternativa marcada como correta, reseta
+      // ✅ Se remover a alternativa marcada como correta, marca a primeira (índice 0)
       if (this.respostaCorreta === index) {
-        this.respostaCorreta = null;
-      } else if (this.respostaCorreta !== null && this.respostaCorreta > index) {
+        this.respostaCorreta = 0;
+      } else if (this.respostaCorreta > index) {
         this.respostaCorreta--;
       }
     }
   }
 
-  // ✅ NOVA FUNÇÃO para marcar resposta correta
+  // ✅ MODIFICADO - Agora funciona como radio (apenas uma opção marcada)
   marcarRespostaCorreta(index: number): void {
     this.respostaCorreta = index;
   }
@@ -368,7 +369,8 @@ export class CadastrarIdioma {
     const cadastro = {
       etapa1: {
         idioma: this.idiomaSelecionado,
-        descricao: this.descricaoIdioma, // ✅ INCLUÍDO
+        nome: this.nomeIdioma, // ✅ INCLUÍDO
+        descricao: this.descricaoIdioma,
         proficiencia: this.proficiencia,
         visibilidade: this.visibilidade
       },
@@ -409,7 +411,7 @@ export class CadastrarIdioma {
         video: this.videoQuiz,
         pergunta: this.perguntaQuiz,
         alternativas: this.alternativas,
-        respostaCorreta: this.respostaCorreta // ✅ INCLUÍDO
+        respostaCorreta: this.respostaCorreta
       };
     }
     return null;
