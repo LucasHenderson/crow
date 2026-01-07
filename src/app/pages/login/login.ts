@@ -71,6 +71,19 @@ export class Login {
     }
   }
 
+  // ✅ NOVO: Navega para recuperação de senha
+  esqueceuSenha(): void {
+    console.log('Navegando para recuperação de senha');
+    // this.router.navigate(['/recuperar-senha']);
+    alert('Navegando para página de recuperação de senha');
+  }
+
+  // ✅ NOVO: Navega para cadastro de novo usuário
+  cadastrarUsuario(): void {
+    console.log('Navegando para cadastro de usuário');
+    this.router.navigate(['/cadastrar-usuario']);
+  }
+
   // Getters para facilitar acesso aos controles no template
   get email() {
     return this.loginForm.get('email');

@@ -53,6 +53,10 @@ export const routes: Routes = [{
         path: 'cadastrar-frase',
         loadComponent: () => import('./pages/cadastrar-frase/cadastrar-frase').then((m) => m.CadastrarFrase),
       },
+      {
+        path: 'cadastrar-usuario',
+        loadComponent: () => import('./pages/cadastrar-usuario/cadastrar-usuario').then((m) => m.CadastrarUsuario),
+      },
     ]
   }
 ];

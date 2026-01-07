@@ -156,16 +156,26 @@
 
             <div class="alternativas-list">
               <label>Alternativas</label>
-              <div class="alternativa-item" *ngFor="let alt of frase.alternativas; let idx = index">
+              <div class="alternativa-item" 
+                   *ngFor="let alt of frase.alternativas; let idx = index"
+                   [class.alternativa-correta]="idx === frase.respostaCorreta">
                 <span class="alternativa-letra">{{ getLetraAlternativa(idx) }}</span>
                 <span class="alternativa-texto">{{ alt }}</span>
+                <svg *ngIf="idx === frase.respostaCorreta" 
+                     class="icone-correto" 
+                     viewBox="0 0 24 24" 
+                     fill="none" 
+                     stroke="currentColor" 
+                     stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
               </div>
             </div>
           </div>
 
           <!-- FOOTER DA FRASE -->
           <div class="frase-footer">
-            <button class="btn-editar" (click)="editarFrase(frase)">
+            <button class="btn-editar" (click)="editarFrase(frase, i)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 20h9"/>
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -220,4 +230,313 @@
     </div>
 
   </div>
+
+  <!-- ========== MODAL DE EDIÇÃO ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalEdicao" (click)="fecharModalEdicao()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Editar Frase - {{ fraseEmEdicao?.modoNome }}</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalEdicao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- MODO: TRADUÇÃO DIRETA -->
+        <div *ngIf="fraseEmEdicao?.modo === 'traducao'">
+          <div class="campo">
+            <label>Imagem (opcional)</label>
+            <div class="upload-area" [class.has-image]="imagemPreviewEdicao" (click)="!imagemPreviewEdicao && uploadImagemEdicao.click()">
+              <ng-container *ngIf="!imagemPreviewEdicao">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <p>Clique para selecionar uma imagem</p>
+              </ng-container>
+              <img *ngIf="imagemPreviewEdicao" [src]="imagemPreviewEdicao" class="imagem-preview-modal" alt="Preview" />
+              <button *ngIf="imagemPreviewEdicao" class="btn-remover-imagem" (click)="removerImagemEdicao($event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+              <input #uploadImagemEdicao type="file" accept="image/*" (change)="onImagemSelecionadaEdicao($event)" />
+            </div>
+          </div>
+
+          <div class="campo">
+            <label>Tradução Completa *</label>
+            <textarea [(ngModel)]="traducaoCompletaEdicao" placeholder="Ex: Bom dia! Como você está?"></textarea>
+          </div>
+
+          <div *ngFor="let item of palavrasTraducaoEdicao; let i = index">
+            <div class="linha-dinamica">
+              <div class="campo">
+                <label>Palavra {{ i + 1 }} *</label>
+                <input type="text" [(ngModel)]="item.palavra" placeholder="Ex: Bom dia" />
+              </div>
+              <div class="campo">
+                <label>Tradução *</label>
+                <input type="text" [(ngModel)]="item.traducao" placeholder="Ex: Good morning" />
+              </div>
+              <button *ngIf="palavrasTraducaoEdicao.length > 1" class="btn-icone btn-remove" (click)="removerPalavraEdicao(i)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button class="btn-icone btn-add" (click)="adicionarPalavraEdicao()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+
+          <div class="campo">
+            <label>Observações Gerais (opcional)</label>
+            <textarea [(ngModel)]="observacoesEdicao" placeholder="Adicione contexto ou dicas"></textarea>
+          </div>
+
+          <div *ngFor="let link of linksEdicao; let i = index; trackBy: trackByIndex">
+            <div class="linha-dinamica">
+              <div class="campo">
+                <label>Link {{ i + 1 }}</label>
+                <input type="text" [(ngModel)]="linksEdicao[i]" placeholder="https://..." />
+              </div>
+              <button *ngIf="linksEdicao.length > 1" class="btn-icone btn-remove" (click)="removerLinkEdicao(i)" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button *ngIf="linksEdicao.length < 3" class="btn-icone btn-add" (click)="adicionarLinkEdicao()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- MODO: SELECIONAR PARES -->
+        <div *ngIf="fraseEmEdicao?.modo === 'pares'">
+          <div *ngFor="let par of paresEdicao; let i = index">
+            <div class="linha-pares">
+              <div class="campo">
+                <label>Imagem {{ i + 1 }}</label>
+                <div class="upload-area-small" [class.has-image]="par.imagem" (click)="!par.imagem && fileInputEdicao.click()">
+                  <ng-container *ngIf="!par.imagem">
+                    <svg style="width: 32px; height: 32px; margin: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  </ng-container>
+                  <img *ngIf="par.imagem" [src]="par.imagem" class="par-imagem-preview" alt="Preview" />
+                  <button *ngIf="par.imagem" class="btn-remover-imagem" (click)="removerImagemParEdicao($event, i)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                  <input #fileInputEdicao type="file" accept="image/*" (change)="onParImagemSelecionadaEdicao($event, i)" style="display: none;" />
+                </div>
+              </div>
+              <div class="campo">
+                <label>Palavra {{ i + 1 }} *</label>
+                <input type="text" [(ngModel)]="par.palavra" placeholder="Palavra" />
+              </div>
+              <div class="campo">
+                <label>Tradução {{ i + 1 }} *</label>
+                <input type="text" [(ngModel)]="par.traducao" placeholder="Tradução" />
+              </div>
+              <button *ngIf="paresEdicao.length > 3" class="btn-icone btn-remove btn-par-remove" (click)="removerParEdicao(i)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button *ngIf="paresEdicao.length < 10" class="btn-icone btn-add" (click)="adicionarParEdicao()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- MODO: QUIZ -->
+        <div *ngIf="fraseEmEdicao?.modo === 'quiz'">
+          <div class="campo">
+            <label>Mídia (opcional)</label>
+            <div class="radio-group">
+              <div class="radio-option" [class.selected]="tipoMidiaQuizEdicao === 'imagem'" (click)="tipoMidiaQuizEdicao = 'imagem'">
+                <input type="radio" value="imagem" [(ngModel)]="tipoMidiaQuizEdicao" />
+                <label>Imagem</label>
+              </div>
+              <div class="radio-option" [class.selected]="tipoMidiaQuizEdicao === 'video'" (click)="tipoMidiaQuizEdicao = 'video'">
+                <input type="radio" value="video" [(ngModel)]="tipoMidiaQuizEdicao" />
+                <label>Vídeo</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="campo" *ngIf="tipoMidiaQuizEdicao === 'imagem'">
+            <label>Imagem do Quiz</label>
+            <div class="upload-area" [class.has-image]="imagemQuizEdicao" (click)="!imagemQuizEdicao && uploadQuizImagemEdicao.click()">
+              <ng-container *ngIf="!imagemQuizEdicao">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <p>Selecionar imagem</p>
+              </ng-container>
+              <img *ngIf="imagemQuizEdicao" [src]="imagemQuizEdicao" class="imagem-preview-modal" alt="Preview do quiz" />
+              <button *ngIf="imagemQuizEdicao" class="btn-remover-imagem" (click)="removerImagemQuizEdicao($event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+              <input #uploadQuizImagemEdicao type="file" accept="image/*" (change)="onQuizImagemSelecionadaEdicao($event)" hidden />
+            </div>
+          </div>
+
+          <div class="campo" *ngIf="tipoMidiaQuizEdicao === 'video'">
+            <label>Link do YouTube (Incorporar)</label>
+            <input type="text" [(ngModel)]="videoQuizEdicao" (ngModelChange)="onVideoQuizChangeEdicao($event)" placeholder="https://www.youtube.com/embed/..." />
+            <div *ngIf="videoQuizEmbedEdicao != null" class="quiz-video-preview">
+              <iframe 
+                width="320"
+                height="180" 
+                [src]="videoQuizEmbedEdicao" 
+                title="YouTube video player" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerpolicy="strict-origin-when-cross-origin" 
+                allowfullscreen>
+              </iframe>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label>Pergunta *</label>
+            <textarea [(ngModel)]="perguntaQuizEdicao" placeholder="Digite a pergunta"></textarea>
+          </div>
+
+          <div *ngFor="let alt of alternativasEdicao; let i = index; trackBy: trackByIndex">
+            <div class="linha-alternativa-quiz">
+              <div class="campo-alternativa-com-checkbox">
+                <div class="alternativa-header">
+                  <label>Alternativa {{ getLetraAlternativa(i) }} *</label>
+                  <div class="checkbox-resposta-correta">
+                    <input 
+                      type="checkbox" 
+                      [id]="'resposta-edicao-' + i"
+                      [checked]="respostaCorretaEdicao === i"
+                      (change)="marcarRespostaCorretaEdicao(i)"
+                    />
+                    <label [for]="'resposta-edicao-' + i">Resposta correta</label>
+                  </div>
+                </div>
+                <input type="text" [(ngModel)]="alternativasEdicao[i]" placeholder="Digite a alternativa" />
+              </div>
+              <button *ngIf="alternativasEdicao.length > 2" class="btn-icone btn-remove btn-alternativa-remove" (click)="removerAlternativaEdicao(i)" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button *ngIf="alternativasEdicao.length < 5" class="btn-icone btn-add" (click)="adicionarAlternativaEdicao()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalEdicao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-salvar-modal" (click)="salvarEdicao()" [disabled]="!podeFinalizarEdicao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE EXCLUSÃO ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalExclusao" (click)="fecharModalExclusao()">
+    <div class="modal-container modal-exclusao" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Confirmar Exclusão</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalExclusao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alerta-exclusao">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <h3>Atenção!</h3>
+          <p>Você está prestes a excluir a <strong>Frase #{{ numeroFraseExclusao }}</strong> do tipo <strong>{{ fraseEmExclusao?.modoNome }}</strong>.</p>
+          <p class="texto-alerta">Esta ação é <strong>irreversível</strong> e todos os dados associados a esta frase serão permanentemente removidos.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalExclusao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-confirmar-exclusao" (click)="confirmarExclusao()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <line x1="10" y1="11" x2="10" y2="17"/>
+            <line x1="14" y1="11" x2="14" y2="17"/>
+          </svg>
+          Confirmar Exclusão
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </main>

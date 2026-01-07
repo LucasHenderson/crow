@@ -1,0 +1,274 @@
+<section class="content">
+
+  <div class="page-header">
+    <div class="header-content">
+      <div class="icon-title">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        <h1 class="page-title">Criar Nova Conta</h1>
+      </div>
+      <p class="subtitle">Preencha os dados abaixo para criar sua conta gratuita</p>
+    </div>
+  </div>
+
+  <div class="cadastro-grid">
+    
+    <!-- Info Card -->
+    <div class="info-card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <h2>Benefícios da Conta</h2>
+      </div>
+
+      <div class="benefits-content">
+        <div class="benefit-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <div class="benefit-text">
+            <h4>Acesso Total</h4>
+            <p>Acesse todos os idiomas e módulos disponíveis</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <div class="benefit-text">
+            <h4>Progresso Salvo</h4>
+            <p>Seu progresso é sincronizado automaticamente</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <div class="benefit-text">
+            <h4>Conteúdo Personalizado</h4>
+            <p>Crie e organize seu próprio material de estudo</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <div class="benefit-text">
+            <h4>100% Gratuito</h4>
+            <p>Sem cobranças ou taxas ocultas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        <h2>Dados de Cadastro</h2>
+      </div>
+
+      <form class="form-content" (ngSubmit)="cadastrar()" #f="ngForm">
+        
+        <!-- Dados Pessoais -->
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <h3>Informações Pessoais</h3>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="nome">Nome completo *</label>
+            <input 
+              id="nome" 
+              name="nome" 
+              type="text" 
+              [(ngModel)]="novoUsuario.nome" 
+              placeholder="Digite seu nome completo"
+              required />
+          </div>
+
+          <div class="form-group full-width">
+            <label for="email">E-mail *</label>
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input 
+                id="email" 
+                name="email" 
+                type="email" 
+                [(ngModel)]="novoUsuario.email"
+                placeholder="seu@email.com" 
+                required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="telefone">Telefone</label>
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              <input 
+                id="telefone" 
+                name="telefone" 
+                type="tel" 
+                [(ngModel)]="novoUsuario.telefone"
+                placeholder="+55 (00) 00000-0000" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="pais">País</label>
+            <div class="input-with-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="10" r="3"></circle>
+                <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
+              </svg>
+              <input 
+                id="pais" 
+                name="pais" 
+                type="text" 
+                [(ngModel)]="novoUsuario.pais"
+                placeholder="Brasil" />
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Segurança -->
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <h3>Segurança</h3>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="senha">Senha *</label>
+            <div class="password-wrapper">
+              <input 
+                id="senha" 
+                name="senha"
+                [type]="camposVisiveis.senha ? 'text' : 'password'"
+                [(ngModel)]="novoUsuario.senha" 
+                placeholder="Mínimo 6 caracteres"
+                required />
+              <button 
+                type="button" 
+                class="eye-icon" 
+                (click)="togglePassword('senha')"
+                [attr.aria-label]="camposVisiveis.senha ? 'Ocultar senha' : 'Mostrar senha'">
+                <svg *ngIf="!camposVisiveis.senha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg *ngIf="camposVisiveis.senha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Indicador de Força da Senha -->
+            <div class="password-strength" *ngIf="novoUsuario.senha">
+              <div class="strength-bar">
+                <div class="strength-fill" [class]="getClasseForcaSenha()" [style.width.%]="getForcaSenha() * 25"></div>
+              </div>
+              <span class="strength-text" [class]="getClasseForcaSenha()">{{ getTextoForcaSenha() }}</span>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="confirmarSenha">Confirmar senha *</label>
+            <div class="password-wrapper">
+              <input 
+                id="confirmarSenha" 
+                name="confirmarSenha"
+                [type]="camposVisiveis.confirmarSenha ? 'text' : 'password'"
+                [(ngModel)]="novoUsuario.confirmarSenha" 
+                placeholder="Digite a senha novamente"
+                required />
+              <button 
+                type="button" 
+                class="eye-icon" 
+                (click)="togglePassword('confirmarSenha')"
+                [attr.aria-label]="camposVisiveis.confirmarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+                <svg *ngIf="!camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg *ngIf="camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Termos e Condições -->
+        <div class="checkbox-group">
+          <label class="checkbox-container">
+            <input 
+              type="checkbox" 
+              name="aceitouTermos"
+              [(ngModel)]="novoUsuario.aceitouTermos"
+              required />
+            <span class="checkmark"></span>
+            <span class="checkbox-label">
+              Eu aceito os <a href="/termos" target="_blank">Termos de Uso</a> e a 
+              <a href="/privacidade" target="_blank">Política de Privacidade</a>
+            </span>
+          </label>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <button type="submit" class="btn-cadastrar" [disabled]="enviandoFormulario">
+            <svg *ngIf="!enviandoFormulario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <line x1="20" y1="8" x2="20" y2="14"></line>
+              <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            <span *ngIf="!enviandoFormulario">Criar Conta</span>
+            <span *ngIf="enviandoFormulario">Criando conta...</span>
+          </button>
+
+          <div class="login-link">
+            <span>Já possui uma conta?</span>
+            <a (click)="irParaLogin()">Fazer login</a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+</section>

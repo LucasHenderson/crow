@@ -140,6 +140,32 @@
   height: 20px;
 }
 
+/* ✅ NOVO: Link para esqueci senha */
+.forgot-password {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.5rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.link-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  text-decoration: underline;
+}
+
 button[type="submit"] {
   width: 100%;
   margin-top: 1rem;
@@ -159,6 +185,7 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
 }
 
 button[type="submit"]:active {
@@ -171,6 +198,65 @@ button[type="submit"]:disabled {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* ✅ NOVO: Divisor "ou" */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.divider span {
+  padding: 0 1rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ✅ NOVO: Botão de cadastrar */
+.btn-cadastrar {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  letter-spacing: 0.03em;
+}
+
+.btn-cadastrar:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+}
+
+.btn-cadastrar:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-cadastrar svg {
+  width: 20px;
+  height: 20px;
 }
 
 .error {
@@ -247,6 +333,15 @@ button[type="submit"]:disabled {
     padding: 0.9rem;
     font-size: 0.95rem;
   }
+
+  .btn-cadastrar {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .link-btn {
+    font-size: 0.8rem;
+  }
 }
 
 @media (max-width: 360px) {
@@ -276,7 +371,16 @@ button[type="submit"]:disabled {
     font-size: 0.9rem;
   }
 
+  .btn-cadastrar {
+    padding: 0.85rem;
+    font-size: 0.9rem;
+  }
+
   .footer-text {
+    font-size: 0.75rem;
+  }
+
+  .link-btn {
     font-size: 0.75rem;
   }
 }

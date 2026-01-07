@@ -878,3 +878,112 @@ textarea {
     flex-direction: column;
   }
 }
+
+/* ========== MENSAGEM DE SUCESSO ========== */
+.mensagem-sucesso {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 2000;
+  animation: slideInRight 0.4s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sucesso-content {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 320px;
+  max-width: 450px;
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.sucesso-content svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.sucesso-content p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.btn-fechar-sucesso {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.btn-fechar-sucesso:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.btn-fechar-sucesso svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* RESPONSIVIDADE PARA MENSAGEM DE SUCESSO */
+@media (max-width: 480px) {
+  .mensagem-sucesso {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .sucesso-content {
+    min-width: auto;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .mensagem-sucesso {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .sucesso-content {
+    padding: 1rem 1.2rem;
+  }
+
+  .sucesso-content svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sucesso-content p {
+    font-size: 0.9rem;
+  }
+}

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -31,6 +31,10 @@ export class Home {
   // Controle dos modals
   mostrarModalEdicao = false;
   mostrarModalExclusao = false;
+  
+  // Mensagem de sucesso
+  mostrarMensagemSucesso = false;
+  mensagemSucesso = '';
   
   // Dados de edição
   idiomaEmEdicao: Idioma | null = null;
@@ -70,6 +74,8 @@ export class Home {
   ].sort((a, b) => a.nome.localeCompare(b.nome));
   
   proficiencias = ['Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Fluente'];
+
+  constructor(private cdr: ChangeDetectorRef) {}
 
   /**
    * Adiciona um novo idioma à lista (máximo 4)
@@ -169,6 +175,7 @@ export class Home {
       
       console.log(`Idioma editado com sucesso: ${this.idiomas[this.indiceEdicao].nome}`);
       this.fecharModalEdicao();
+      this.exibirMensagemSucesso(`Idioma "${this.nomeEdicao}" editado com sucesso!`);
     }
   }
 
@@ -214,6 +221,7 @@ export class Home {
       this.idiomas.splice(this.indiceExclusao, 1);
       console.log(`Idioma "${nomeIdioma}" excluído com sucesso!`);
       this.fecharModalExclusao();
+      this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído com sucesso!`);
     }
   }
 
@@ -279,5 +287,24 @@ export class Home {
       this.mostrarIdiomasEdicao = false;
       this.mostrarProficienciaEdicao = false;
     }
+  }
+
+  // ===== MENSAGEM DE SUCESSO =====
+  
+  exibirMensagemSucesso(mensagem: string): void {
+    this.mensagemSucesso = mensagem;
+    this.mostrarMensagemSucesso = true;
+    
+    // Força a detecção de mudanças para garantir que o texto seja exibido imediatamente
+    this.cdr.detectChanges();
+    
+    setTimeout(() => {
+      this.mostrarMensagemSucesso = false;
+      this.cdr.detectChanges();
+    }, 4000);
+  }
+
+  fecharMensagemSucesso(): void {
+    this.mostrarMensagemSucesso = false;
   }
 }
