@@ -195,6 +195,16 @@
   grid-column: 1 / -1;
 }
 
+/* Campo de email com maior comprimento */
+.form-group.email-field input {
+  min-width: 350px;
+}
+
+/* Campo de telefone com o mesmo tamanho do email */
+.form-group.telefone-field input {
+  min-width: 350px;
+}
+
 .form-group label {
   font-size: 0.9rem;
   font-weight: 600;
@@ -491,9 +501,11 @@
 }
 
 .btn-cadastrar:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-cadastrar svg {
@@ -629,6 +641,10 @@
     padding: 0.9rem 1.5rem;
     font-size: 0.95rem;
   }
+  
+  .form-group.email-field input {
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -677,6 +693,11 @@
   .benefits-content {
     gap: 1rem;
   }
+  
+  .form-group.email-field input,
+  .form-group.telefone-field input {
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 360px) {
@@ -711,5 +732,10 @@
   .btn-cadastrar {
     padding: 0.85rem 1.2rem;
     font-size: 0.9rem;
+  }
+  
+  .form-group.email-field input,
+  .form-group.telefone-field input {
+    min-width: 100%;
   }
 }

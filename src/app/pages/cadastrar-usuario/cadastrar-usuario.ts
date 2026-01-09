@@ -14,7 +14,6 @@ interface NovoUsuario {
   senha: string;
   confirmarSenha: string;
   telefone: string;
-  pais: string;
   aceitouTermos: boolean;
 }
 
@@ -33,7 +32,6 @@ export class CadastrarUsuario {
     senha: '',
     confirmarSenha: '',
     telefone: '',
-    pais: '',
     aceitouTermos: false
   };
 
@@ -45,6 +43,68 @@ export class CadastrarUsuario {
   enviandoFormulario = false;
 
   constructor(private router: Router) {}
+
+  /**
+   * Permite apenas números no campo de telefone
+   */
+  permitirApenasNumeros(event: KeyboardEvent): boolean {
+    const tecla = event.key;
+    
+    // Permite teclas de controle (Backspace, Delete, Tab, Arrow keys, etc)
+    if (
+      tecla === 'Backspace' || 
+      tecla === 'Delete' || 
+      tecla === 'Tab' || 
+      tecla === 'ArrowLeft' || 
+      tecla === 'ArrowRight' ||
+      tecla === 'Home' ||
+      tecla === 'End'
+    ) {
+      return true;
+    }
+    
+    // Bloqueia se não for número
+    if (!/^\d$/.test(tecla)) {
+      event.preventDefault();
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Aplica máscara ao campo de telefone
+   */
+  aplicarMascaraTelefone(event: any): void {
+    let valor = event.target.value.replace(/\D/g, '');
+    
+    if (valor.length > 11) {
+      valor = valor.substring(0, 11);
+    }
+    
+    if (valor.length > 6) {
+      valor = valor.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+    } else if (valor.length > 2) {
+      valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+    } else if (valor.length > 0) {
+      valor = valor.replace(/^(\d*)/, '($1');
+    }
+    
+    this.novoUsuario.telefone = valor;
+  }
+
+  /**
+   * Verifica se todos os campos obrigatórios foram preenchidos
+   */
+  formularioValido(): boolean {
+    return !!(
+      this.novoUsuario.nome.trim() &&
+      this.novoUsuario.email.trim() &&
+      this.novoUsuario.senha &&
+      this.novoUsuario.confirmarSenha &&
+      this.novoUsuario.aceitouTermos
+    );
+  }
 
   /**
    * Alterna a visibilidade dos campos de senha
@@ -91,7 +151,6 @@ export class CadastrarUsuario {
         nome: this.novoUsuario.nome,
         email: this.novoUsuario.email,
         telefone: this.novoUsuario.telefone,
-        pais: this.novoUsuario.pais,
         dataEntrada: new Date().toISOString()
       };
       
@@ -109,8 +168,8 @@ export class CadastrarUsuario {
    * Valida os campos obrigatórios
    */
   private validarCamposObrigatorios(): boolean {
-    if (!this.novoUsuario.nome.trim()) {
-      this.showError('Por favor, informe seu nome completo.');
+    if (!this.novoUsuario.nome.trim() || this.novoUsuario.nome.trim().length < 8) {
+      this.showError('Por favor, informe seu nome completo (mínimo 8 caracteres).');
       return false;
     }
 

@@ -198,6 +198,9 @@
   color: #1e293b;
   margin: 0 0 0.3rem 0;
   letter-spacing: 0.01em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .profile-info {
@@ -236,6 +239,9 @@
   font-size: 0.88rem;
   color: #334155;
   font-weight: 500;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  flex: 1;
 }
 
 /* FORM CARD */
@@ -294,6 +300,16 @@
   transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
   background: white;
+}
+
+/* Campo de email com maior comprimento */
+.form-group.email-field input {
+  min-width: 350px;
+}
+
+/* Campo de telefone com o mesmo tamanho do email */
+.form-group.telefone-field input {
+  min-width: 350px;
 }
 
 .form-group input::placeholder {
@@ -366,6 +382,66 @@
   color: #64748b;
 }
 
+/* PASSWORD STRENGTH */
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 3px;
+}
+
+.strength-fill.fraca {
+  background: #ef4444;
+}
+
+.strength-fill.media {
+  background: #f59e0b;
+}
+
+.strength-fill.boa {
+  background: #3b82f6;
+}
+
+.strength-fill.forte {
+  background: #10b981;
+}
+
+.strength-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 50px;
+}
+
+.strength-text.fraca {
+  color: #ef4444;
+}
+
+.strength-text.media {
+  color: #f59e0b;
+}
+
+.strength-text.boa {
+  color: #3b82f6;
+}
+
+.strength-text.forte {
+  color: #10b981;
+}
+
 .divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
@@ -423,6 +499,14 @@
 .btn-save:active {
   transform: translateY(0);
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btn-save svg {
@@ -533,6 +617,11 @@
     padding: 0.9rem 1.5rem;
     font-size: 0.95rem;
   }
+  
+  .form-group.email-field input,
+  .form-group.telefone-field input {
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -592,6 +681,11 @@
   .success-alert span {
     font-size: 0.85rem;
   }
+  
+  .form-group.email-field input,
+  .form-group.telefone-field input {
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 360px) {
@@ -626,5 +720,10 @@
   .btn-save {
     padding: 0.85rem 1.2rem;
     font-size: 0.9rem;
+  }
+  
+  .form-group.email-field input,
+  .form-group.telefone-field input {
+    min-width: 100%;
   }
 }

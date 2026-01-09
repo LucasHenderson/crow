@@ -12,7 +12,6 @@ type CamposSenha = {
 interface Usuario {
   nome: string;
   email: string;
-  pais: string;
   telefone: string;
   dataEntrada: string;
 }
@@ -32,10 +31,12 @@ export class Perfil implements OnInit {
   user: Usuario = {
     nome: 'Lucas Henderson',
     email: 'lucas@gmail.com',
-    pais: 'Brasil',
-    telefone: '+55 (63) 99999-9999',
+    telefone: '(63) 99999-9999',
     dataEntrada: '2023-01-15',
   };
+
+  // Cópia dos dados originais para comparação
+  userOriginal: Usuario = { ...this.user };
 
   senhaAtual = '';
   novaSenha = '';
@@ -63,6 +64,8 @@ export class Perfil implements OnInit {
     if (usuarioSalvo) {
       try {
         this.user = JSON.parse(usuarioSalvo);
+        // Atualizar cópia original após carregar
+        this.userOriginal = { ...this.user };
       } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error);
       }
@@ -71,6 +74,7 @@ export class Perfil implements OnInit {
     // Ou buscar de um serviço de autenticação
     // this.authService.getUsuario().subscribe(user => {
     //   this.user = user;
+    //   this.userOriginal = { ...user };
     // });
   }
 
@@ -105,12 +109,83 @@ export class Perfil implements OnInit {
   }
 
   /**
+   * Permite apenas números no campo de telefone
+   */
+  permitirApenasNumeros(event: KeyboardEvent): boolean {
+    const tecla = event.key;
+    
+    // Permite teclas de controle (Backspace, Delete, Tab, Arrow keys, etc)
+    if (
+      tecla === 'Backspace' || 
+      tecla === 'Delete' || 
+      tecla === 'Tab' || 
+      tecla === 'ArrowLeft' || 
+      tecla === 'ArrowRight' ||
+      tecla === 'Home' ||
+      tecla === 'End'
+    ) {
+      return true;
+    }
+    
+    // Bloqueia se não for número
+    if (!/^\d$/.test(tecla)) {
+      event.preventDefault();
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Verifica se houve alguma alteração nos dados
+   */
+  houveAlteracao(): boolean {
+    // Verifica se dados do perfil foram alterados
+    const dadosAlterados = 
+      this.user.nome !== this.userOriginal.nome ||
+      this.user.email !== this.userOriginal.email ||
+      this.user.telefone !== this.userOriginal.telefone;
+    
+    // Verifica se há tentativa de alteração de senha
+    const senhaAlterada = !!(this.senhaAtual || this.novaSenha || this.confirmarSenha);
+    
+    return dadosAlterados || senhaAlterada;
+  }
+
+  /**
+   * Aplica máscara ao campo de telefone
+   */
+  aplicarMascaraTelefone(event: any): void {
+    let valor = event.target.value.replace(/\D/g, '');
+    
+    if (valor.length > 11) {
+      valor = valor.substring(0, 11);
+    }
+    
+    if (valor.length > 6) {
+      valor = valor.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+    } else if (valor.length > 2) {
+      valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+    } else if (valor.length > 0) {
+      valor = valor.replace(/^(\d*)/, '($1');
+    }
+    
+    this.user.telefone = valor;
+  }
+
+  /**
    * Valida e salva as alterações do perfil
    */
   salvar(): void {
     // Validação básica dos campos obrigatórios
     if (!this.user.nome || !this.user.email) {
       this.showError('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    // Validação do nome (mínimo 8 caracteres)
+    if (this.user.nome.trim().length < 8) {
+      this.showError('O nome deve ter no mínimo 8 caracteres.');
       return;
     }
 
@@ -134,6 +209,9 @@ export class Perfil implements OnInit {
     } else {
       // Salvar dados do perfil
       this.salvarDadosUsuario();
+      
+      // Atualizar cópia original após salvar
+      this.userOriginal = { ...this.user };
       
       // Aqui você implementaria a chamada ao backend para atualizar o perfil
       // this.userService.atualizarPerfil(this.user).subscribe(...)
@@ -217,6 +295,59 @@ export class Perfil implements OnInit {
   showError(message: string): void {
     // Em produção, você pode usar um serviço de notificações mais sofisticado
     alert(message);
+  }
+
+  /**
+   * Retorna a força da senha (0 a 4)
+   */
+  getForcaSenha(): number {
+    const senha = this.novaSenha;
+    
+    if (!senha) return 0;
+    
+    let forca = 0;
+    
+    // Comprimento
+    if (senha.length >= 6) forca++;
+    if (senha.length >= 10) forca++;
+    
+    // Complexidade
+    if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
+    if (/[0-9]/.test(senha)) forca++;
+    if (/[^a-zA-Z0-9]/.test(senha)) forca++;
+    
+    return Math.min(forca, 4);
+  }
+
+  /**
+   * Retorna o texto da força da senha
+   */
+  getTextoForcaSenha(): string {
+    const forca = this.getForcaSenha();
+    
+    switch(forca) {
+      case 0: return '';
+      case 1: return 'Fraca';
+      case 2: return 'Média';
+      case 3: return 'Boa';
+      case 4: return 'Forte';
+      default: return '';
+    }
+  }
+
+  /**
+   * Retorna a classe CSS da força da senha
+   */
+  getClasseForcaSenha(): string {
+    const forca = this.getForcaSenha();
+    
+    switch(forca) {
+      case 1: return 'fraca';
+      case 2: return 'media';
+      case 3: return 'boa';
+      case 4: return 'forte';
+      default: return '';
+    }
   }
 
   /**

@@ -14,6 +14,10 @@ export const routes: Routes = [{
         path: 'login',
         loadComponent: () => import('./pages/login/login').then((m) => m.Login),
       },
+      {
+        path: 'cadastrar-usuario',
+        loadComponent: () => import('./pages/cadastrar-usuario/cadastrar-usuario').then((m) => m.CadastrarUsuario),
+      },
     ],
   },
   // Rotas Principais
@@ -54,8 +58,8 @@ export const routes: Routes = [{
         loadComponent: () => import('./pages/cadastrar-frase/cadastrar-frase').then((m) => m.CadastrarFrase),
       },
       {
-        path: 'cadastrar-usuario',
-        loadComponent: () => import('./pages/cadastrar-usuario/cadastrar-usuario').then((m) => m.CadastrarUsuario),
+        path: 'cadastrar-modulo',
+        loadComponent: () => import('./pages/cadastrar-modulo/cadastrar-modulo').then((m) => m.CadastrarModulo),
       },
     ]
   }

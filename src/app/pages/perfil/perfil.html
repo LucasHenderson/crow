@@ -46,12 +46,11 @@
             <span>{{ user.email }}</span>
           </div>
           
-          <div class="info-item">
+          <div class="info-item" *ngIf="user.telefone">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="10" r="3"></circle>
-              <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
             </svg>
-            <span>{{ user.pais }}</span>
+            <span>{{ user.telefone }}</span>
           </div>
 
           <div class="info-item">
@@ -86,11 +85,12 @@
               name="nome" 
               type="text" 
               [(ngModel)]="user.nome" 
-              placeholder="Seu nome completo"
-              required />
+              placeholder="Seu nome completo (mínimo 8 caracteres)"
+              required
+              minlength="8" />
           </div>
 
-          <div class="form-group">
+          <div class="form-group full-width email-field">
             <label for="email">E-mail</label>
             <div class="input-with-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -107,7 +107,7 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group full-width telefone-field">
             <label for="telefone">Telefone</label>
             <div class="input-with-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -118,23 +118,10 @@
                 name="telefone" 
                 type="tel" 
                 [(ngModel)]="user.telefone"
-                placeholder="+55 (00) 00000-0000" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="pais">País</label>
-            <div class="input-with-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="10" r="3"></circle>
-                <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
-              </svg>
-              <input 
-                id="pais" 
-                name="pais" 
-                type="text" 
-                [(ngModel)]="user.pais"
-                placeholder="Seu país" />
+                (keydown)="permitirApenasNumeros($event)"
+                (input)="aplicarMascaraTelefone($event)"
+                placeholder="(00) 00000-0000"
+                maxlength="15" />
             </div>
           </div>
         </div>
@@ -200,6 +187,14 @@
                 </svg>
               </button>
             </div>
+            
+            <!-- Indicador de Força da Senha -->
+            <div class="password-strength" *ngIf="novaSenha">
+              <div class="strength-bar">
+                <div class="strength-fill" [class]="getClasseForcaSenha()" [style.width.%]="getForcaSenha() * 25"></div>
+              </div>
+              <span class="strength-text" [class]="getClasseForcaSenha()">{{ getTextoForcaSenha() }}</span>
+            </div>
           </div>
 
           <div class="form-group">
@@ -229,7 +224,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-save">
+        <button type="submit" class="btn-save" [disabled]="!houveAlteracao()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
             <polyline points="17 21 17 13 7 13 7 21"></polyline>

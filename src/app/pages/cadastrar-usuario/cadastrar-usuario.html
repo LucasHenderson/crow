@@ -102,11 +102,12 @@
               name="nome" 
               type="text" 
               [(ngModel)]="novoUsuario.nome" 
-              placeholder="Digite seu nome completo"
-              required />
+              placeholder="Digite seu nome completo (mínimo 8 caracteres)"
+              required 
+              minlength="8" />
           </div>
 
-          <div class="form-group full-width">
+          <div class="form-group full-width email-field">
             <label for="email">E-mail *</label>
             <div class="input-with-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -123,7 +124,7 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group full-width telefone-field">
             <label for="telefone">Telefone</label>
             <div class="input-with-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -134,23 +135,10 @@
                 name="telefone" 
                 type="tel" 
                 [(ngModel)]="novoUsuario.telefone"
-                placeholder="+55 (00) 00000-0000" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="pais">País</label>
-            <div class="input-with-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="10" r="3"></circle>
-                <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
-              </svg>
-              <input 
-                id="pais" 
-                name="pais" 
-                type="text" 
-                [(ngModel)]="novoUsuario.pais"
-                placeholder="Brasil" />
+                (keydown)="permitirApenasNumeros($event)"
+                (input)="aplicarMascaraTelefone($event)"
+                placeholder="(00) 00000-0000"
+                maxlength="15" />
             </div>
           </div>
         </div>
@@ -250,7 +238,7 @@
 
         <!-- Botões -->
         <div class="form-actions">
-          <button type="submit" class="btn-cadastrar" [disabled]="enviandoFormulario">
+          <button type="submit" class="btn-cadastrar" [disabled]="!formularioValido() || enviandoFormulario">
             <svg *ngIf="!enviandoFormulario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
               <circle cx="8.5" cy="7" r="4"></circle>
