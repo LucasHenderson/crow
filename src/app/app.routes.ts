@@ -18,6 +18,10 @@ export const routes: Routes = [{
         path: 'cadastrar-usuario',
         loadComponent: () => import('./pages/cadastrar-usuario/cadastrar-usuario').then((m) => m.CadastrarUsuario),
       },
+      {
+        path: 'recuperar-senha',
+        loadComponent: () => import('./pages/recuperar-senha/recuperar-senha').then((m) => m.RecuperarSenha),
+      },
     ],
   },
   // Rotas Principais

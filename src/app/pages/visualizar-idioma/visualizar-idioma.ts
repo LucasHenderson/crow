@@ -28,7 +28,7 @@ interface IdiomaUsuario {
 export class VisualizarIdioma {
   idiomaNome = 'Japonês';
   descricao = 'Aprender japonês básico para viagens e conversação do dia a dia';
-  isProprietario = false;
+  isProprietario = true;
   avaliacao = 4.3;
   totalAvaliacoes = 2134;
   
@@ -36,6 +36,8 @@ export class VisualizarIdioma {
   mostrarModalDenuncia = false;
   mostrarModalAvaliacao = false;
   mostrarModalImportacao = false;
+  mostrarModalEditarModulo = false;
+  mostrarModalExcluirModulo = false;
   mostrarMensagemSucesso = false;
   mensagemSucesso = '';
   
@@ -54,6 +56,11 @@ export class VisualizarIdioma {
   // Dados de importação
   idiomasUsuario: IdiomaUsuario[] = [];
   etapaImportacao: 'confirmacao' | 'exclusao' | 'sucesso' = 'confirmacao';
+  
+  // Dados de edição/exclusão de módulo
+  moduloEmEdicao: Modulo | null = null;
+  moduloEmExclusao: Modulo | null = null;
+  nomeModuloEdicao = '';
   
   private rawIcons = [
     `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
@@ -92,7 +99,6 @@ export class VisualizarIdioma {
     this.addModule('Números e Contagem');
     this.addModule('Dias da Semana');
     
-    // Simular idiomas do usuário (para teste)
     this.carregarIdiomasUsuario();
   }
 
@@ -163,26 +169,6 @@ export class VisualizarIdioma {
     if (!nome || !nome.trim()) return;
     
     this.addModule(nome.trim());
-  }
-
-  editarModulo(mod: Modulo): void {
-    const novoNome = prompt('Novo nome do módulo (máximo 80 caracteres):', mod.nome);
-    if (!novoNome || !novoNome.trim()) return;
-    
-    const nomeTruncado = novoNome.trim().substring(0, 80);
-    mod.nome = nomeTruncado;
-  }
-
-  removerModuloConfirmacao(mod: Modulo): void {
-    if (this.modulos.length <= 1) {
-      alert('Deve existir pelo menos 1 módulo.');
-      return;
-    }
-    
-    const confirmar = confirm(`Deseja remover o módulo "${mod.nome}"?`);
-    if (!confirmar) return;
-    
-    this.modulos = this.modulos.filter(m => m.id !== mod.id);
   }
 
   voltar(): void {
@@ -276,12 +262,10 @@ export class VisualizarIdioma {
   enviarAvaliacao(): void {
     if (this.notaAvaliacao === 0) return;
     
-    // Calcular nova média
     const somaTotal = (this.avaliacao * this.totalAvaliacoes) + this.notaAvaliacao;
     const novoTotal = this.totalAvaliacoes + 1;
     let novaMedia = somaTotal / novoTotal;
     
-    // Arredondar para 5 se >= 4.5
     if (novaMedia >= 4.5) {
       novaMedia = 5;
     }
@@ -317,7 +301,6 @@ export class VisualizarIdioma {
   }
 
   carregarIdiomasUsuario(): void {
-    // Simular idiomas do usuário (substituir por dados reais)
     this.idiomasUsuario = [
       { nome: 'Inglês', bandeira: '../../../assets/imgs/United-States-Flag.svg', selecionado: false },
       { nome: 'Espanhol', bandeira: '../../../assets/imgs/Spain-Flag.svg', selecionado: false },
@@ -355,11 +338,70 @@ export class VisualizarIdioma {
     console.log('Excluindo idiomas:', nomesExcluidos);
     console.log('Importando idioma:', this.idiomaNome);
     
-    // Remover idiomas selecionados
     this.idiomasUsuario = this.idiomasUsuario.filter(i => !i.selecionado);
     
     this.fecharModalImportacao();
     this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
+  }
+
+  // ===== MODAL DE EDITAR MÓDULO =====
+  
+  editarModulo(mod: Modulo): void {
+    this.moduloEmEdicao = mod;
+    this.nomeModuloEdicao = mod.nome;
+    this.mostrarModalEditarModulo = true;
+  }
+
+  fecharModalEditarModulo(): void {
+    this.mostrarModalEditarModulo = false;
+    this.moduloEmEdicao = null;
+    this.nomeModuloEdicao = '';
+  }
+
+  get podeConfirmarEdicao(): boolean {
+    return this.nomeModuloEdicao.trim().length > 0 && 
+           this.nomeModuloEdicao.trim() !== this.moduloEmEdicao?.nome;
+  }
+
+  confirmarEdicaoModulo(): void {
+    if (!this.podeConfirmarEdicao || !this.moduloEmEdicao) return;
+    
+    const nomeAntigo = this.moduloEmEdicao.nome;
+    this.moduloEmEdicao.nome = this.nomeModuloEdicao.trim().substring(0, 80);
+    
+    console.log(`Módulo "${nomeAntigo}" renomeado para "${this.moduloEmEdicao.nome}"`);
+    
+    this.fecharModalEditarModulo();
+    this.exibirMensagemSucesso(`Módulo "${this.moduloEmEdicao.nome}" editado com sucesso!`);
+  }
+
+  // ===== MODAL DE EXCLUIR MÓDULO =====
+  
+  removerModuloConfirmacao(mod: Modulo): void {
+    if (this.modulos.length <= 1) {
+      alert('Deve existir pelo menos 1 módulo.');
+      return;
+    }
+    
+    this.moduloEmExclusao = mod;
+    this.mostrarModalExcluirModulo = true;
+  }
+
+  fecharModalExcluirModulo(): void {
+    this.mostrarModalExcluirModulo = false;
+    this.moduloEmExclusao = null;
+  }
+
+  confirmarExclusaoModulo(): void {
+    if (!this.moduloEmExclusao) return;
+    
+    const nomeModulo = this.moduloEmExclusao.nome;
+    this.modulos = this.modulos.filter(m => m.id !== this.moduloEmExclusao!.id);
+    
+    console.log(`Módulo "${nomeModulo}" excluído`);
+    
+    this.fecharModalExcluirModulo();
+    this.exibirMensagemSucesso(`Módulo "${nomeModulo}" excluído com sucesso!`);
   }
 
   // ===== MENSAGEM DE SUCESSO =====
