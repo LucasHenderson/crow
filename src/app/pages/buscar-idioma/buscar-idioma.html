@@ -112,15 +112,6 @@
           </div>
         </div>
       </div>
-
-      <!-- NOVO IDIOMA -->
-      <button class="novo" (click)="irParaCadastro()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Novo Idioma
-      </button>
     </div>
 
   </div>
@@ -153,9 +144,11 @@
           <strong>ID:</strong>
           <span>{{ idioma.id }}</span>
         </p>
-        <p>
+        <p class="nome-field">
           <strong>Nome:</strong>
-          <span>{{ idioma.nome }}</span>
+          <span class="nome-truncate" [title]="idioma.nome">
+            {{ idioma.nome.length > 22 ? (idioma.nome | slice:0:22) + '...' : idioma.nome }}
+          </span>
         </p>
         <p>
           <strong>Proficiência:</strong>

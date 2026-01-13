@@ -61,6 +61,9 @@ export class VisualizarIdioma {
   moduloEmEdicao: Modulo | null = null;
   moduloEmExclusao: Modulo | null = null;
   nomeModuloEdicao = '';
+  iconeModuloEdicao: SafeHtml | null = null;
+  
+  iconesModulo: SafeHtml[] = [];
   
   private rawIcons = [
     `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
@@ -82,7 +85,12 @@ export class VisualizarIdioma {
     `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
     `<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>`,
     `<polyline points="20 6 9 17 4 12"/>`,
-    `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>`
+    `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>`,
+    `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
+    `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>`,
+    `<rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/>`,
+    `<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>`,
+    `<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>`
   ];
 
   modulos: Modulo[] = [];
@@ -93,6 +101,8 @@ export class VisualizarIdioma {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {
+    this.carregarIcones();
+    
     this.addModule('Saudações');
     this.addModule('Vocabulário Básico');
     this.addModule('Frases Comuns');
@@ -100,6 +110,10 @@ export class VisualizarIdioma {
     this.addModule('Dias da Semana');
     
     this.carregarIdiomasUsuario();
+  }
+
+  carregarIcones(): void {
+    this.iconesModulo = this.rawIcons.map(svg => this.sanitizer.bypassSecurityTrustHtml(svg));
   }
 
   private makeIconSvg(raw: string): SafeHtml {
@@ -349,6 +363,7 @@ export class VisualizarIdioma {
   editarModulo(mod: Modulo): void {
     this.moduloEmEdicao = mod;
     this.nomeModuloEdicao = mod.nome;
+    this.iconeModuloEdicao = mod.icone;
     this.mostrarModalEditarModulo = true;
   }
 
@@ -356,20 +371,26 @@ export class VisualizarIdioma {
     this.mostrarModalEditarModulo = false;
     this.moduloEmEdicao = null;
     this.nomeModuloEdicao = '';
+    this.iconeModuloEdicao = null;
   }
 
   get podeConfirmarEdicao(): boolean {
-    return this.nomeModuloEdicao.trim().length > 0 && 
-           this.nomeModuloEdicao.trim() !== this.moduloEmEdicao?.nome;
+    const nomeValido = this.nomeModuloEdicao.trim().length > 0;
+    const nomeDiferente = this.nomeModuloEdicao.trim() !== this.moduloEmEdicao?.nome;
+    const iconeDiferente = this.iconeModuloEdicao !== this.moduloEmEdicao?.icone;
+    
+    return nomeValido && (nomeDiferente || iconeDiferente);
   }
 
   confirmarEdicaoModulo(): void {
     if (!this.podeConfirmarEdicao || !this.moduloEmEdicao) return;
     
-    const nomeAntigo = this.moduloEmEdicao.nome;
     this.moduloEmEdicao.nome = this.nomeModuloEdicao.trim().substring(0, 80);
+    if (this.iconeModuloEdicao) {
+      this.moduloEmEdicao.icone = this.iconeModuloEdicao;
+    }
     
-    console.log(`Módulo "${nomeAntigo}" renomeado para "${this.moduloEmEdicao.nome}"`);
+    console.log(`Módulo editado:`, this.moduloEmEdicao);
     
     this.fecharModalEditarModulo();
     this.exibirMensagemSucesso(`Módulo "${this.moduloEmEdicao.nome}" editado com sucesso!`);

@@ -1,1 +1,307 @@
-<p>recuperar-senha works!</p>
+<section class="content">
+
+  <div class="page-header">
+    <div class="header-content">
+      <div class="icon-title">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <h1 class="page-title">Recuperar Senha</h1>
+      </div>
+      <p class="subtitle">Siga os passos abaixo para redefinir sua senha</p>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="getProgresso()"></div>
+    </div>
+    <div class="progress-steps">
+      <div class="step" [class.active]="etapaAtual >= 1" [class.completed]="etapaAtual > 1">
+        <div class="step-number">1</div>
+        <span class="step-label">Email</span>
+      </div>
+      <div class="step" [class.active]="etapaAtual >= 2" [class.completed]="etapaAtual > 2">
+        <div class="step-number">2</div>
+        <span class="step-label">Método</span>
+      </div>
+      <div class="step" [class.active]="etapaAtual >= 3" [class.completed]="etapaAtual > 3">
+        <div class="step-number">3</div>
+        <span class="step-label">Código</span>
+      </div>
+      <div class="step" [class.active]="etapaAtual >= 4" [class.completed]="etapaAtual > 4">
+        <div class="step-number">4</div>
+        <span class="step-label">Nova Senha</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 1: Email -->
+  <div class="etapa-card" *ngIf="etapaAtual === 1">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+      <h2>Informe seu Email</h2>
+    </div>
+
+    <div class="card-content">
+      <p class="etapa-descricao">
+        Digite o endereço de email associado à sua conta. Enviaremos um código de verificação para você.
+      </p>
+
+      <div class="form-group">
+        <label for="email">Email cadastrado</label>
+        <div class="input-with-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <input 
+            id="email" 
+            name="email" 
+            type="email" 
+            [(ngModel)]="email"
+            placeholder="seu@email.com"
+            [disabled]="carregando" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelar()" [disabled]="carregando">
+          Cancelar
+        </button>
+        <button type="button" class="btn-primary" (click)="proximaEtapa()" [disabled]="carregando">
+          <span *ngIf="!carregando">Continuar</span>
+          <span *ngIf="carregando">Verificando...</span>
+          <svg *ngIf="!carregando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 2: Método de Recuperação -->
+  <div class="etapa-card" *ngIf="etapaAtual === 2">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <h2>Escolha o Método de Recuperação</h2>
+    </div>
+
+    <div class="card-content">
+      <p class="etapa-descricao">
+        Selecione como você deseja receber o código de verificação.
+      </p>
+
+      <div class="metodo-opcoes">
+        <div 
+          class="metodo-card" 
+          [class.selected]="metodoSelecionado === 'email'"
+          (click)="selecionarMetodo('email')">
+          <div class="metodo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </div>
+          <h3>Email (Gmail)</h3>
+          <p>Enviar código para {{ email }}</p>
+          <div class="check-icon" *ngIf="metodoSelecionado === 'email'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div 
+          class="metodo-card" 
+          [class.selected]="metodoSelecionado === 'sms'"
+          (click)="selecionarMetodo('sms')">
+          <div class="metodo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+          </div>
+          <h3>SMS</h3>
+          <p>Enviar código para seu celular</p>
+          <div class="check-icon" *ngIf="metodoSelecionado === 'sms'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="voltarEtapa()" [disabled]="carregando">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Voltar
+        </button>
+        <button type="button" class="btn-primary" (click)="proximaEtapa()" [disabled]="carregando">
+          <span *ngIf="!carregando">Enviar Código</span>
+          <span *ngIf="carregando">Enviando...</span>
+          <svg *ngIf="!carregando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 3: Código de Verificação -->
+  <div class="etapa-card" *ngIf="etapaAtual === 3">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+      <h2>Digite o Código de Verificação</h2>
+    </div>
+
+    <div class="card-content">
+      <p class="etapa-descricao">
+        Enviamos um código de 6 dígitos para {{ metodoSelecionado === 'email' ? 'seu email' : 'seu celular' }}. Digite-o abaixo.
+      </p>
+
+      <div class="form-group">
+        <label for="codigo">Código de verificação</label>
+        <input 
+          id="codigo" 
+          name="codigo" 
+          type="text" 
+          [(ngModel)]="codigoDigitado"
+          (keydown)="permitirApenasNumeros($event)"
+          placeholder="000000"
+          maxlength="6"
+          class="codigo-input"
+          [disabled]="carregando" />
+        <small class="input-help">Digite os 6 números que você recebeu</small>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="voltarEtapa()" [disabled]="carregando">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Voltar
+        </button>
+        <button type="button" class="btn-primary" (click)="proximaEtapa()" [disabled]="carregando">
+          <span *ngIf="!carregando">Verificar Código</span>
+          <span *ngIf="carregando">Verificando...</span>
+          <svg *ngIf="!carregando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 4: Nova Senha -->
+  <div class="etapa-card" *ngIf="etapaAtual === 4">
+    <div class="card-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </svg>
+      <h2>Defina sua Nova Senha</h2>
+    </div>
+
+    <div class="card-content">
+      <p class="etapa-descricao">
+        Crie uma senha forte com no mínimo 6 caracteres, contendo letras e números.
+      </p>
+
+      <div class="form-group">
+        <label for="novaSenha">Nova senha</label>
+        <div class="password-wrapper">
+          <input 
+            id="novaSenha" 
+            name="novaSenha"
+            [type]="camposVisiveis.novaSenha ? 'text' : 'password'"
+            [(ngModel)]="novaSenha" 
+            placeholder="Mínimo 6 caracteres"
+            [disabled]="carregando" />
+          <button 
+            type="button" 
+            class="eye-icon" 
+            (click)="togglePassword('novaSenha')"
+            [disabled]="carregando"
+            [attr.aria-label]="camposVisiveis.novaSenha ? 'Ocultar senha' : 'Mostrar senha'">
+            <svg *ngIf="!camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Indicador de Força da Senha -->
+        <div class="password-strength" *ngIf="novaSenha">
+          <div class="strength-bar">
+            <div class="strength-fill" [class]="getClasseForcaSenha()" [style.width.%]="getForcaSenha() * 25"></div>
+          </div>
+          <span class="strength-text" [class]="getClasseForcaSenha()">{{ getTextoForcaSenha() }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmarSenha">Confirmar nova senha</label>
+        <div class="password-wrapper">
+          <input 
+            id="confirmarSenha" 
+            name="confirmarSenha"
+            [type]="camposVisiveis.confirmarSenha ? 'text' : 'password'"
+            [(ngModel)]="confirmarSenha" 
+            placeholder="Digite a senha novamente"
+            [disabled]="carregando" />
+          <button 
+            type="button" 
+            class="eye-icon" 
+            (click)="togglePassword('confirmarSenha')"
+            [disabled]="carregando"
+            [attr.aria-label]="camposVisiveis.confirmarSenha ? 'Ocultar senha' : 'Mostrar senha'">
+            <svg *ngIf="!camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="voltarEtapa()" [disabled]="carregando">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Voltar
+        </button>
+        <button 
+          type="button" 
+          class="btn-primary" 
+          (click)="confirmarNovaSenha()" 
+          [disabled]="!podeConfirmarSenha() || carregando">
+          <span *ngIf="!carregando">Confirmar Nova Senha</span>
+          <span *ngIf="carregando">Salvando...</span>
+          <svg *ngIf="!carregando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</section>

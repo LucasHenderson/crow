@@ -1,53 +1,152 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-
-type MetodoRecuperacao = 'email' | 'sms' | null;
+import { Router, RouterModule } from '@angular/router';
 
 type CamposSenha = {
   novaSenha: boolean;
   confirmarSenha: boolean;
 };
 
+type MetodoRecuperacao = 'email' | 'sms' | null;
+
 @Component({
   selector: 'app-recuperar-senha',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './recuperar-senha.html',
   styleUrl: './recuperar-senha.css',
 })
 export class RecuperarSenha {
   
+  // Controle de etapas
   etapaAtual = 1;
+  totalEtapas = 4;
 
-  // ETAPA 1: Email
+  // Etapa 1: Email
   email = '';
 
-  // ETAPA 2: Método de recuperação
-  metodoRecuperacao: MetodoRecuperacao = null;
+  // Etapa 2: Método de recuperação
+  metodoSelecionado: MetodoRecuperacao = null;
 
-  // ETAPA 3: Código de verificação
-  codigo = '';
-  codigoEnviado = '123456'; // Simulação - em produção viria do backend
+  // Etapa 3: Código de verificação
+  codigoDigitado = '';
+  codigoEnviado = ''; // Simulação do código enviado
 
-  // ETAPA 4: Nova senha
+  // Etapa 4: Nova senha
   novaSenha = '';
   confirmarSenha = '';
-  
   camposVisiveis: CamposSenha = {
     novaSenha: false,
     confirmarSenha: false
   };
 
+  // Controles
+  carregando = false;
+
   constructor(private router: Router) {}
 
   /**
-   * Valida o formato do email
+   * Avança para a próxima etapa
    */
-  private validarEmail(email: string): boolean {
+  proximaEtapa(): void {
+    if (this.etapaAtual === 1) {
+      if (!this.validarEmail()) return;
+      
+      // Simular verificação se o email existe
+      this.carregando = true;
+      setTimeout(() => {
+        this.carregando = false;
+        this.etapaAtual++;
+      }, 1000);
+    } 
+    else if (this.etapaAtual === 2) {
+      if (!this.metodoSelecionado) {
+        alert('Por favor, selecione um método de recuperação.');
+        return;
+      }
+      
+      // Simular envio do código
+      this.carregando = true;
+      this.gerarCodigoVerificacao();
+      setTimeout(() => {
+        this.carregando = false;
+        this.etapaAtual++;
+        alert(`Código enviado para ${this.metodoSelecionado === 'email' ? 'seu email' : 'seu celular'}: ${this.codigoEnviado}`);
+      }, 1500);
+    }
+    else if (this.etapaAtual === 3) {
+      if (!this.validarCodigo()) return;
+      
+      this.carregando = true;
+      setTimeout(() => {
+        this.carregando = false;
+        this.etapaAtual++;
+      }, 800);
+    }
+  }
+
+  /**
+   * Volta para a etapa anterior
+   */
+  voltarEtapa(): void {
+    if (this.etapaAtual > 1) {
+      this.etapaAtual--;
+    }
+  }
+
+  /**
+   * Valida o email informado
+   */
+  private validarEmail(): boolean {
+    if (!this.email.trim()) {
+      alert('Por favor, informe seu email.');
+      return false;
+    }
+
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+    if (!regex.test(this.email)) {
+      alert('Por favor, insira um email válido.');
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Seleciona o método de recuperação
+   */
+  selecionarMetodo(metodo: MetodoRecuperacao): void {
+    this.metodoSelecionado = metodo;
+  }
+
+  /**
+   * Gera um código de verificação aleatório de 6 dígitos
+   */
+  private gerarCodigoVerificacao(): void {
+    this.codigoEnviado = Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Valida o código informado
+   */
+  private validarCodigo(): boolean {
+    if (!this.codigoDigitado) {
+      alert('Por favor, informe o código de verificação.');
+      return false;
+    }
+
+    if (this.codigoDigitado.length !== 6) {
+      alert('O código deve ter 6 dígitos.');
+      return false;
+    }
+
+    if (this.codigoDigitado !== this.codigoEnviado) {
+      alert('Código inválido. Por favor, verifique e tente novamente.');
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -81,6 +180,50 @@ export class RecuperarSenha {
    */
   togglePassword(field: keyof CamposSenha): void {
     this.camposVisiveis[field] = !this.camposVisiveis[field];
+  }
+
+  /**
+   * Verifica se pode confirmar a nova senha
+   */
+  podeConfirmarSenha(): boolean {
+    return !!(
+      this.novaSenha &&
+      this.confirmarSenha &&
+      this.novaSenha.length >= 6 &&
+      this.novaSenha === this.confirmarSenha
+    );
+  }
+
+  /**
+   * Confirma a nova senha e redireciona para login
+   */
+  confirmarNovaSenha(): void {
+    if (!this.novaSenha || this.novaSenha.length < 6) {
+      alert('A senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+
+    if (this.novaSenha !== this.confirmarSenha) {
+      alert('As senhas não coincidem.');
+      return;
+    }
+
+    // Validação adicional: pelo menos uma letra e um número
+    const temLetra = /[a-zA-Z]/.test(this.novaSenha);
+    const temNumero = /[0-9]/.test(this.novaSenha);
+
+    if (!temLetra || !temNumero) {
+      alert('A senha deve conter pelo menos uma letra e um número.');
+      return;
+    }
+
+    // Simular salvamento da nova senha
+    this.carregando = true;
+    setTimeout(() => {
+      this.carregando = false;
+      alert('Senha alterada com sucesso! Faça login com sua nova senha.');
+      this.router.navigate(['/login']);
+    }, 1000);
   }
 
   /**
@@ -137,134 +280,18 @@ export class RecuperarSenha {
   }
 
   /**
-   * Verifica se pode avançar da etapa 1
-   */
-  podeAvancarEtapa1(): boolean {
-    return !!(this.email.trim() && this.validarEmail(this.email));
-  }
-
-  /**
-   * Verifica se pode avançar da etapa 2
-   */
-  podeAvancarEtapa2(): boolean {
-    return this.metodoRecuperacao !== null;
-  }
-
-  /**
-   * Verifica se pode avançar da etapa 3
-   */
-  podeAvancarEtapa3(): boolean {
-    return this.codigo.length === 6 && this.codigo === this.codigoEnviado;
-  }
-
-  /**
-   * Verifica se pode finalizar (etapa 4)
-   */
-  podeFinalizar(): boolean {
-    if (!this.novaSenha || !this.confirmarSenha) return false;
-    if (this.novaSenha.length < 6) return false;
-    if (this.novaSenha !== this.confirmarSenha) return false;
-    
-    // Validação adicional: pelo menos uma letra e um número
-    const temLetra = /[a-zA-Z]/.test(this.novaSenha);
-    const temNumero = /[0-9]/.test(this.novaSenha);
-    
-    return temLetra && temNumero;
-  }
-
-  /**
-   * Avança para a próxima etapa
-   */
-  avancarEtapa(): void {
-    if (this.etapaAtual === 1 && !this.podeAvancarEtapa1()) {
-      alert('Por favor, insira um email válido.');
-      return;
-    }
-
-    if (this.etapaAtual === 2 && !this.podeAvancarEtapa2()) {
-      alert('Por favor, selecione um método de recuperação.');
-      return;
-    }
-
-    if (this.etapaAtual === 3) {
-      if (this.codigo.length !== 6) {
-        alert('Por favor, digite o código de 6 dígitos.');
-        return;
-      }
-      if (this.codigo !== this.codigoEnviado) {
-        alert('Código incorreto. Tente novamente.');
-        return;
-      }
-    }
-
-    if (this.etapaAtual < 4) {
-      this.etapaAtual++;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Simular envio de código quando avança para etapa 3
-      if (this.etapaAtual === 3) {
-        this.enviarCodigo();
-      }
-    }
-  }
-
-  /**
-   * Volta para a etapa anterior
-   */
-  voltarEtapa(): void {
-    if (this.etapaAtual > 1) {
-      this.etapaAtual--;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  /**
-   * Simula o envio do código
-   */
-  enviarCodigo(): void {
-    const metodo = this.metodoRecuperacao === 'email' ? 'email' : 'SMS';
-    console.log(`Código enviado via ${metodo}:`, this.codigoEnviado);
-    
-    // Em produção, aqui seria feita a chamada ao backend
-    // this.authService.enviarCodigoRecuperacao(this.email, this.metodoRecuperacao)
-  }
-
-  /**
-   * Reenviar código de verificação
-   */
-  reenviarCodigo(): void {
-    // Gerar novo código (em produção viria do backend)
-    this.codigoEnviado = Math.floor(100000 + Math.random() * 900000).toString();
-    this.codigo = '';
-    
-    const metodo = this.metodoRecuperacao === 'email' ? 'email' : 'SMS';
-    alert(`Novo código enviado via ${metodo}!`);
-    console.log('Novo código:', this.codigoEnviado);
-  }
-
-  /**
-   * Finaliza o processo e redireciona para login
-   */
-  finalizar(): void {
-    if (!this.podeFinalizar()) return;
-
-    // Aqui seria feita a chamada ao backend para atualizar a senha
-    console.log('Nova senha definida com sucesso');
-    console.log('Email:', this.email);
-    
-    // Simular salvamento
-    setTimeout(() => {
-      alert('Senha alterada com sucesso! Faça login com sua nova senha.');
-      this.router.navigate(['/login']);
-    }, 500);
-  }
-
-  /**
    * Cancela o processo e volta para login
    */
   cancelar(): void {
     if (confirm('Deseja cancelar a recuperação de senha?')) {
       this.router.navigate(['/login']);
     }
+  }
+
+  /**
+   * Calcula a porcentagem de progresso
+   */
+  getProgresso(): number {
+    return (this.etapaAtual / this.totalEtapas) * 100;
   }
 }

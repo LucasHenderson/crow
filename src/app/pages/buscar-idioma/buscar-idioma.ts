@@ -369,13 +369,6 @@ export class BuscarIdioma {
   }
 
   /**
-   * Navega para o formulário de cadastro de novo idioma
-   */
-  irParaCadastro(): void {
-    this.router.navigate(['cadastrar-idioma']);
-  }
-
-  /**
    * Seleciona um idioma para visualização detalhada
    */
   selecionarIdioma(idioma: Idioma): void {

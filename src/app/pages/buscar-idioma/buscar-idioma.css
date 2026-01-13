@@ -113,19 +113,6 @@
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
 }
 
-.novo {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  font-weight: 700;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
-
-.novo:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-}
-
 /* ORDENAÇÃO */
 .ordenar-wrapper:has(.ordenacao-menu) {
   z-index: 3000;
@@ -561,6 +548,20 @@ h2 {
 .empty-state p {
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.6);
+}
+
+.nome-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nome-truncate {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 /* RESPONSIVO */
