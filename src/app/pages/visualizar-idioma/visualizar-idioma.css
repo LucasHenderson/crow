@@ -1369,6 +1369,70 @@
   max-width: 700px;
 }
 
+/* ========== ID DO USUÁRIO CRIADOR ========== */
+.id-usuario-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+  padding: 0.6rem 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: fit-content;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.id-usuario-wrapper:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.2) 100%);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.icone-usuario {
+  width: 20px;
+  height: 20px;
+  stroke: #60a5fa;
+  fill: none;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+.id-usuario {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.02em;
+}
+
+.icone-copiar {
+  width: 18px;
+  height: 18px;
+  stroke: #60a5fa;
+  fill: none;
+  stroke-width: 2;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.id-usuario-wrapper:hover .icone-copiar {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.instrucao-modal {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+
 .instrucao-modal {
   color: rgba(255, 255, 255, 0.9);
   font-size: 1rem;
@@ -1574,7 +1638,7 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 
-    .modal-editar-modulo {
+  .modal-editar-modulo {
     max-width: 650px;
   }
   
@@ -1668,6 +1732,24 @@
   .icones-grid {
     grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     gap: 0.8rem;
+  }
+  
+  .id-usuario-wrapper {
+    padding: 0.5rem 0.9rem;
+  }
+  
+  .icone-usuario {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .id-usuario {
+    font-size: 0.85rem;
+  }
+  
+  .icone-copiar {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -1835,14 +1917,32 @@
     width: 16px;
     height: 16px;
   }
-
-    .icones-grid {
+  
+  .icones-grid {
     grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
     gap: 0.7rem;
   }
   
   .icone-option {
     padding: 0.6rem;
+  }
+  
+  .id-usuario-wrapper {
+    padding: 0.5rem 0.8rem;
+  }
+  
+  .icone-usuario {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .id-usuario {
+    font-size: 0.8rem;
+  }
+  
+  .icone-copiar {
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -1894,6 +1994,15 @@
 
   .alerta-exclusao-modulo {
     padding: 0.8rem 0.9rem;
+  }
+  
+  .id-usuario-wrapper {
+    padding: 0.4rem 0.7rem;
+    gap: 0.5rem;
+  }
+  
+  .id-usuario {
+    font-size: 0.75rem;
   }
 }
 
@@ -1975,5 +2084,24 @@
   
   .icone-option {
     padding: 0.5rem;
+  }
+  
+  .id-usuario-wrapper {
+    padding: 0.4rem 0.6rem;
+    gap: 0.4rem;
+  }
+  
+  .icone-usuario {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .id-usuario {
+    font-size: 0.7rem;
+  }
+  
+  .icone-copiar {
+    width: 12px;
+    height: 12px;
   }
 }

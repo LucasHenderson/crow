@@ -28,7 +28,8 @@ interface IdiomaUsuario {
 export class VisualizarIdioma {
   idiomaNome = 'Japonês';
   descricao = 'Aprender japonês básico para viagens e conversação do dia a dia';
-  isProprietario = true;
+  idUsuarioCriador = 'user_12345'; // ID do usuário criador
+  isProprietario = false;
   avaliacao = 4.3;
   totalAvaliacoes = 2134;
   
@@ -440,5 +441,14 @@ export class VisualizarIdioma {
 
   fecharMensagemSucesso(): void {
     this.mostrarMensagemSucesso = false;
+  }
+
+  copiarIdUsuario(): void {
+    navigator.clipboard.writeText(this.idUsuarioCriador).then(() => {
+      this.exibirMensagemSucesso('ID do usuário copiado para a área de transferência!');
+    }).catch(err => {
+      console.error('Erro ao copiar ID:', err);
+      alert('Erro ao copiar ID. Tente novamente.');
+    });
   }
 }

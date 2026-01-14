@@ -53,7 +53,7 @@
         Digite o endereço de email associado à sua conta. Enviaremos um código de verificação para você.
       </p>
 
-      <div class="form-group">
+      <div class="form-group email-field">
         <label for="email">Email cadastrado</label>
         <div class="input-with-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -68,6 +68,7 @@
             placeholder="seu@email.com"
             [disabled]="carregando" />
         </div>
+        <span class="error" *ngIf="emailErro">{{ emailErro }}</span>
       </div>
 
       <div class="form-actions">
@@ -138,6 +139,8 @@
         </div>
       </div>
 
+      <span class="error error-center" *ngIf="metodoErro">{{ metodoErro }}</span>
+
       <div class="form-actions">
         <button type="button" class="btn-secondary" (click)="voltarEtapa()" [disabled]="carregando">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -184,6 +187,7 @@
           class="codigo-input"
           [disabled]="carregando" />
         <small class="input-help">Digite os 6 números que você recebeu</small>
+        <span class="error" *ngIf="codigoErro">{{ codigoErro }}</span>
       </div>
 
       <div class="form-actions">
@@ -280,6 +284,7 @@
             </svg>
           </button>
         </div>
+        <span class="error" *ngIf="senhaErro">{{ senhaErro }}</span>
       </div>
 
       <div class="form-actions">

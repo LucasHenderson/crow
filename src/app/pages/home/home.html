@@ -69,6 +69,78 @@
 
   </div>
 
+  <!-- ========== MODAL DE OPÇÕES (ADICIONAR IDIOMA) ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalOpcoes" (click)="fecharModalOpcoes()">
+    <div class="modal-container modal-opcoes" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Adicionar Idioma</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalOpcoes()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-descricao">Escolha como deseja adicionar um novo idioma:</p>
+
+        <div class="opcoes-grid">
+          <!-- BUSCAR IDIOMA -->
+          <button class="opcao-card" (click)="buscarIdioma()">
+            <div class="opcao-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <h3>Buscar Idioma</h3>
+            <p>Encontre idiomas já cadastrados na plataforma</p>
+          </button>
+
+          <!-- BUSCAR USUÁRIO -->
+          <button class="opcao-card" (click)="buscarUsuario()">
+            <div class="opcao-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <h3>Buscar Usuário</h3>
+            <p>Procure por idiomas de outros usuários</p>
+          </button>
+
+          <!-- NOVO IDIOMA -->
+          <button class="opcao-card" (click)="novoIdioma()">
+            <div class="opcao-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+            <h3>Novo Idioma</h3>
+            <p>Crie um idioma personalizado do zero</p>
+          </button>
+
+          <!-- GERAR IDIOMA (IA) - DESABILITADO -->
+          <button class="opcao-card disabled" disabled (click)="gerarIdiomaIA()">
+            <div class="opcao-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                <path d="M12 2v10l8.66 5"></path>
+              </svg>
+            </div>
+            <h3>Gerar Idioma (IA)</h3>
+            <p>Use inteligência artificial para criar seu idioma</p>
+            <span class="badge-breve">Em breve</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ========== MODAL DE EDIÇÃO ========== -->
   <div class="modal-overlay" *ngIf="mostrarModalEdicao" (click)="fecharModalEdicao()">
     <div class="modal-container" (click)="$event.stopPropagation(); fecharDropdownsEdicao($event)">

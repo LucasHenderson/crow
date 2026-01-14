@@ -31,6 +31,7 @@ export class Home {
   // Controle dos modals
   mostrarModalEdicao = false;
   mostrarModalExclusao = false;
+  mostrarModalOpcoes = false; // NOVO: Modal de opções ao adicionar idioma
   
   // Mensagem de sucesso
   mostrarMensagemSucesso = false;
@@ -78,57 +79,56 @@ export class Home {
   constructor(private cdr: ChangeDetectorRef) {}
 
   /**
-   * Adiciona um novo idioma à lista (máximo 4)
+   * Abre o modal de opções para adicionar idioma
    */
   adicionarIdioma(): void {
     if (this.idiomas.length >= 4) {
       console.warn('Limite máximo de 4 idiomas atingido');
       return;
     }
+    this.mostrarModalOpcoes = true;
+  }
 
-    const exemplos: Idioma[] = [
-      {
-        nome: 'Inglês',
-        bandeira: '../../../assets/imgs/United-States-Flag.svg',
-        nota: 4,
-        modulos: 18,
-        descricao: 'Idioma global, utilizado em negócios, tecnologia e viagens ao redor do mundo.',
-        proficiencia: 'Avançado',
-        visibilidade: 'publico'
-      },
-      {
-        nome: 'Japonês',
-        bandeira: '../../../assets/imgs/Japan-Flag.png',
-        nota: 5,
-        modulos: 20,
-        descricao: 'Idioma rico culturalmente, com foco em escrita complexa e conversação formal.',
-        proficiencia: 'Fluente',
-        visibilidade: 'publico'
-      },
-      {
-        nome: 'Espanhol',
-        bandeira: '../../../assets/imgs/Spain-Flag.svg',
-        nota: 3,
-        modulos: 12,
-        descricao: 'Idioma amplamente falado na América Latina, Europa e em diversas comunidades.',
-        proficiencia: 'Intermediário',
-        visibilidade: 'privado'
-      },
-      {
-        nome: 'Russo',
-        bandeira: '../../../assets/imgs/Russia-Flag.svg',
-        nota: 4,
-        modulos: 15,
-        descricao: 'Idioma desafiador, com alfabeto cirílico próprio e estrutura gramatical complexa.',
-        proficiencia: 'Avançado',
-        visibilidade: 'publico'
-      }
-    ];
+  /**
+   * Fecha o modal de opções
+   */
+  fecharModalOpcoes(): void {
+    this.mostrarModalOpcoes = false;
+  }
 
-    const novoIdioma = exemplos[this.idiomas.length];
-    this.idiomas.push(novoIdioma);
-    
-    console.log(`Idioma ${novoIdioma.nome} adicionado com sucesso!`);
+  /**
+   * Navega para buscar idioma
+   */
+  buscarIdioma(): void {
+    console.log('Navegar para Buscar Idioma');
+    this.fecharModalOpcoes();
+    // this.router.navigate(['/buscar-idioma']);
+  }
+
+  /**
+   * Navega para buscar usuário
+   */
+  buscarUsuario(): void {
+    console.log('Navegar para Buscar Usuário');
+    this.fecharModalOpcoes();
+    // this.router.navigate(['/buscar-usuario']);
+  }
+
+  /**
+   * Navega para criar novo idioma
+   */
+  novoIdioma(): void {
+    console.log('Navegar para Cadastrar Novo Idioma');
+    this.fecharModalOpcoes();
+    // this.router.navigate(['/cadastrar-idioma']);
+  }
+
+  /**
+   * Gerar idioma com IA (desabilitado por enquanto)
+   */
+  gerarIdiomaIA(): void {
+    console.log('Funcionalidade de IA em desenvolvimento');
+    // Será implementado em breve
   }
 
   /**

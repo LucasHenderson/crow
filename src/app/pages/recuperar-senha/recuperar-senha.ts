@@ -25,17 +25,21 @@ export class RecuperarSenha {
 
   // Etapa 1: Email
   email = '';
+  emailErro = '';
 
   // Etapa 2: Método de recuperação
   metodoSelecionado: MetodoRecuperacao = null;
+  metodoErro = '';
 
   // Etapa 3: Código de verificação
   codigoDigitado = '';
   codigoEnviado = ''; // Simulação do código enviado
+  codigoErro = '';
 
   // Etapa 4: Nova senha
   novaSenha = '';
   confirmarSenha = '';
+  senhaErro = '';
   camposVisiveis: CamposSenha = {
     novaSenha: false,
     confirmarSenha: false
@@ -61,19 +65,11 @@ export class RecuperarSenha {
       }, 1000);
     } 
     else if (this.etapaAtual === 2) {
-      if (!this.metodoSelecionado) {
-        alert('Por favor, selecione um método de recuperação.');
-        return;
-      }
+      if (!this.validarMetodo()) return;
       
-      // Simular envio do código
+      // Enviar código via API
       this.carregando = true;
-      this.gerarCodigoVerificacao();
-      setTimeout(() => {
-        this.carregando = false;
-        this.etapaAtual++;
-        alert(`Código enviado para ${this.metodoSelecionado === 'email' ? 'seu email' : 'seu celular'}: ${this.codigoEnviado}`);
-      }, 1500);
+      this.enviarCodigoVerificacao();
     }
     else if (this.etapaAtual === 3) {
       if (!this.validarCodigo()) return;
@@ -99,14 +95,30 @@ export class RecuperarSenha {
    * Valida o email informado
    */
   private validarEmail(): boolean {
+    this.emailErro = '';
+
     if (!this.email.trim()) {
-      alert('Por favor, informe seu email.');
+      this.emailErro = 'Por favor, informe seu email.';
       return false;
     }
 
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!regex.test(this.email)) {
-      alert('Por favor, insira um email válido.');
+      this.emailErro = 'Por favor, insira um email válido.';
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Valida se um método foi selecionado
+   */
+  private validarMetodo(): boolean {
+    this.metodoErro = '';
+
+    if (!this.metodoSelecionado) {
+      this.metodoErro = 'Por favor, selecione um método de recuperação.';
       return false;
     }
 
@@ -118,6 +130,7 @@ export class RecuperarSenha {
    */
   selecionarMetodo(metodo: MetodoRecuperacao): void {
     this.metodoSelecionado = metodo;
+    this.metodoErro = '';
   }
 
   /**
@@ -128,21 +141,119 @@ export class RecuperarSenha {
   }
 
   /**
+   * Envia código de verificação via API
+   */
+  private async enviarCodigoVerificacao(): Promise<void> {
+    this.gerarCodigoVerificacao();
+
+    try {
+      if (this.metodoSelecionado === 'email') {
+        // Enviar via email (Gmail API ou serviço de email)
+        await this.enviarCodigoPorEmail();
+      } else {
+        // Enviar via SMS (Twilio, AWS SNS, etc)
+        await this.enviarCodigoPorSMS();
+      }
+
+      this.carregando = false;
+      this.etapaAtual++;
+      
+      // Apenas para desenvolvimento - remover em produção
+      console.log(`Código enviado: ${this.codigoEnviado}`);
+    } catch (error) {
+      this.carregando = false;
+      this.metodoErro = 'Erro ao enviar código. Tente novamente.';
+      console.error('Erro ao enviar código:', error);
+    }
+  }
+
+  /**
+   * Envia código por email usando API
+   */
+  private async enviarCodigoPorEmail(): Promise<void> {
+    // Simulação de envio por email
+    // Em produção, implementar com serviço real como:
+    // - Gmail API
+    // - SendGrid
+    // - Amazon SES
+    // - Mailgun
+    
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log(`Email enviado para ${this.email} com código: ${this.codigoEnviado}`);
+        
+        // Exemplo de implementação com backend:
+        /*
+        fetch('/api/enviar-codigo-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: this.email,
+            codigo: this.codigoEnviado
+          })
+        }).then(response => {
+          if (response.ok) resolve();
+          else throw new Error('Erro ao enviar email');
+        });
+        */
+        
+        resolve();
+      }, 1500);
+    });
+  }
+
+  /**
+   * Envia código por SMS usando API
+   */
+  private async enviarCodigoPorSMS(): Promise<void> {
+    // Simulação de envio por SMS
+    // Em produção, implementar com serviço real como:
+    // - Twilio
+    // - AWS SNS
+    // - Nexmo/Vonage
+    
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log(`SMS enviado com código: ${this.codigoEnviado}`);
+        
+        // Exemplo de implementação com backend:
+        /*
+        fetch('/api/enviar-codigo-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            telefone: this.telefoneUsuario,
+            codigo: this.codigoEnviado
+          })
+        }).then(response => {
+          if (response.ok) resolve();
+          else throw new Error('Erro ao enviar SMS');
+        });
+        */
+        
+        resolve();
+      }, 1500);
+    });
+  }
+
+  /**
    * Valida o código informado
    */
   private validarCodigo(): boolean {
+    this.codigoErro = '';
+
     if (!this.codigoDigitado) {
-      alert('Por favor, informe o código de verificação.');
+      this.codigoErro = 'Por favor, informe o código de verificação.';
       return false;
     }
 
     if (this.codigoDigitado.length !== 6) {
-      alert('O código deve ter 6 dígitos.');
+      this.codigoErro = 'O código deve ter 6 dígitos.';
       return false;
     }
 
     if (this.codigoDigitado !== this.codigoEnviado) {
-      alert('Código inválido. Por favor, verifique e tente novamente.');
+      this.codigoErro = 'Código inválido. Por favor, verifique e tente novamente.';
       return false;
     }
 
@@ -198,13 +309,15 @@ export class RecuperarSenha {
    * Confirma a nova senha e redireciona para login
    */
   confirmarNovaSenha(): void {
+    this.senhaErro = '';
+
     if (!this.novaSenha || this.novaSenha.length < 6) {
-      alert('A senha deve ter no mínimo 6 caracteres.');
+      this.senhaErro = 'A senha deve ter no mínimo 6 caracteres.';
       return;
     }
 
     if (this.novaSenha !== this.confirmarSenha) {
-      alert('As senhas não coincidem.');
+      this.senhaErro = 'As senhas não coincidem.';
       return;
     }
 
@@ -213,7 +326,7 @@ export class RecuperarSenha {
     const temNumero = /[0-9]/.test(this.novaSenha);
 
     if (!temLetra || !temNumero) {
-      alert('A senha deve conter pelo menos uma letra e um número.');
+      this.senhaErro = 'A senha deve conter pelo menos uma letra e um número.';
       return;
     }
 
