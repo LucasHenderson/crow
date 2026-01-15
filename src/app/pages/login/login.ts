@@ -74,8 +74,7 @@ export class Login {
   // ✅ NOVO: Navega para recuperação de senha
   esqueceuSenha(): void {
     console.log('Navegando para recuperação de senha');
-    // this.router.navigate(['/recuperar-senha']);
-    alert('Navegando para página de recuperação de senha');
+    this.router.navigate(['/recuperar-senha']);
   }
 
   // ✅ NOVO: Navega para cadastro de novo usuário

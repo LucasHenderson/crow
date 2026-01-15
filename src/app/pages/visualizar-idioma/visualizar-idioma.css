@@ -1371,67 +1371,29 @@
 
 /* ========== ID DO USUÁRIO CRIADOR ========== */
 .id-usuario-wrapper {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
   margin-top: 0.8rem;
-  padding: 0.6rem 1rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
-  border-radius: 10px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+  border-radius: 8px;
+  border: 1.5px solid rgba(59, 130, 246, 0.25);
   cursor: pointer;
   transition: all 0.3s ease;
-  width: fit-content;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.id-usuario-wrapper:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.2) 100%);
-  border-color: rgba(59, 130, 246, 0.5);
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.icone-usuario {
-  width: 20px;
-  height: 20px;
-  stroke: #60a5fa;
-  fill: none;
-  stroke-width: 2;
-  flex-shrink: 0;
+.id-usuario-wrapper:active {
+  transform: scale(0.98);
 }
 
 .id-usuario {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
   font-weight: 600;
-  font-family: 'Courier New', monospace;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
-
-.icone-copiar {
-  width: 18px;
-  height: 18px;
-  stroke: #60a5fa;
-  fill: none;
-  stroke-width: 2;
-  flex-shrink: 0;
-  opacity: 0.7;
-  transition: all 0.3s ease;
-}
-
-.id-usuario-wrapper:hover .icone-copiar {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.instrucao-modal {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-}
-
 
 .instrucao-modal {
   color: rgba(255, 255, 255, 0.9);
@@ -1735,21 +1697,11 @@
   }
   
   .id-usuario-wrapper {
-    padding: 0.5rem 0.9rem;
-  }
-  
-  .icone-usuario {
-    width: 18px;
-    height: 18px;
+    padding: 0.45rem 0.85rem;
   }
   
   .id-usuario {
-    font-size: 0.85rem;
-  }
-  
-  .icone-copiar {
-    width: 16px;
-    height: 16px;
+    font-size: 0.8rem;
   }
 }
 
@@ -1928,21 +1880,11 @@
   }
   
   .id-usuario-wrapper {
-    padding: 0.5rem 0.8rem;
-  }
-  
-  .icone-usuario {
-    width: 16px;
-    height: 16px;
+    padding: 0.4rem 0.75rem;
   }
   
   .id-usuario {
-    font-size: 0.8rem;
-  }
-  
-  .icone-copiar {
-    width: 14px;
-    height: 14px;
+    font-size: 0.75rem;
   }
 }
 
@@ -1998,11 +1940,10 @@
   
   .id-usuario-wrapper {
     padding: 0.4rem 0.7rem;
-    gap: 0.5rem;
   }
   
   .id-usuario {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 }
 
@@ -2087,21 +2028,10 @@
   }
   
   .id-usuario-wrapper {
-    padding: 0.4rem 0.6rem;
-    gap: 0.4rem;
-  }
-  
-  .icone-usuario {
-    width: 14px;
-    height: 14px;
+    padding: 0.35rem 0.65rem;
   }
   
   .id-usuario {
-    font-size: 0.7rem;
-  }
-  
-  .icone-copiar {
-    width: 12px;
-    height: 12px;
+    font-size: 0.65rem;
   }
 }

@@ -1,6 +1,7 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 interface Idioma {
   nome: string;
@@ -26,7 +27,21 @@ interface IdiomaOpcao {
 })
 export class Home {
 
-  idiomas: Idioma[] = [];
+  // Lista COM idioma para testes
+  idiomas: Idioma[] = [
+    {
+      nome: 'Inglês',
+      bandeira: '../../../assets/imgs/United-States-Flag.svg',
+      nota: 4,
+      modulos: 18,
+      descricao: 'Idioma global, utilizado em negócios, tecnologia e viagens ao redor do mundo.',
+      proficiencia: 'Avançado',
+      visibilidade: 'publico'
+    }
+  ];
+
+  // Lista SEM idiomas (descomente para testar tela vazia)
+  // idiomas: Idioma[] = [];
   
   // Controle dos modals
   mostrarModalEdicao = false;
@@ -76,7 +91,7 @@ export class Home {
   
   proficiencias = ['Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Fluente'];
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef, private router: Router) {}
 
   /**
    * Abre o modal de opções para adicionar idioma
@@ -102,7 +117,7 @@ export class Home {
   buscarIdioma(): void {
     console.log('Navegar para Buscar Idioma');
     this.fecharModalOpcoes();
-    // this.router.navigate(['/buscar-idioma']);
+    this.router.navigate(['/buscar-idioma']);
   }
 
   /**
@@ -120,7 +135,7 @@ export class Home {
   novoIdioma(): void {
     console.log('Navegar para Cadastrar Novo Idioma');
     this.fecharModalOpcoes();
-    // this.router.navigate(['/cadastrar-idioma']);
+    this.router.navigate(['/cadastrar-idioma']);
   }
 
   /**

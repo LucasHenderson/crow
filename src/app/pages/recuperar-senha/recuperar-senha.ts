@@ -53,12 +53,14 @@ export class RecuperarSenha {
   /**
    * Avança para a próxima etapa
    */
-  proximaEtapa(): void {
+  async proximaEtapa(): Promise<void> {
     if (this.etapaAtual === 1) {
       if (!this.validarEmail()) return;
       
       // Simular verificação se o email existe
       this.carregando = true;
+      this.emailErro = '';
+      
       setTimeout(() => {
         this.carregando = false;
         this.etapaAtual++;
@@ -69,12 +71,15 @@ export class RecuperarSenha {
       
       // Enviar código via API
       this.carregando = true;
-      this.enviarCodigoVerificacao();
+      this.metodoErro = '';
+      await this.enviarCodigoVerificacao();
     }
     else if (this.etapaAtual === 3) {
       if (!this.validarCodigo()) return;
       
       this.carregando = true;
+      this.codigoErro = '';
+      
       setTimeout(() => {
         this.carregando = false;
         this.etapaAtual++;
@@ -396,9 +401,7 @@ export class RecuperarSenha {
    * Cancela o processo e volta para login
    */
   cancelar(): void {
-    if (confirm('Deseja cancelar a recuperação de senha?')) {
-      this.router.navigate(['/login']);
-    }
+    this.router.navigate(['/login']);
   }
 
   /**
