@@ -66,7 +66,8 @@
             type="email" 
             [(ngModel)]="email"
             placeholder="seu@email.com"
-            [disabled]="carregando" />
+            [disabled]="carregando"
+            (keydown.enter)="proximaEtapa()" />
         </div>
         <span class="error" *ngIf="emailErro">{{ emailErro }}</span>
       </div>

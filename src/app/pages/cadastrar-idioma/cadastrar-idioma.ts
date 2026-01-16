@@ -32,9 +32,12 @@ export class CadastrarIdioma {
   
   etapaAtual = 1;
 
+  // Controle do modal de cancelamento
+  mostrarModalCancelar = false;
+
   // ETAPA 1: Dados do Idioma
   idiomaSelecionado: IdiomaOpcao | null = null;
-  nomeIdioma = ''; // ✅ NOVO CAMPO
+  nomeIdioma = '';
   descricaoIdioma = '';
   proficiencia = '';
   visibilidade: 'publico' | 'privado' = 'publico';
@@ -70,7 +73,7 @@ export class CadastrarIdioma {
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
   alternativas: string[] = ['', ''];
-  respostaCorreta: number = 0; // ✅ MODIFICADO - Agora inicia com 0 (Alternativa A) por padrão
+  respostaCorreta: number = 0;
 
   idiomas: IdiomaOpcao[] = [
     { nome: 'Alemão', bandeira: 'assets/imgs/Germany-Flag.svg.png' },
@@ -92,7 +95,7 @@ export class CadastrarIdioma {
 
   iconesModulo: SafeHtml[] = [];
 
-  constructor(private router: Router, private sanitizer: DomSanitizer,  private cdr: ChangeDetectorRef) {
+  constructor(private router: Router, private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef) {
     this.carregarIcones();
   }
 
@@ -165,7 +168,6 @@ export class CadastrarIdioma {
   }
 
   podeAvancarEtapa1(): boolean {
-    // ✅ Agora inclui validação do nome e descrição
     return !!(this.idiomaSelecionado && this.nomeIdioma.trim() && this.descricaoIdioma.trim() && this.proficiencia && this.visibilidade);
   }
 
@@ -191,7 +193,6 @@ export class CadastrarIdioma {
 
     if (this.modoFrase === 'quiz') {
       const alternativasValidas = this.alternativas.every(a => a.trim());
-      // ✅ A resposta correta sempre estará definida (não pode ser null)
       return !!(this.perguntaQuiz.trim() && alternativasValidas && this.respostaCorreta !== null);
     }
 
@@ -290,7 +291,6 @@ export class CadastrarIdioma {
   removerAlternativa(index: number): void {
     if (this.alternativas.length > 2) {
       this.alternativas.splice(index, 1);
-      // ✅ Se remover a alternativa marcada como correta, marca a primeira (índice 0)
       if (this.respostaCorreta === index) {
         this.respostaCorreta = 0;
       } else if (this.respostaCorreta > index) {
@@ -299,7 +299,6 @@ export class CadastrarIdioma {
     }
   }
 
-  // ✅ MODIFICADO - Agora funciona como radio (apenas uma opção marcada)
   marcarRespostaCorreta(index: number): void {
     this.respostaCorreta = index;
   }
@@ -359,17 +358,25 @@ export class CadastrarIdioma {
     this.videoQuizEmbed = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
 
+  // MODAL DE CANCELAMENTO
   cancelar(): void {
-    if (confirm('Deseja realmente cancelar? Todos os dados serão perdidos.')) {
-      this.router.navigate(['/buscar-idioma']);
-    }
+    this.mostrarModalCancelar = true;
+  }
+
+  fecharModalCancelar(): void {
+    this.mostrarModalCancelar = false;
+  }
+
+  confirmarCancelamento(): void {
+    this.mostrarModalCancelar = false;
+    this.router.navigate(['/home']);
   }
 
   finalizar(): void {
     const cadastro = {
       etapa1: {
         idioma: this.idiomaSelecionado,
-        nome: this.nomeIdioma, // ✅ INCLUÍDO
+        nome: this.nomeIdioma,
         descricao: this.descricaoIdioma,
         proficiencia: this.proficiencia,
         visibilidade: this.visibilidade

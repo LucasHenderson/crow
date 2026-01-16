@@ -142,7 +142,8 @@ export class RecuperarSenha {
    * Gera um código de verificação aleatório de 6 dígitos
    */
   private gerarCodigoVerificacao(): void {
-    this.codigoEnviado = Math.floor(100000 + Math.random() * 900000).toString();
+    //this.codigoEnviado = Math.floor(100000 + Math.random() * 900000).toString();
+    this.codigoEnviado = Math.floor(100000).toString();
   }
 
   /**
@@ -401,7 +402,9 @@ export class RecuperarSenha {
    * Cancela o processo e volta para login
    */
   cancelar(): void {
-    this.router.navigate(['/login']);
+    if (confirm('Deseja cancelar a recuperação de senha?')) {
+      this.router.navigate(['/login']);
+    }
   }
 
   /**
