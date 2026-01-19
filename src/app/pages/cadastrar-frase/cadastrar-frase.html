@@ -290,4 +290,60 @@
     </div>
 
   </div>
+
+  <!-- ========== MODAL DE CANCELAMENTO ========== -->
+  <div class="modal-overlay" *ngIf="mostrarModalCancelar" (click)="fecharModalCancelar()">
+    <div class="modal-container modal-cancelar" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <h2>Cancelar Cadastro</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalCancelar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="icone-alerta-cancelar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        
+        <p class="texto-confirmacao-cancelar">
+          Tem certeza que deseja cancelar o cadastro?
+        </p>
+        
+        <div class="alerta-cancelar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <p>Todos os dados preenchidos até o momento serão <strong>perdidos</strong> e não poderão ser recuperados.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-continuar-editando" (click)="fecharModalCancelar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Continuar Editando
+        </button>
+        <button class="btn-confirmar-cancelamento" (click)="confirmarCancelamento()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Sim, Cancelar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </main>

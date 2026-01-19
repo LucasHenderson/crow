@@ -397,6 +397,30 @@
   color: #60a5fa;
 }
 
+/* ERROR MESSAGE */
+.error {
+  font-size: 0.8rem;
+  color: #f87171;
+  margin-left: 0.2rem;
+  margin-top: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  animation: slideIn 0.3s ease;
+  font-weight: 500;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* PASSWORD STRENGTH */
 .password-strength {
   display: flex;

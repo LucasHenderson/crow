@@ -25,6 +25,9 @@ interface Par {
 })
 export class CadastrarFrase {
   
+  // Controle do modal de cancelamento
+  mostrarModalCancelar = false;
+
   // Modo da Frase
   modoFrase: 'traducao' | 'pares' | 'quiz' | null = null;
 
@@ -49,7 +52,7 @@ export class CadastrarFrase {
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
   alternativas: string[] = ['', ''];
-  respostaCorreta: number = 0; // Alternativa A marcada por padrão
+  respostaCorreta: number = 0;
 
   constructor(
     private router: Router,
@@ -159,7 +162,6 @@ export class CadastrarFrase {
   removerAlternativa(index: number): void {
     if (this.alternativas.length > 2) {
       this.alternativas.splice(index, 1);
-      // Se remover a alternativa marcada como correta, marca a primeira (índice 0)
       if (this.respostaCorreta === index) {
         this.respostaCorreta = 0;
       } else if (this.respostaCorreta > index) {
@@ -227,10 +229,18 @@ export class CadastrarFrase {
     this.videoQuizEmbed = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
 
+  // MODAL DE CANCELAMENTO
   cancelar(): void {
-    if (confirm('Deseja realmente cancelar? Todos os dados serão perdidos.')) {
-      this.voltar();
-    }
+    this.mostrarModalCancelar = true;
+  }
+
+  fecharModalCancelar(): void {
+    this.mostrarModalCancelar = false;
+  }
+
+  confirmarCancelamento(): void {
+    this.mostrarModalCancelar = false;
+    this.voltar();
   }
 
   voltar(): void {

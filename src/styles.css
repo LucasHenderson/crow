@@ -22,3 +22,42 @@ body {
   min-height: 100vh;
   color: var(--color-text);
 }
+
+/* ==============================
+   SCROLLBAR - DARK THEME GLOBAL
+   ============================== */
+
+/* Chrome, Edge, Opera, Safari (WebKit) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #020617; /* fundo da trilha */
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    #1f3b5b,
+    #0b1c2d
+  );
+  border-radius: 8px;
+  border: 2px solid #020617;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #3b82f6,
+    #22d3ee
+  );
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1f3b5b #020617;
+}
+

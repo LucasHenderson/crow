@@ -10,6 +10,7 @@ type CamposSenha = {
 };
 
 interface Usuario {
+  id: string;
   nome: string;
   email: string;
   telefone: string;
@@ -29,6 +30,7 @@ export class Perfil implements OnInit {
   successMessage = '';
 
   user: Usuario = {
+    id: 'USR-2024-001',
     nome: 'Lucas Henderson',
     email: 'lucas@gmail.com',
     telefone: '(63) 99999-9999',
@@ -177,23 +179,8 @@ export class Perfil implements OnInit {
    * Valida e salva as alterações do perfil
    */
   salvar(): void {
-    // Validação básica dos campos obrigatórios
-    if (!this.user.nome || !this.user.email) {
-      this.showError('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    // Validação do nome (mínimo 8 caracteres)
-    if (this.user.nome.trim().length < 8) {
-      this.showError('O nome deve ter no mínimo 8 caracteres.');
-      return;
-    }
-
-    // Validação de email
-    if (!this.validarEmail(this.user.email)) {
-      this.showError('Por favor, insira um email válido.');
-      return;
-    }
+    // Validação básica dos campos obrigatórios (já é feita pelo Angular)
+    // Não precisa mais de alert, pois os spans de erro já aparecem
 
     // Se houver campos de senha preenchidos, validar alteração de senha
     if (this.senhaAtual || this.novaSenha || this.confirmarSenha) {
@@ -206,8 +193,13 @@ export class Perfil implements OnInit {
       
       this.showSuccess('Senha alterada com sucesso!');
       this.limparCamposSenha();
-    } else {
-      // Salvar dados do perfil
+    }
+    
+    // Salvar dados do perfil se houver alterações
+    if (this.user.nome !== this.userOriginal.nome ||
+        this.user.email !== this.userOriginal.email ||
+        this.user.telefone !== this.userOriginal.telefone) {
+      
       this.salvarDadosUsuario();
       
       // Atualizar cópia original após salvar
@@ -226,23 +218,18 @@ export class Perfil implements OnInit {
    * Valida a alteração de senha
    */
   private validarAlteracaoSenha(): boolean {
+    // As validações de senha agora são feitas visualmente pelos spans
+    // Mas mantemos validações críticas aqui
+    
     if (!this.senhaAtual) {
-      this.showError('Informe a senha atual.');
       return false;
     }
 
-    if (!this.novaSenha) {
-      this.showError('Informe a nova senha.');
-      return false;
-    }
-
-    if (this.novaSenha.length < 6) {
-      this.showError('A nova senha deve ter no mínimo 6 caracteres.');
+    if (!this.novaSenha || this.novaSenha.length < 6) {
       return false;
     }
 
     if (this.novaSenha !== this.confirmarSenha) {
-      this.showError('A nova senha e a confirmação não coincidem.');
       return false;
     }
 
@@ -283,17 +270,18 @@ export class Perfil implements OnInit {
     this.successMessage = message;
     this.showSuccessAlert = true;
     
-    // Auto-ocultar após 3 segundos
+    // Auto-ocultar após 4 segundos
     setTimeout(() => {
       this.showSuccessAlert = false;
-    }, 3000);
+    }, 4000);
   }
 
   /**
-   * Exibe mensagem de erro
+   * Exibe mensagem de erro (mantido para casos críticos)
    */
   showError(message: string): void {
-    // Em produção, você pode usar um serviço de notificações mais sofisticado
+    // Usado apenas para erros críticos que não são cobertos pelos spans
+    // Você pode implementar um toast ou notification service aqui
     alert(message);
   }
 

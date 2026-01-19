@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -48,7 +48,10 @@ export class RecuperarSenha {
   // Controles
   carregando = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   /**
    * Avança para a próxima etapa
@@ -64,6 +67,8 @@ export class RecuperarSenha {
       setTimeout(() => {
         this.carregando = false;
         this.etapaAtual++;
+        // Força atualização da view
+        this.forcarAtualizacao();
       }, 1000);
     } 
     else if (this.etapaAtual === 2) {
@@ -73,6 +78,8 @@ export class RecuperarSenha {
       this.carregando = true;
       this.metodoErro = '';
       await this.enviarCodigoVerificacao();
+      // Força atualização da view
+      this.forcarAtualizacao();
     }
     else if (this.etapaAtual === 3) {
       if (!this.validarCodigo()) return;
@@ -83,8 +90,17 @@ export class RecuperarSenha {
       setTimeout(() => {
         this.carregando = false;
         this.etapaAtual++;
+        // Força atualização da view
+        this.forcarAtualizacao();
       }, 800);
     }
+  }
+
+  /**
+   * Força atualização da view
+   */
+  private forcarAtualizacao(): void {
+    this.cdr.detectChanges();
   }
 
   /**
