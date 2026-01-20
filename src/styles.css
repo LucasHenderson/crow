@@ -23,41 +23,157 @@ body {
   color: var(--color-text);
 }
 
-/* ==============================
-   SCROLLBAR - DARK THEME GLOBAL
-   ============================== */
+/* ====================================
+   SCROLLBAR DARK MODE - CROSS-BROWSER
+   ==================================== */
 
-/* Chrome, Edge, Opera, Safari (WebKit) */
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-*::-webkit-scrollbar-track {
-  background: #020617; /* fundo da trilha */
-}
-
-*::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    #1f3b5b,
-    #0b1c2d
-  );
-  border-radius: 8px;
-  border: 2px solid #020617;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg,
-    #3b82f6,
-    #22d3ee
-  );
-}
-
-/* Firefox */
+/* 
+ * Firefox - Scrollbar escura
+ * Suporte: Firefox 64+
+ */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #1f3b5b #020617;
+  scrollbar-color: #475569 #1e293b;
 }
 
+/* 
+ * Webkit Browsers (Chrome, Safari, Edge, Opera)
+ * Suporte: Chrome 121+, Safari 15.4+, Edge 121+
+ */
+
+/* Largura da scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Track (fundo da scrollbar) */
+::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 10px;
+}
+
+/* Handle (barra que você arrasta) */
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 10px;
+  border: 2px solid #1e293b;
+  transition: background 0.3s ease;
+}
+
+/* Handle no hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Handle ao clicar */
+::-webkit-scrollbar-thumb:active {
+  background: #94a3b8;
+}
+
+/* Corner (canto quando há scrollbar horizontal e vertical) */
+::-webkit-scrollbar-corner {
+  background: #1e293b;
+}
+
+/* 
+ * Versão alternativa mais sutil
+ * Descomente se preferir um visual mais discreto
+ */
+/*
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+*/
+
+/* 
+ * Scrollbar para áreas específicas (opcional)
+ * Use estas classes quando quiser scrollbars diferentes em componentes específicos
+ */
+
+/* Scrollbar para modais/cards */
+.modal-scrollbar::-webkit-scrollbar,
+.card-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track,
+.card-scrollbar::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 10px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb,
+.card-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.6);
+  border-radius: 10px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover,
+.card-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
+}
+
+/* 
+ * Scrollbar horizontal mais fina (opcional)
+ */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 6px;
+}
+
+/* 
+ * Desabilitar scrollbar mas manter funcionalidade (opcional)
+ * Útil para criar scrolls customizados
+ */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* 
+ * Smooth scroll para toda a aplicação
+ */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 
+ * Melhoria de performance para scroll
+ */
+* {
+  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+}
+
+/* 
+ * COMPATIBILIDADE:
+ * ✅ Chrome 121+ (Windows, macOS, Linux, Android)
+ * ✅ Edge 121+ (Windows, macOS)
+ * ✅ Safari 15.4+ (macOS, iOS)
+ * ✅ Firefox 64+ (Windows, macOS, Linux)
+ * ✅ Opera 107+
+ * ⚠️  IE11 - scrollbar padrão (não suporta customização moderna)
+ */

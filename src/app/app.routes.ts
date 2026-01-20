@@ -65,6 +65,10 @@ export const routes: Routes = [{
         path: 'cadastrar-modulo',
         loadComponent: () => import('./pages/cadastrar-modulo/cadastrar-modulo').then((m) => m.CadastrarModulo),
       },
+      {
+        path: 'visualizar-usuario',
+        loadComponent: () => import('./pages/visualizar-usuario/visualizar-usuario').then((m) => m.VisualizarUsuario),
+      },
     ]
   }
 ];

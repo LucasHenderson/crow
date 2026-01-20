@@ -1,0 +1,152 @@
+<main class="visualizar-usuario">
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <button class="btn-voltar" (click)="voltar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Voltar
+      </button>
+      <h1>Perfil do Usuário</h1>
+    </div>
+
+    <!-- CARD DE INFORMAÇÕES DO USUÁRIO -->
+    <div class="usuario-card">
+      <div class="card-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <h2>Informações do Perfil</h2>
+      </div>
+
+      <div class="usuario-content">
+        <div class="avatar">{{ getInitials() }}</div>
+        <h3 class="usuario-nome">{{ usuario.nome }}</h3>
+        
+        <div class="usuario-info">
+          <div class="info-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>ID: {{ usuario.id }}</span>
+          </div>
+
+          <div class="info-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <span>{{ usuario.email }}</span>
+          </div>
+
+          <div class="info-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Membro desde {{ usuario.dataEntrada | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO DE IDIOMAS -->
+    <div class="idiomas-section">
+      <div class="section-header">
+        <div class="header-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <h2>Idiomas ({{ idiomas.length }}/4)</h2>
+        </div>
+        <div class="idiomas-count">
+          <span class="count-badge">{{ idiomas.length }}</span>
+        </div>
+      </div>
+
+      <!-- LISTA DE IDIOMAS -->
+      <div class="idiomas-grid" *ngIf="idiomas.length > 0">
+        <div 
+          class="idioma-card" 
+          *ngFor="let idioma of idiomas"
+          (click)="selecionarIdioma(idioma)"
+          [class.nivel-iniciante]="idioma.proficiencia === 'iniciante'"
+          [class.nivel-basico]="idioma.proficiencia === 'basico'"
+          [class.nivel-intermediario]="idioma.proficiencia === 'intermediario'"
+          [class.nivel-avancado]="idioma.proficiencia === 'avancado'"
+          [class.nivel-fluente]="idioma.proficiencia === 'fluente'">
+
+          <!-- BANDEIRA -->
+          <div class="idioma-flag">
+            <img [src]="idioma.bandeira" [alt]="'Bandeira ' + idioma.idioma">
+            <span class="idioma-nome">{{ idioma.idioma | uppercase }}</span>
+          </div>
+
+          <!-- INFORMAÇÕES -->
+          <div class="idioma-info">
+            <p class="idioma-titulo">
+              <strong>ID:</strong>
+              <span>{{ idioma.id }}</span>
+            </p>
+            <p class="idioma-titulo nome-field">
+              <strong>Nome:</strong>
+              <span class="nome-truncate" [title]="idioma.nome">
+                {{ idioma.nome.length > 22 ? (idioma.nome | slice:0:22) + '...' : idioma.nome }}
+              </span>
+            </p>
+            <p>
+              <strong>Proficiência:</strong>
+              <span 
+                class="proficiencia-badge"
+                [class.iniciante]="idioma.proficiencia === 'iniciante'"
+                [class.basico]="idioma.proficiencia === 'basico'"
+                [class.intermediario]="idioma.proficiencia === 'intermediario'"
+                [class.avancado]="idioma.proficiencia === 'avancado'"
+                [class.fluente]="idioma.proficiencia === 'fluente'">
+                {{ getNomeProficiencia(idioma.proficiencia) }}
+              </span>
+            </p>
+            <p>
+              <strong>Módulos:</strong>
+              <span>{{ idioma.modulos }}/20 ({{ calcularProgresso(idioma.modulos) }}%)</span>
+            </p>
+            <p>
+              <strong>Data:</strong>
+              <span>{{ idioma.criadoEm | date:'dd/MM/yyyy' }}</span>
+            </p>
+
+            <div class="avaliacao">
+              <strong>Avaliação:</strong>
+              <div class="stars">
+                <svg *ngFor="let ativa of estrelas(idioma.avaliacao)"
+                     viewBox="0 0 24 24"
+                     [class.active]="ativa">
+                  <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" *ngIf="idiomas.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <h3>Nenhum idioma cadastrado</h3>
+        <p>Este usuário ainda não possui idiomas cadastrados no sistema.</p>
+      </div>
+
+    </div>
+
+  </div>
+</main>
