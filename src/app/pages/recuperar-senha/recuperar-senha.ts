@@ -48,6 +48,9 @@ export class RecuperarSenha {
   // Controles
   carregando = false;
 
+  // Modal de sucesso
+  mostrarModalSucesso = false;
+
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -328,7 +331,7 @@ export class RecuperarSenha {
   }
 
   /**
-   * Confirma a nova senha e redireciona para login
+   * Confirma a nova senha e exibe modal de sucesso
    */
   confirmarNovaSenha(): void {
     this.senhaErro = '';
@@ -356,9 +359,27 @@ export class RecuperarSenha {
     this.carregando = true;
     setTimeout(() => {
       this.carregando = false;
-      alert('Senha alterada com sucesso! Faça login com sua nova senha.');
-      this.router.navigate(['/login']);
+      this.mostrarModalSucesso = true;
+      this.cdr.detectChanges();
+      
+      console.log('Senha alterada com sucesso!');
     }, 1000);
+  }
+
+  /**
+   * Fecha o modal de sucesso e redireciona para login
+   */
+  fecharModalSucesso(): void {
+    this.mostrarModalSucesso = false;
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Redireciona diretamente para login (botão do modal)
+   */
+  irParaLogin(): void {
+    this.mostrarModalSucesso = false;
+    this.router.navigate(['/login']);
   }
 
   /**

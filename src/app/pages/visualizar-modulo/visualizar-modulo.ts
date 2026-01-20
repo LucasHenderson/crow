@@ -63,6 +63,10 @@ export class VisualizarModulo implements OnInit {
   itensPorPagina: number = 10;
   totalPaginas: number = 0;
 
+  // ===== MENSAGEM DE SUCESSO =====
+  mostrarMensagemSucesso = false;
+  mensagemSucesso = '';
+
   // ===== MODAL DE EDIÇÃO =====
   mostrarModalEdicao = false;
   fraseEmEdicao: Frase | null = null;
@@ -231,6 +235,25 @@ export class VisualizarModulo implements OnInit {
     this.router.navigate(['/cadastrar-frase']);
   }
 
+  // ===== MENSAGEM DE SUCESSO =====
+  
+  exibirMensagemSucesso(mensagem: string): void {
+    this.mensagemSucesso = mensagem;
+    this.mostrarMensagemSucesso = true;
+    
+    // Força a detecção de mudanças para garantir que o texto seja exibido imediatamente
+    this.cdr.detectChanges();
+    
+    setTimeout(() => {
+      this.mostrarMensagemSucesso = false;
+      this.cdr.detectChanges();
+    }, 4000);
+  }
+
+  fecharMensagemSucesso(): void {
+    this.mostrarMensagemSucesso = false;
+  }
+
   // ===== FUNÇÕES DE EDIÇÃO =====
 
   editarFrase(frase: Frase, index: number): void {
@@ -299,8 +322,8 @@ export class VisualizarModulo implements OnInit {
       this.atualizarFrasesPaginadas();
       
       console.log('Frase editada com sucesso:', fraseAtualizada);
-      alert('Frase editada com sucesso!');
       this.fecharModalEdicao();
+      this.exibirMensagemSucesso(`Frase "${fraseAtualizada.modoNome}" editada com sucesso!`);
     }
   }
 
@@ -509,7 +532,8 @@ export class VisualizarModulo implements OnInit {
   }
 
   confirmarExclusao(): void {
-    if (this.indiceExclusao >= 0) {
+    if (this.indiceExclusao >= 0 && this.fraseEmExclusao) {
+      const modoNome = this.fraseEmExclusao.modoNome;
       this.frases.splice(this.indiceExclusao, 1);
       this.totalFrases = this.frases.length;
       
@@ -522,8 +546,8 @@ export class VisualizarModulo implements OnInit {
       this.atualizarFrasesPaginadas();
       
       console.log(`Frase excluída com sucesso`);
-      alert('Frase excluída com sucesso!');
       this.fecharModalExclusao();
+      this.exibirMensagemSucesso(`Frase "${modoNome}" excluída com sucesso!`);
     }
   }
 

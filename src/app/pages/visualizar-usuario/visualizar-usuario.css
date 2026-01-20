@@ -214,6 +214,34 @@
   flex: 1;
 }
 
+/* ID ITEM - COPIÁVEL */
+.id-item {
+  cursor: pointer;
+  position: relative;
+}
+
+.id-item:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.id-item:active {
+  transform: scale(0.98);
+}
+
+.copy-icon {
+  width: 18px;
+  height: 18px;
+  color: #8b5cf6;
+  opacity: 0;
+  transition: all 0.3s ease;
+  margin-left: auto;
+}
+
+.id-item:hover .copy-icon {
+  opacity: 1;
+}
+
 /* IDIOMAS SECTION */
 .idiomas-section {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);

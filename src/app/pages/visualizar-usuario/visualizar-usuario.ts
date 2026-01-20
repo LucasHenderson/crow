@@ -96,6 +96,19 @@ export class VisualizarUsuario implements OnInit {
   }
 
   /**
+   * Copia o ID do usuário para a área de transferência
+   */
+  copiarId(): void {
+    navigator.clipboard.writeText(this.usuario.id).then(() => {
+      console.log('ID copiado:', this.usuario.id);
+      // Aqui você pode adicionar um toast/notificação de sucesso
+      // this.showToast('ID copiado para a área de transferência!');
+    }).catch(err => {
+      console.error('Erro ao copiar ID:', err);
+    });
+  }
+
+  /**
    * Retorna as iniciais do nome do usuário
    */
   getInitials(): string {
@@ -143,7 +156,7 @@ export class VisualizarUsuario implements OnInit {
    */
   selecionarIdioma(idioma: Idioma): void {
     console.log('Idioma selecionado:', idioma);
-    // this.router.navigate(['/visualizar-idioma', idioma.id]);
+    this.router.navigate(['/visualizar-idioma']);
   }
 
   /**
