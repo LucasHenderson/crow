@@ -871,9 +871,10 @@
 
 .estatisticas {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
   justify-content: center;
+  max-width: 100%;
 }
 
 .stat-item {
@@ -883,6 +884,7 @@
   padding: 1rem 1.5rem;
   border-radius: 12px;
   backdrop-filter: blur(10px);
+  min-width: 140px;
 }
 
 .stat-item.acertos {
@@ -940,6 +942,9 @@
 /* HISTÓRICO RESPOSTAS */
 .historico-respostas {
   margin-bottom: 2rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
 }
 
 .historico-respostas h3 {
@@ -1064,6 +1069,20 @@
   height: 20px;
 }
 
+/* ==========================================
+   NOVAS CLASSES - TIMER E MELHORIAS
+   ========================================== */
+
+/* Estatística de tempo (nova) */
+.stat-item.tempo {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.15));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.stat-item.tempo svg {
+  color: #93c5fd;
+}
+
 /* RESPONSIVO */
 @media (max-width: 768px) {
   .jogar {
@@ -1093,15 +1112,19 @@
   }
 
   .estatisticas {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
     width: 100%;
   }
 
   .stat-item {
-    flex: 1;
-    min-width: 100px;
-    flex-direction: column;
-    text-align: center;
-    padding: 1rem;
+    flex: 1 1 calc(50% - 0.5rem);
+    min-width: 130px;
+    padding: 0.9rem 1.2rem;
+  }
+
+  .stat-numero {
+    font-size: 1.6rem;
   }
 
   .acoes-finais {
@@ -1140,6 +1163,21 @@
   .info-conteudo {
     padding: 1.5rem;
   }
+
+  .stat-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+    min-width: 120px;
+  }
+
+  .stat-numero {
+    font-size: 1.5rem;
+  }
+
+  .historico-respostas {
+    max-height: 300px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1168,5 +1206,23 @@
     width: 35px;
     height: 35px;
     font-size: 1rem;
+  }
+
+  .estatisticas {
+    gap: 0.8rem;
+  }
+
+  .stat-item {
+    flex: 1 1 calc(50% - 0.4rem);
+    min-width: 100px;
+    padding: 0.8rem;
+  }
+
+  .stat-numero {
+    font-size: 1.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
   }
 }

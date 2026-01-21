@@ -69,6 +69,14 @@ export const routes: Routes = [{
         path: 'visualizar-usuario',
         loadComponent: () => import('./pages/visualizar-usuario/visualizar-usuario').then((m) => m.VisualizarUsuario),
       },
+      {
+        path: 'buscar-usuario',
+        loadComponent: () => import('./pages/buscar-usuario/buscar-usuario').then((m) => m.BuscarUsuario),
+      },
+      {
+        path: 'controle-adm',
+        loadComponent: () => import('./pages/controle-adm/controle-adm').then((m) => m.ControleAdm),
+      }
     ]
   }
 ];

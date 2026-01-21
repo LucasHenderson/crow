@@ -126,7 +126,7 @@ export class Home {
   buscarUsuario(): void {
     console.log('Navegar para Buscar Usuário');
     this.fecharModalOpcoes();
-    // this.router.navigate(['/buscar-usuario']);
+    this.router.navigate(['/buscar-usuario']);
   }
 
   /**

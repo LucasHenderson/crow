@@ -50,7 +50,7 @@
         </div>
 
         <div class="info-box" *ngIf="mostrarInfo">
-          <div class="info-conteudo">
+          <div class="info-conteudo modal-scrollbar">
             <h3>Informações Adicionais</h3>
             <div class="info-observacoes" *ngIf="fraseAtual.observacoes">
               <label>Observações:</label>
@@ -237,6 +237,12 @@
         <div class="placar-final">
           <div class="placar-circle">
             <svg viewBox="0 0 200 200">
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+                </linearGradient>
+              </defs>
               <circle cx="100" cy="100" r="90" class="circle-bg"/>
               <circle cx="100" cy="100" r="90" class="circle-progress" 
                 [style.stroke-dasharray]="circumference"
@@ -277,6 +283,16 @@
             <div class="stat-info">
               <span class="stat-numero">{{ totalEtapas }}</span>
               <span class="stat-label">Total</span>
+            </div>
+          </div>
+          <div class="stat-item tempo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <div class="stat-info">
+              <span class="stat-numero">{{ tempoFormatado }}</span>
+              <span class="stat-label">Tempo</span>
             </div>
           </div>
         </div>

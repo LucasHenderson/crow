@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -50,7 +50,7 @@ interface HistoricoResposta {
   templateUrl: './jogar.html',
   styleUrl: './jogar.css',
 })
-export class Jogar implements OnInit {
+export class Jogar implements OnInit, OnDestroy {
   
   // Controle do jogo
   etapaAtual: number = 1;
@@ -82,16 +82,8 @@ export class Jogar implements OnInit {
   traducoesEmbaralhadas: Par[] = [];
   paresEmbaralhados: Par[] = [];
   coresPares: string[] = [
-    '#ef4444', // vermelho
-    '#3b82f6', // azul
-    '#10b981', // verde
-    '#f59e0b', // laranja
-    '#8b5cf6', // roxo
-    '#ec4899', // rosa
-    '#14b8a6', // teal
-    '#f97316', // laranja escuro
-    '#06b6d4', // ciano
-    '#a855f7'  // roxo claro
+    '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6',
+    '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#a855f7'
   ];
   
   // Modo: Quiz
@@ -103,6 +95,12 @@ export class Jogar implements OnInit {
   progressOffset: number = this.circumference;
 
   modulosSelecionados: string[] = [];
+
+  // Timer
+  tempoInicio: number = 0;
+  tempoFim: number = 0;
+  tempoTotalSegundos: number = 0;
+  tempoFormatado: string = '';
 
   constructor(
     private router: Router,
@@ -121,6 +119,10 @@ export class Jogar implements OnInit {
     // Carrega e sorteia as frases
     this.carregarFrases();
     this.iniciarJogo();
+  }
+
+  ngOnDestroy(): void {
+    // Limpa recursos se necessário
   }
 
   carregarFrases(): void {
@@ -165,7 +167,6 @@ export class Jogar implements OnInit {
         respostaCorretaIndex: 0,
         respostaCorretaTexto: 'Inglês'
       }
-      // ... adicione mais frases para completar 15
     ];
     
     // Sorteia 15 frases aleatórias
@@ -178,6 +179,9 @@ export class Jogar implements OnInit {
   }
 
   iniciarJogo(): void {
+    // Marca o tempo de início
+    this.tempoInicio = Date.now();
+    
     if (this.frases.length > 0) {
       this.carregarFrase(0);
     }
@@ -198,18 +202,13 @@ export class Jogar implements OnInit {
 
   prepararQuiz(): void {
     if (this.fraseAtual && this.fraseAtual.alternativas) {
-      // Cria um array de índices das alternativas originais
       const indicesOriginais = this.fraseAtual.alternativas.map((_, i) => i);
-      
-      // Embaralha os índices
       const indicesEmbaralhados = [...indicesOriginais].sort(() => Math.random() - 0.5);
       
-      // Cria array de alternativas embaralhadas
       this.fraseAtual.alternativasEmbaralhadas = indicesEmbaralhados.map(
         i => this.fraseAtual!.alternativas![i]
       );
       
-      // Atualiza o índice da resposta correta para a nova posição
       const respostaOriginal = this.fraseAtual.alternativas[this.fraseAtual.respostaCorretaIndex!];
       this.fraseAtual.respostaCorretaIndex = this.fraseAtual.alternativasEmbaralhadas.indexOf(respostaOriginal);
     }
@@ -263,7 +262,6 @@ export class Jogar implements OnInit {
 
   // SELECIONAR PARES
   selecionarPalavraColuna(index: number): void {
-    // Verifica se a palavra já está conectada
     const jaConectada = Object.keys(this.paresSelecionados).find(
       key => this.paresSelecionados[+key] === index
     );
@@ -424,8 +422,31 @@ export class Jogar implements OnInit {
   }
 
   finalizarJogo(): void {
+    // Marca o tempo de fim
+    this.tempoFim = Date.now();
+    
+    // Calcula o tempo total em segundos
+    this.tempoTotalSegundos = Math.floor((this.tempoFim - this.tempoInicio) / 1000);
+    
+    // Formata o tempo
+    this.tempoFormatado = this.formatarTempo(this.tempoTotalSegundos);
+    
     this.jogoFinalizado = true;
     this.calcularResultadosFinais();
+  }
+
+  formatarTempo(segundos: number): string {
+    const horas = Math.floor(segundos / 3600);
+    const minutos = Math.floor((segundos % 3600) / 60);
+    const segs = segundos % 60;
+    
+    if (horas > 0) {
+      return `${horas}h ${minutos}m ${segs}s`;
+    } else if (minutos > 0) {
+      return `${minutos}m ${segs}s`;
+    } else {
+      return `${segs}s`;
+    }
   }
 
   calcularResultadosFinais(): void {
@@ -440,6 +461,10 @@ export class Jogar implements OnInit {
     this.erros = 0;
     this.historicoRespostas = [];
     this.jogoFinalizado = false;
+    this.tempoInicio = 0;
+    this.tempoFim = 0;
+    this.tempoTotalSegundos = 0;
+    this.tempoFormatado = '';
     
     this.carregarFrases();
     this.iniciarJogo();
@@ -466,7 +491,6 @@ export class Jogar implements OnInit {
   }
 
   getCorConexaoPalavra(indexPalavra: number): string | null {
-    // Procura se essa palavra está conectada a alguma tradução
     const traducaoIndex = Object.keys(this.paresSelecionados).find(
       key => this.paresSelecionados[+key] === indexPalavra
     );
@@ -480,7 +504,6 @@ export class Jogar implements OnInit {
   }
 
   getCorConexaoTraducao(indexTraducao: number): string | null {
-    // Verifica se essa tradução está conectada
     if (this.paresSelecionados[indexTraducao] !== undefined) {
       const ordemConexao = this.getConexoesKeys().indexOf(String(indexTraducao));
       return this.coresPares[ordemConexao];

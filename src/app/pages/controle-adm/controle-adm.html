@@ -1,0 +1,609 @@
+<main class="controle-adm">
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </svg>
+      <div class="titulo-wrapper">
+        <h1 class="titulo">Controle Administrativo</h1>
+        <p class="subtitulo">Gerencie denúncias, usuários e idiomas da plataforma</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navegação de Abas -->
+  <nav class="tabs-nav">
+    <button class="tab-btn" [class.active]="abaAtiva === 'denuncias'" (click)="mudarAba('denuncias')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+      <span>Denúncias</span>
+      <span class="badge" *ngIf="denunciasFiltradas.length > 0">{{ denunciasFiltradas.length }}</span>
+    </button>
+
+    <button class="tab-btn" [class.active]="abaAtiva === 'usuarios'" (click)="mudarAba('usuarios')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <span>Usuários</span>
+      <span class="badge">{{ usuarios.length }}</span>
+    </button>
+
+    <button class="tab-btn" [class.active]="abaAtiva === 'idiomas'" (click)="mudarAba('idiomas')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      </svg>
+      <span>Idiomas</span>
+      <span class="badge">{{ idiomas.length }}</span>
+    </button>
+  </nav>
+
+  <!-- Conteúdo das Abas -->
+  <div class="tabs-content">
+    
+    <!-- ========== ABA DENÚNCIAS ========== -->
+    <section class="tab-panel" *ngIf="abaAtiva === 'denuncias'">
+      
+      <!-- Filtros -->
+      <div class="filtros">
+        <div class="filtro-group">
+          <label>Status:</label>
+          <select [(ngModel)]="filtroDenunciaStatus" class="select-filtro">
+            <option value="todas">Todas</option>
+            <option value="pendente">Pendentes</option>
+            <option value="analisando">Analisando</option>
+            <option value="resolvida">Resolvidas</option>
+            <option value="rejeitada">Rejeitadas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lista de Denúncias -->
+      <div class="denuncias-list" *ngIf="denunciasFiltradas.length > 0">
+        <div class="denuncia-card" *ngFor="let denuncia of denunciasFiltradas" (click)="visualizarDenuncia(denuncia)">
+          <div class="denuncia-header">
+            <div class="denuncia-info">
+              <h3>{{ denuncia.idiomaNome }}</h3>
+              <span class="denuncia-id">ID: {{ denuncia.idiomaId }}</span>
+            </div>
+            <span class="status-badge" [ngClass]="getStatusClass(denuncia.status)">
+              {{ getStatusTexto(denuncia.status) }}
+            </span>
+          </div>
+
+          <div class="denuncia-content">
+            <div class="denuncia-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span><strong>Denunciante:</strong> {{ denuncia.usuarioNome }} ({{ denuncia.usuarioId }})</span>
+            </div>
+
+            <div class="denuncia-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span><strong>Data:</strong> {{ formatarData(denuncia.data) }}</span>
+            </div>
+
+            <div class="denuncia-tipos">
+              <span class="tipo-tag" *ngFor="let tipo of denuncia.tipos">{{ tipo }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="denunciasFiltradas.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <h3>Nenhuma denúncia encontrada</h3>
+        <p>Não há denúncias com o filtro selecionado</p>
+      </div>
+
+    </section>
+
+    <!-- ========== ABA USUÁRIOS ========== -->
+    <section class="tab-panel" *ngIf="abaAtiva === 'usuarios'">
+      
+      <!-- Filtros -->
+      <div class="filtros">
+        <div class="filtro-group">
+          <label>Status:</label>
+          <select [(ngModel)]="filtroUsuarioStatus" class="select-filtro">
+            <option value="todos">Todos</option>
+            <option value="ativo">Ativos</option>
+            <option value="inativo">Inativos</option>
+          </select>
+        </div>
+
+        <div class="filtro-group busca-group">
+          <label>Buscar:</label>
+          <div class="input-busca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" [(ngModel)]="buscaUsuario" placeholder="Nome, email ou ID..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Usuários -->
+      <div class="usuarios-list" *ngIf="usuariosFiltrados.length > 0">
+        <div class="usuario-card" *ngFor="let usuario of usuariosFiltrados">
+          <div class="usuario-avatar" [class.inativo]="usuario.status === 'inativo'">
+            {{ usuario.nome.charAt(0).toUpperCase() }}
+          </div>
+
+          <div class="usuario-info">
+            <h3>{{ usuario.nome }}</h3>
+            <div class="info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <span>{{ usuario.email }}</span>
+            </div>
+            <div class="info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span>ID: {{ usuario.id }}</span>
+            </div>
+          </div>
+
+          <div class="usuario-status">
+            <span class="status-badge" [class.ativo]="usuario.status === 'ativo'" [class.inativo]="usuario.status === 'inativo'">
+              {{ usuario.status === 'ativo' ? 'Ativo' : 'Inativo' }}
+            </span>
+          </div>
+
+          <div class="usuario-acoes">
+            <button class="btn-acao editar" (click)="editarUsuario(usuario)" title="Editar usuário">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+
+            <button class="btn-acao" 
+                    [class.desativar]="usuario.status === 'ativo'" 
+                    [class.ativar]="usuario.status === 'inativo'"
+                    (click)="abrirModalDesativarUsuario(usuario)" 
+                    [title]="usuario.status === 'ativo' ? 'Desativar conta' : 'Ativar conta'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="usuariosFiltrados.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+        <h3>Nenhum usuário encontrado</h3>
+        <p>Não há usuários com o filtro ou busca aplicados</p>
+      </div>
+
+    </section>
+
+    <!-- ========== ABA IDIOMAS ========== -->
+    <section class="tab-panel" *ngIf="abaAtiva === 'idiomas'">
+      
+      <!-- Busca -->
+      <div class="filtros">
+        <div class="filtro-group busca-group full-width">
+          <label>Buscar:</label>
+          <div class="input-busca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" [(ngModel)]="buscaIdioma" placeholder="Nome, criador ou ID..." />
+          </div>
+        </div>
+      </div>
+<!-- Lista de Idiomas -->
+      <div class="idiomas-grid" *ngIf="idiomasFiltrados.length > 0">
+        <div class="idioma-card" *ngFor="let idioma of idiomasFiltrados">
+          <img [src]="idioma.bandeira" [alt]="'Bandeira ' + idioma.nome" class="idioma-bandeira" (click)="visualizarIdioma(idioma)" />
+
+          <div class="idioma-content" (click)="visualizarIdioma(idioma)">
+            <h3>{{ idioma.nome }}</h3>
+            <p class="idioma-descricao">{{ idioma.descricao }}</p>
+
+            <div class="idioma-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>{{ idioma.criadorNome }}</span>
+            </div>
+
+            <div class="idioma-stats">
+              <span><strong>{{ idioma.modulos }}</strong> módulos</span>
+              <div class="stars-mini">
+                <svg *ngFor="let ativa of estrelas(idioma.avaliacao)" viewBox="0 0 24 24" [class.active]="ativa">
+                  <path d="M12 17.3l6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+                <span class="avaliacao-texto">{{ idioma.avaliacao.toFixed(1) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="idioma-acoes">
+            <button class="btn-acao editar" (click)="editarIdioma(idioma)" title="Editar idioma">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+
+            <button class="btn-acao excluir" (click)="excluirIdioma(idioma)" title="Excluir idioma">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="idiomasFiltrados.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+        </svg>
+        <h3>Nenhum idioma encontrado</h3>
+        <p>Não há idiomas com a busca aplicada</p>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- ========== MODAIS ========== -->
+
+  <!-- Modal Visualizar Denúncia -->
+  <div class="modal-overlay" *ngIf="mostrarModalDenuncia" (click)="fecharModalDenuncia()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalhes da Denúncia</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalDenuncia()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="denuncia-detalhes" *ngIf="denunciaSelecionada">
+          <div class="detalhe-item">
+            <strong>Idioma:</strong>
+            <span>{{ denunciaSelecionada.idiomaNome }} ({{ denunciaSelecionada.idiomaId }})</span>
+          </div>
+
+          <div class="detalhe-item">
+            <strong>Denunciante:</strong>
+            <span>{{ denunciaSelecionada.usuarioNome }} ({{ denunciaSelecionada.usuarioId }})</span>
+          </div>
+
+          <div class="detalhe-item">
+            <strong>Data:</strong>
+            <span>{{ formatarData(denunciaSelecionada.data) }}</span>
+          </div>
+
+          <div class="detalhe-item">
+            <strong>Tipos de conteúdo:</strong>
+            <div class="tipos-lista">
+              <span class="tipo-tag" *ngFor="let tipo of denunciaSelecionada.tipos">{{ tipo }}</span>
+            </div>
+          </div>
+
+          <div class="detalhe-item" *ngIf="denunciaSelecionada.descricao">
+            <strong>Descrição:</strong>
+            <p class="descricao-texto">{{ denunciaSelecionada.descricao }}</p>
+          </div>
+
+          <div class="detalhe-item">
+            <strong>Status atual:</strong>
+            <span class="status-badge" [ngClass]="getStatusClass(denunciaSelecionada.status)">
+              {{ getStatusTexto(denunciaSelecionada.status) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-status pendente" (click)="alterarStatusDenuncia('pendente')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Pendente
+        </button>
+
+        <button class="btn-status analisando" (click)="alterarStatusDenuncia('analisando')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Analisando
+        </button>
+
+        <button class="btn-status resolvida" (click)="alterarStatusDenuncia('resolvida')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Resolvida
+        </button>
+
+        <button class="btn-status rejeitada" (click)="alterarStatusDenuncia('rejeitada')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Rejeitada
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Usuário -->
+  <div class="modal-overlay" *ngIf="mostrarModalEditarUsuario" (click)="fecharModalEditarUsuario()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Usuário</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalEditarUsuario()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="campo">
+          <label>Nome Completo *</label>
+          <input type="text" [(ngModel)]="nomeUsuarioEdicao" placeholder="Nome completo (mínimo 8 caracteres)" maxlength="100" />
+        </div>
+
+        <div class="campo">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="emailUsuarioEdicao" placeholder="email@exemplo.com" />
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="campo">
+          <label>Nova Senha (opcional)</label>
+          <div class="password-wrapper">
+            <input [type]="camposVisiveis.novaSenha ? 'text' : 'password'" 
+                   [(ngModel)]="novaSenhaUsuario" 
+                   placeholder="Mínimo 6 caracteres" />
+            <button type="button" class="eye-icon" (click)="togglePassword('novaSenha')">
+              <svg *ngIf="!camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="camposVisiveis.novaSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Confirmar Nova Senha</label>
+          <div class="password-wrapper">
+            <input [type]="camposVisiveis.confirmarSenha ? 'text' : 'password'" 
+                   [(ngModel)]="confirmarSenhaUsuario" 
+                   placeholder="Digite a senha novamente" />
+            <button type="button" class="eye-icon" (click)="togglePassword('confirmarSenha')">
+              <svg *ngIf="!camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg *ngIf="camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalEditarUsuario()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-salvar-modal" (click)="confirmarEdicaoUsuario()" [disabled]="!podeConfirmarEdicaoUsuario">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Salvar Alterações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Desativar/Ativar Usuário -->
+  <div class="modal-overlay" *ngIf="mostrarModalDesativarUsuario" (click)="fecharModalDesativarUsuario()">
+    <div class="modal-container modal-pequeno" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ usuarioEmDesativacao?.status === 'ativo' ? 'Desativar' : 'Ativar' }} Conta</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalDesativarUsuario()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="confirmacao-texto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icone-confirmacao">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <p>
+            Tem certeza que deseja <strong>{{ usuarioEmDesativacao?.status === 'ativo' ? 'desativar' : 'ativar' }}</strong> 
+            a conta de <strong>"{{ usuarioEmDesativacao?.nome }}"</strong>?
+          </p>
+          <p class="aviso-acao" *ngIf="usuarioEmDesativacao?.status === 'ativo'">
+            O usuário não poderá mais acessar a plataforma.
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalDesativarUsuario()">
+          Cancelar
+        </button>
+        <button class="btn-confirmar-acao" (click)="confirmarAlteracaoStatusUsuario()">
+          {{ usuarioEmDesativacao?.status === 'ativo' ? 'Desativar' : 'Ativar' }} Conta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Idioma -->
+  <div class="modal-overlay" *ngIf="mostrarModalEditarIdioma" (click)="fecharModalEditarIdioma()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Idioma</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalEditarIdioma()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="campo">
+          <label>Nome do Idioma *</label>
+          <input type="text" [(ngModel)]="nomeIdiomaEdicao" placeholder="Nome do idioma" maxlength="80" />
+        </div>
+
+        <div class="campo">
+          <label>Descrição *</label>
+          <textarea [(ngModel)]="descricaoIdiomaEdicao" 
+                    placeholder="Descrição do idioma..."
+                    rows="4"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalEditarIdioma()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </button>
+        <button class="btn-salvar-modal" (click)="confirmarEdicaoIdioma()" [disabled]="!podeConfirmarEdicaoIdioma">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Salvar Alterações
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Excluir Idioma -->
+  <div class="modal-overlay" *ngIf="mostrarModalExcluirIdioma" (click)="fecharModalExcluirIdioma()">
+    <div class="modal-container modal-pequeno" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Excluir Idioma</h2>
+        <button class="btn-fechar-modal" (click)="fecharModalExcluirIdioma()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="confirmacao-texto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icone-alerta">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <p>
+            Tem certeza que deseja excluir o idioma <strong>"{{ idiomaEmExclusao?.nome }}"</strong>?
+          </p>
+          <p class="aviso-acao">
+            Esta ação é <strong>irreversível</strong>. Todos os módulos e frases serão permanentemente removidos.
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancelar-modal" (click)="fecharModalExcluirIdioma()">
+          Cancelar
+        </button>
+        <button class="btn-excluir-confirmar" (click)="confirmarExclusaoIdioma()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          Excluir Idioma
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensagem de Sucesso -->
+  <div class="mensagem-sucesso" *ngIf="mostrarMensagemSucesso">
+    <div class="sucesso-content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <p>{{ mensagemSucesso }}</p>
+      <button class="btn-fechar-sucesso" (click)="fecharMensagemSucesso()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</main>
