@@ -36,7 +36,17 @@ interface Idioma {
   totalAvaliacoes: number;
 }
 
-type AbaAtiva = 'denuncias' | 'usuarios' | 'idiomas';
+interface Log {
+  id: number;
+  data: string;
+  adminId: string;
+  adminNome: string;
+  acao: string;
+  detalhes: string;
+  tipo: 'denuncia' | 'usuario' | 'idioma';
+}
+
+type AbaAtiva = 'denuncias' | 'usuarios' | 'idiomas' | 'logs';
 
 @Component({
   selector: 'app-controle-adm',
@@ -54,12 +64,30 @@ export class ControleAdm implements OnInit {
   denuncias: Denuncia[] = [];
   usuarios: Usuario[] = [];
   idiomas: Idioma[] = [];
+  logs: Log[] = [];
   
   // Filtros
   filtroDenunciaStatus = 'todas';
   filtroUsuarioStatus = 'todos';
   buscaUsuario = '';
   buscaIdioma = '';
+  filtroLogTipo = 'todos';
+  
+  // Paginação - Denúncias
+  paginaAtualDenuncias = 1;
+  itensPorPaginaDenuncias = 6;
+  
+  // Paginação - Usuários
+  paginaAtualUsuarios = 1;
+  itensPorPaginaUsuarios = 9;
+  
+  // Paginação - Idiomas
+  paginaAtualIdiomas = 1;
+  itensPorPaginaIdiomas = 6;
+  
+  // Paginação - Logs
+  paginaAtualLogs = 1;
+  itensPorPaginaLogs = 10;
   
   // Modais
   mostrarModalDenuncia = false;
@@ -92,6 +120,10 @@ export class ControleAdm implements OnInit {
   
   // Mensagem de sucesso
   mensagemSucesso = '';
+  
+  // ID do admin logado (simulado)
+  adminLogadoId = 'ADM-001';
+  adminLogadoNome = 'Administrador Principal';
 
   constructor(
     private router: Router,
@@ -102,6 +134,7 @@ export class ControleAdm implements OnInit {
     this.carregarDenuncias();
     this.carregarUsuarios();
     this.carregarIdiomas();
+    this.carregarLogs();
   }
 
   // ===== NAVEGAÇÃO DE ABAS =====
@@ -145,6 +178,16 @@ export class ControleAdm implements OnInit {
         tipos: ['Vídeos Inapropriados'],
         descricao: 'Vídeos com conteúdo não relacionado ao idioma',
         status: 'resolvida'
+      },
+      {
+        id: 4,
+        idiomaId: 'IDM004',
+        idiomaNome: 'Alemão',
+        usuarioId: 'USR321',
+        usuarioNome: 'Ana Oliveira',
+        data: '2024-01-17T09:20:00',
+        tipos: ['Frases Inapropriadas'],
+        status: 'rejeitada'
       }
     ];
   }
@@ -174,6 +217,22 @@ export class ControleAdm implements OnInit {
         telefone: '(21) 97654-3210',
         dataEntrada: '2023-06-10',
         status: 'inativo'
+      },
+      {
+        id: 'USR-2024-004',
+        nome: 'Mariana Costa',
+        email: 'mariana@gmail.com',
+        telefone: '(85) 98888-7777',
+        dataEntrada: '2023-08-05',
+        status: 'ativo'
+      },
+      {
+        id: 'USR-2024-005',
+        nome: 'Roberto Alves',
+        email: 'roberto@hotmail.com',
+        telefone: '(41) 97777-6666',
+        dataEntrada: '2023-09-12',
+        status: 'ativo'
       }
     ];
   }
@@ -216,13 +275,86 @@ export class ControleAdm implements OnInit {
     ];
   }
 
+  carregarLogs(): void {
+    this.logs = [
+      {
+        id: 1,
+        data: '2024-01-20T15:30:00',
+        adminId: 'ADM-001',
+        adminNome: 'Administrador Principal',
+        acao: 'Alterou status de denúncia',
+        detalhes: 'Denúncia #1 - Status alterado de "Pendente" para "Analisando"',
+        tipo: 'denuncia'
+      },
+      {
+        id: 2,
+        data: '2024-01-20T14:15:00',
+        adminId: 'ADM-002',
+        adminNome: 'João Moderador',
+        acao: 'Desativou usuário',
+        detalhes: 'Usuário "Carlos Eduardo Santos" (USR-2024-003) foi desativado',
+        tipo: 'usuario'
+      },
+      {
+        id: 3,
+        data: '2024-01-20T11:45:00',
+        adminId: 'ADM-001',
+        adminNome: 'Administrador Principal',
+        acao: 'Editou idioma',
+        detalhes: 'Idioma "Japonês" (IDM001) - Descrição atualizada',
+        tipo: 'idioma'
+      },
+      {
+        id: 4,
+        data: '2024-01-19T16:20:00',
+        adminId: 'ADM-001',
+        adminNome: 'Administrador Principal',
+        acao: 'Resolveu denúncia',
+        detalhes: 'Denúncia #3 - Status alterado para "Resolvida"',
+        tipo: 'denuncia'
+      },
+      {
+        id: 5,
+        data: '2024-01-19T10:30:00',
+        adminId: 'ADM-002',
+        adminNome: 'João Moderador',
+        acao: 'Ativou usuário',
+        detalhes: 'Usuário "Mariana Costa" (USR-2024-004) foi reativado',
+        tipo: 'usuario'
+      }
+    ];
+  }
+
   // ===== DENÚNCIAS =====
   
   get denunciasFiltradas(): Denuncia[] {
-    if (this.filtroDenunciaStatus === 'todas') {
-      return this.denuncias;
+    let filtradas = this.denuncias;
+    
+    if (this.filtroDenunciaStatus !== 'todas') {
+      filtradas = filtradas.filter(d => d.status === this.filtroDenunciaStatus);
     }
-    return this.denuncias.filter(d => d.status === this.filtroDenunciaStatus);
+    
+    return filtradas;
+  }
+
+  get denunciasPaginadas(): Denuncia[] {
+    const inicio = (this.paginaAtualDenuncias - 1) * this.itensPorPaginaDenuncias;
+    const fim = inicio + this.itensPorPaginaDenuncias;
+    return this.denunciasFiltradas.slice(inicio, fim);
+  }
+
+  get totalPaginasDenuncias(): number {
+    return Math.ceil(this.denunciasFiltradas.length / this.itensPorPaginaDenuncias);
+  }
+
+  get paginasDenuncias(): number[] {
+    return Array.from({ length: this.totalPaginasDenuncias }, (_, i) => i + 1);
+  }
+
+  mudarPaginaDenuncias(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasDenuncias) {
+      this.paginaAtualDenuncias = pagina;
+    }
   }
 
   visualizarDenuncia(denuncia: Denuncia): void {
@@ -238,11 +370,24 @@ export class ControleAdm implements OnInit {
   alterarStatusDenuncia(status: Denuncia['status']): void {
     if (!this.denunciaSelecionada) return;
     
+    const statusAnterior = this.denunciaSelecionada.status;
     this.denunciaSelecionada.status = status;
-    console.log('Status da denúncia alterado:', status);
+    
+    // Registrar log
+    this.registrarLog(
+      'denuncia',
+      'Alterou status de denúncia',
+      `Denúncia #${this.denunciaSelecionada.id} - Status alterado de "${this.getStatusTexto(statusAnterior)}" para "${this.getStatusTexto(status)}"`
+    );
     
     this.fecharModalDenuncia();
     this.exibirMensagemSucesso('Status da denúncia atualizado com sucesso!');
+  }
+
+  visualizarIdiomaDenuncia(): void {
+    if (!this.denunciaSelecionada) return;
+    console.log('Navegando para idioma:', this.denunciaSelecionada.idiomaId);
+    this.router.navigate(['/visualizar-idioma']);
   }
 
   formatarData(dataString: string): string {
@@ -297,6 +442,26 @@ export class ControleAdm implements OnInit {
     return usuarios;
   }
 
+  get usuariosPaginados(): Usuario[] {
+    const inicio = (this.paginaAtualUsuarios - 1) * this.itensPorPaginaUsuarios;
+    const fim = inicio + this.itensPorPaginaUsuarios;
+    return this.usuariosFiltrados.slice(inicio, fim);
+  }
+
+  get totalPaginasUsuarios(): number {
+    return Math.ceil(this.usuariosFiltrados.length / this.itensPorPaginaUsuarios);
+  }
+
+  get paginasUsuarios(): number[] {
+    return Array.from({ length: this.totalPaginasUsuarios }, (_, i) => i + 1);
+  }
+
+  mudarPaginaUsuarios(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasUsuarios) {
+      this.paginaAtualUsuarios = pagina;
+    }
+  }
+
   editarUsuario(usuario: Usuario): void {
     this.usuarioEmEdicao = { ...usuario };
     this.nomeUsuarioEdicao = usuario.nome;
@@ -343,12 +508,23 @@ export class ControleAdm implements OnInit {
     
     const usuario = this.usuarios.find(u => u.id === this.usuarioEmEdicao!.id);
     if (usuario) {
+      const nomeAnterior = usuario.nome;
+      const emailAnterior = usuario.email;
+      
       usuario.nome = this.nomeUsuarioEdicao.trim();
       usuario.email = this.emailUsuarioEdicao.trim();
       
-      if (this.novaSenhaUsuario) {
-        console.log('Nova senha definida para:', usuario.id);
-      }
+      // Registrar log
+      const alteracoes: string[] = [];
+      if (nomeAnterior !== usuario.nome) alteracoes.push(`Nome: "${nomeAnterior}" → "${usuario.nome}"`);
+      if (emailAnterior !== usuario.email) alteracoes.push(`Email: "${emailAnterior}" → "${usuario.email}"`);
+      if (this.novaSenhaUsuario) alteracoes.push('Senha atualizada');
+      
+      this.registrarLog(
+        'usuario',
+        'Editou usuário',
+        `Usuário "${usuario.nome}" (${usuario.id}) - ${alteracoes.join(', ')}`
+      );
     }
     
     this.fecharModalEditarUsuario();
@@ -372,6 +548,13 @@ export class ControleAdm implements OnInit {
     if (usuario) {
       const novoStatus = usuario.status === 'ativo' ? 'inativo' : 'ativo';
       usuario.status = novoStatus;
+      
+      // Registrar log
+      this.registrarLog(
+        'usuario',
+        novoStatus === 'ativo' ? 'Ativou usuário' : 'Desativou usuário',
+        `Usuário "${usuario.nome}" (${usuario.id}) foi ${novoStatus === 'ativo' ? 'ativado' : 'desativado'}`
+      );
       
       const acao = novoStatus === 'ativo' ? 'ativada' : 'desativada';
       this.fecharModalDesativarUsuario();
@@ -399,6 +582,26 @@ export class ControleAdm implements OnInit {
       i.criadorNome.toLowerCase().includes(termo) ||
       i.id.toLowerCase().includes(termo)
     );
+  }
+
+  get idiomasPaginados(): Idioma[] {
+    const inicio = (this.paginaAtualIdiomas - 1) * this.itensPorPaginaIdiomas;
+    const fim = inicio + this.itensPorPaginaIdiomas;
+    return this.idiomasFiltrados.slice(inicio, fim);
+  }
+
+  get totalPaginasIdiomas(): number {
+    return Math.ceil(this.idiomasFiltrados.length / this.itensPorPaginaIdiomas);
+  }
+
+  get paginasIdiomas(): number[] {
+    return Array.from({ length: this.totalPaginasIdiomas }, (_, i) => i + 1);
+  }
+
+  mudarPaginaIdiomas(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasIdiomas) {
+      this.paginaAtualIdiomas = pagina;
+    }
   }
 
   editarIdioma(idioma: Idioma): void {
@@ -433,8 +636,22 @@ export class ControleAdm implements OnInit {
     
     const idioma = this.idiomas.find(i => i.id === this.idiomaEmEdicao!.id);
     if (idioma) {
+      const nomeAnterior = idioma.nome;
+      const descricaoAnterior = idioma.descricao;
+      
       idioma.nome = this.nomeIdiomaEdicao.trim();
       idioma.descricao = this.descricaoIdiomaEdicao.trim();
+      
+      // Registrar log
+      const alteracoes: string[] = [];
+      if (nomeAnterior !== idioma.nome) alteracoes.push(`Nome: "${nomeAnterior}" → "${idioma.nome}"`);
+      if (descricaoAnterior !== idioma.descricao) alteracoes.push('Descrição atualizada');
+      
+      this.registrarLog(
+        'idioma',
+        'Editou idioma',
+        `Idioma "${idioma.nome}" (${idioma.id}) - ${alteracoes.join(', ')}`
+      );
     }
     
     this.fecharModalEditarIdioma();
@@ -455,7 +672,16 @@ export class ControleAdm implements OnInit {
     if (!this.idiomaEmExclusao) return;
     
     const nomeIdioma = this.idiomaEmExclusao.nome;
+    const idIdioma = this.idiomaEmExclusao.id;
+    
     this.idiomas = this.idiomas.filter(i => i.id !== this.idiomaEmExclusao!.id);
+    
+    // Registrar log
+    this.registrarLog(
+      'idioma',
+      'Excluiu idioma',
+      `Idioma "${nomeIdioma}" (${idIdioma}) foi excluído permanentemente`
+    );
     
     this.fecharModalExcluirIdioma();
     this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído com sucesso!`);
@@ -469,6 +695,65 @@ export class ControleAdm implements OnInit {
   estrelas(nota: number): boolean[] {
     const notaArredondada = Math.ceil(nota);
     return Array.from({ length: 5 }, (_, i) => i < notaArredondada);
+  }
+
+  // ===== LOGS =====
+  
+  get logsFiltrados(): Log[] {
+    if (this.filtroLogTipo === 'todos') return this.logs;
+    return this.logs.filter(log => log.tipo === this.filtroLogTipo);
+  }
+
+  get logsPaginados(): Log[] {
+    const inicio = (this.paginaAtualLogs - 1) * this.itensPorPaginaLogs;
+    const fim = inicio + this.itensPorPaginaLogs;
+    return this.logsFiltrados.slice(inicio, fim);
+  }
+
+  get totalPaginasLogs(): number {
+    return Math.ceil(this.logsFiltrados.length / this.itensPorPaginaLogs);
+  }
+
+  get paginasLogs(): number[] {
+    return Array.from({ length: this.totalPaginasLogs }, (_, i) => i + 1);
+  }
+
+  mudarPaginaLogs(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasLogs) {
+      this.paginaAtualLogs = pagina;
+    }
+  }
+
+  registrarLog(tipo: Log['tipo'], acao: string, detalhes: string): void {
+    const novoLog: Log = {
+      id: this.logs.length + 1,
+      data: new Date().toISOString(),
+      adminId: this.adminLogadoId,
+      adminNome: this.adminLogadoNome,
+      acao,
+      detalhes,
+      tipo
+    };
+    
+    this.logs.unshift(novoLog); // Adiciona no início
+  }
+
+  getLogTipoClass(tipo: Log['tipo']): string {
+    switch(tipo) {
+      case 'denuncia': return 'log-denuncia';
+      case 'usuario': return 'log-usuario';
+      case 'idioma': return 'log-idioma';
+      default: return '';
+    }
+  }
+
+  getLogTipoIcone(tipo: Log['tipo']): string {
+    switch(tipo) {
+      case 'denuncia': return 'alert-triangle';
+      case 'usuario': return 'user';
+      case 'idioma': return 'globe';
+      default: return 'file-text';
+    }
   }
 
   // ===== MENSAGEM DE SUCESSO =====

@@ -8,7 +8,7 @@
       </svg>
       <div class="titulo-wrapper">
         <h1 class="titulo">Controle Administrativo</h1>
-        <p class="subtitulo">Gerencie denúncias, usuários e idiomas da plataforma</p>
+        <p class="subtitulo">Gerencie denúncias, usuários, idiomas e logs da plataforma</p>
       </div>
     </div>
   </header>
@@ -45,6 +45,18 @@
       <span>Idiomas</span>
       <span class="badge">{{ idiomas.length }}</span>
     </button>
+
+    <button class="tab-btn" [class.active]="abaAtiva === 'logs'" (click)="mudarAba('logs')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10 9 9 9 8 9"></polyline>
+      </svg>
+      <span>Logs</span>
+      <span class="badge">{{ logs.length }}</span>
+    </button>
   </nav>
 
   <!-- Conteúdo das Abas -->
@@ -55,21 +67,78 @@
       
       <!-- Filtros -->
       <div class="filtros">
-        <div class="filtro-group">
-          <label>Status:</label>
-          <select [(ngModel)]="filtroDenunciaStatus" class="select-filtro">
-            <option value="todas">Todas</option>
-            <option value="pendente">Pendentes</option>
-            <option value="analisando">Analisando</option>
-            <option value="resolvida">Resolvidas</option>
-            <option value="rejeitada">Rejeitadas</option>
-          </select>
+        <div class="filtro-group full-width">
+          <label>Filtrar por status:</label>
+          <div class="status-filter-grid">
+            <div class="status-filter-option" 
+                 [class.active]="filtroDenunciaStatus === 'todas'"
+                 (click)="filtroDenunciaStatus = 'todas'; paginaAtualDenuncias = 1">
+              <div class="filter-icon all">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </div>
+              <span>Todas</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroDenunciaStatus === 'pendente'"
+                 (click)="filtroDenunciaStatus = 'pendente'; paginaAtualDenuncias = 1">
+              <div class="filter-icon pendente">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <span>Pendentes</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroDenunciaStatus === 'analisando'"
+                 (click)="filtroDenunciaStatus = 'analisando'; paginaAtualDenuncias = 1">
+              <div class="filter-icon analisando">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <span>Analisando</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroDenunciaStatus === 'resolvida'"
+                 (click)="filtroDenunciaStatus = 'resolvida'; paginaAtualDenuncias = 1">
+              <div class="filter-icon resolvida">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span>Resolvidas</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroDenunciaStatus === 'rejeitada'"
+                 (click)="filtroDenunciaStatus = 'rejeitada'; paginaAtualDenuncias = 1">
+              <div class="filter-icon rejeitada">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </div>
+              <span>Rejeitadas</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Lista de Denúncias -->
-      <div class="denuncias-list" *ngIf="denunciasFiltradas.length > 0">
-        <div class="denuncia-card" *ngFor="let denuncia of denunciasFiltradas" (click)="visualizarDenuncia(denuncia)">
+      <div class="denuncias-list" *ngIf="denunciasPaginadas.length > 0">
+        <div class="denuncia-card" *ngFor="let denuncia of denunciasPaginadas" (click)="visualizarDenuncia(denuncia)">
           <div class="denuncia-header">
             <div class="denuncia-info">
               <h3>{{ denuncia.idiomaNome }}</h3>
@@ -104,6 +173,34 @@
         </div>
       </div>
 
+      <!-- Paginação Denúncias -->
+      <div class="paginacao" *ngIf="totalPaginasDenuncias > 1">
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualDenuncias === 1"
+                (click)="mudarPaginaDenuncias(paginaAtualDenuncias - 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="paginacao-numeros">
+          <button *ngFor="let pagina of paginasDenuncias"
+                  class="paginacao-numero"
+                  [class.active]="paginaAtualDenuncias === pagina"
+                  (click)="mudarPaginaDenuncias(pagina)">
+            {{ pagina }}
+          </button>
+        </div>
+
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualDenuncias === totalPaginasDenuncias"
+                (click)="mudarPaginaDenuncias(paginaAtualDenuncias + 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
       <!-- Empty State -->
       <div class="empty-state" *ngIf="denunciasFiltradas.length === 0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -122,12 +219,46 @@
       <!-- Filtros -->
       <div class="filtros">
         <div class="filtro-group">
-          <label>Status:</label>
-          <select [(ngModel)]="filtroUsuarioStatus" class="select-filtro">
-            <option value="todos">Todos</option>
-            <option value="ativo">Ativos</option>
-            <option value="inativo">Inativos</option>
-          </select>
+          <label>Filtrar por status:</label>
+          <div class="status-filter-grid compact">
+            <div class="status-filter-option" 
+                 [class.active]="filtroUsuarioStatus === 'todos'"
+                 (click)="filtroUsuarioStatus = 'todos'; paginaAtualUsuarios = 1">
+              <div class="filter-icon all">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <span>Todos</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroUsuarioStatus === 'ativo'"
+                 (click)="filtroUsuarioStatus = 'ativo'; paginaAtualUsuarios = 1">
+              <div class="filter-icon ativo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span>Ativos</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroUsuarioStatus === 'inativo'"
+                 (click)="filtroUsuarioStatus = 'inativo'; paginaAtualUsuarios = 1">
+              <div class="filter-icon inativo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+              </div>
+              <span>Inativos</span>
+            </div>
+          </div>
         </div>
 
         <div class="filtro-group busca-group">
@@ -137,14 +268,14 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" [(ngModel)]="buscaUsuario" placeholder="Nome, email ou ID..." />
+            <input type="text" [(ngModel)]="buscaUsuario" (ngModelChange)="paginaAtualUsuarios = 1" placeholder="Nome, email ou ID..." />
           </div>
         </div>
       </div>
 
       <!-- Lista de Usuários -->
-      <div class="usuarios-list" *ngIf="usuariosFiltrados.length > 0">
-        <div class="usuario-card" *ngFor="let usuario of usuariosFiltrados">
+      <div class="usuarios-list" *ngIf="usuariosPaginados.length > 0">
+        <div class="usuario-card" *ngFor="let usuario of usuariosPaginados">
           <div class="usuario-avatar" [class.inativo]="usuario.status === 'inativo'">
             {{ usuario.nome.charAt(0).toUpperCase() }}
           </div>
@@ -196,6 +327,34 @@
         </div>
       </div>
 
+      <!-- Paginação Usuários -->
+      <div class="paginacao" *ngIf="totalPaginasUsuarios > 1">
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualUsuarios === 1"
+                (click)="mudarPaginaUsuarios(paginaAtualUsuarios - 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="paginacao-numeros">
+          <button *ngFor="let pagina of paginasUsuarios"
+                  class="paginacao-numero"
+                  [class.active]="paginaAtualUsuarios === pagina"
+                  (click)="mudarPaginaUsuarios(pagina)">
+            {{ pagina }}
+          </button>
+        </div>
+
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualUsuarios === totalPaginasUsuarios"
+                (click)="mudarPaginaUsuarios(paginaAtualUsuarios + 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
       <!-- Empty State -->
       <div class="empty-state" *ngIf="usuariosFiltrados.length === 0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -220,13 +379,14 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" [(ngModel)]="buscaIdioma" placeholder="Nome, criador ou ID..." />
+            <input type="text" [(ngModel)]="buscaIdioma" (ngModelChange)="paginaAtualIdiomas = 1" placeholder="Nome, criador ou ID..." />
           </div>
         </div>
       </div>
-<!-- Lista de Idiomas -->
-      <div class="idiomas-grid" *ngIf="idiomasFiltrados.length > 0">
-        <div class="idioma-card" *ngFor="let idioma of idiomasFiltrados">
+
+      <!-- Lista de Idiomas -->
+      <div class="idiomas-grid" *ngIf="idiomasPaginados.length > 0">
+        <div class="idioma-card" *ngFor="let idioma of idiomasPaginados">
           <img [src]="idioma.bandeira" [alt]="'Bandeira ' + idioma.nome" class="idioma-bandeira" (click)="visualizarIdioma(idioma)" />
 
           <div class="idioma-content" (click)="visualizarIdioma(idioma)">
@@ -272,6 +432,34 @@
         </div>
       </div>
 
+      <!-- Paginação Idiomas -->
+      <div class="paginacao" *ngIf="totalPaginasIdiomas > 1">
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualIdiomas === 1"
+                (click)="mudarPaginaIdiomas(paginaAtualIdiomas - 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="paginacao-numeros">
+          <button *ngFor="let pagina of paginasIdiomas"
+                  class="paginacao-numero"
+                  [class.active]="paginaAtualIdiomas === pagina"
+                  (click)="mudarPaginaIdiomas(pagina)">
+            {{ pagina }}
+          </button>
+        </div>
+
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualIdiomas === totalPaginasIdiomas"
+                (click)="mudarPaginaIdiomas(paginaAtualIdiomas + 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
       <!-- Empty State -->
       <div class="empty-state" *ngIf="idiomasFiltrados.length === 0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -280,6 +468,146 @@
         </svg>
         <h3>Nenhum idioma encontrado</h3>
         <p>Não há idiomas com a busca aplicada</p>
+      </div>
+
+    </section>
+
+    <!-- ========== ABA LOGS ========== -->
+    <section class="tab-panel" *ngIf="abaAtiva === 'logs'">
+      
+      <!-- Filtros -->
+      <div class="filtros">
+        <div class="filtro-group full-width">
+          <label>Filtrar por tipo:</label>
+          <div class="status-filter-grid">
+            <div class="status-filter-option" 
+                 [class.active]="filtroLogTipo === 'todos'"
+                 (click)="filtroLogTipo = 'todos'; paginaAtualLogs = 1">
+              <div class="filter-icon all">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+              </div>
+              <span>Todos</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroLogTipo === 'denuncia'"
+                 (click)="filtroLogTipo = 'denuncia'; paginaAtualLogs = 1">
+              <div class="filter-icon log-denuncia">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              </div>
+              <span>Denúncias</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroLogTipo === 'usuario'"
+                 (click)="filtroLogTipo = 'usuario'; paginaAtualLogs = 1">
+              <div class="filter-icon log-usuario">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <span>Usuários</span>
+            </div>
+            
+            <div class="status-filter-option" 
+                 [class.active]="filtroLogTipo === 'idioma'"
+                 (click)="filtroLogTipo = 'idioma'; paginaAtualLogs = 1">
+              <div class="filter-icon log-idioma">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+              </div>
+              <span>Idiomas</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Logs -->
+      <div class="logs-list" *ngIf="logsPaginados.length > 0">
+        <div class="log-card" *ngFor="let log of logsPaginados" [ngClass]="getLogTipoClass(log.tipo)">
+          <div class="log-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="log.tipo === 'denuncia'" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <path *ngIf="log.tipo === 'denuncia'" d="M12 9v4"></path>
+              <line *ngIf="log.tipo === 'denuncia'" x1="12" y1="17" x2="12.01" y2="17"></line>
+              
+              <path *ngIf="log.tipo === 'usuario'" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle *ngIf="log.tipo === 'usuario'" cx="12" cy="7" r="4"></circle>
+              
+              <circle *ngIf="log.tipo === 'idioma'" cx="12" cy="12" r="10"></circle>
+              <line *ngIf="log.tipo === 'idioma'" x1="2" y1="12" x2="22" y2="12"></line>
+              <path *ngIf="log.tipo === 'idioma'" d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+
+          <div class="log-content">
+            <div class="log-header">
+              <h3 class="log-acao">{{ log.acao }}</h3>
+              <span class="log-data">{{ formatarData(log.data) }}</span>
+            </div>
+            
+            <p class="log-detalhes">{{ log.detalhes }}</p>
+            
+            <div class="log-footer">
+              <div class="log-admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>{{ log.adminNome }}</span>
+              </div>
+              <span class="log-tipo-badge">{{ log.tipo }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginação Logs -->
+      <div class="paginacao" *ngIf="totalPaginasLogs > 1">
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualLogs === 1"
+                (click)="mudarPaginaLogs(paginaAtualLogs - 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="paginacao-numeros">
+          <button *ngFor="let pagina of paginasLogs"
+                  class="paginacao-numero"
+                  [class.active]="paginaAtualLogs === pagina"
+                  (click)="mudarPaginaLogs(pagina)">
+            {{ pagina }}
+          </button>
+        </div>
+
+        <button class="paginacao-btn" 
+                [disabled]="paginaAtualLogs === totalPaginasLogs"
+                (click)="mudarPaginaLogs(paginaAtualLogs + 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="logsFiltrados.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        <h3>Nenhum log encontrado</h3>
+        <p>Não há logs com o filtro selecionado</p>
       </div>
 
     </section>
@@ -305,7 +633,14 @@
         <div class="denuncia-detalhes" *ngIf="denunciaSelecionada">
           <div class="detalhe-item">
             <strong>Idioma:</strong>
-            <span>{{ denunciaSelecionada.idiomaNome }} ({{ denunciaSelecionada.idiomaId }})</span>
+            <div class="idioma-link" (click)="visualizarIdiomaDenuncia()">
+              <span>{{ denunciaSelecionada.idiomaNome }} ({{ denunciaSelecionada.idiomaId }})</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </div>
           </div>
 
           <div class="detalhe-item">
