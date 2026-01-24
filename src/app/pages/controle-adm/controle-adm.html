@@ -134,6 +134,17 @@
             </div>
           </div>
         </div>
+
+        <div class="filtro-group busca-group full-width">
+          <label>Buscar:</label>
+          <div class="input-busca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" [(ngModel)]="buscaDenuncia" (ngModelChange)="paginaAtualDenuncias = 1" placeholder="ID ou nome do denunciante..." />
+          </div>
+        </div>
       </div>
 
       <!-- Lista de Denúncias -->
@@ -277,7 +288,7 @@
       <div class="usuarios-list" *ngIf="usuariosPaginados.length > 0">
         <div class="usuario-card" *ngFor="let usuario of usuariosPaginados">
           <div class="usuario-avatar" [class.inativo]="usuario.status === 'inativo'">
-            {{ usuario.nome.charAt(0).toUpperCase() }}
+            {{ getInitials(usuario.nome) }}
           </div>
 
           <div class="usuario-info">
@@ -531,6 +542,27 @@
             </div>
           </div>
         </div>
+
+        <div class="filtro-group">
+          <label>Data inicial:</label>
+          <input type="datetime-local" [(ngModel)]="filtroLogDataInicio" (ngModelChange)="paginaAtualLogs = 1" class="input-data" />
+        </div>
+
+        <div class="filtro-group">
+          <label>Data final:</label>
+          <input type="datetime-local" [(ngModel)]="filtroLogDataFim" (ngModelChange)="paginaAtualLogs = 1" class="input-data" />
+        </div>
+
+        <div class="filtro-group busca-group full-width">
+          <label>Buscar:</label>
+          <div class="input-busca">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" [(ngModel)]="buscaLog" (ngModelChange)="paginaAtualLogs = 1" placeholder="ID do log, nome ou ID do admin/moderador..." />
+          </div>
+        </div>
       </div>
 
       <!-- Lista de Logs -->
@@ -553,7 +585,10 @@
 
           <div class="log-content">
             <div class="log-header">
-              <h3 class="log-acao">{{ log.acao }}</h3>
+              <div class="log-title-wrapper">
+                <span class="log-id">{{ log.id }}</span>
+                <h3 class="log-acao">{{ log.acao }}</h3>
+              </div>
               <span class="log-data">{{ formatarData(log.data) }}</span>
             </div>
             
@@ -564,7 +599,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
-                <span>{{ log.adminNome }}</span>
+                <span>{{ log.adminNome }} ({{ log.adminId }})</span>
               </div>
               <span class="log-tipo-badge">{{ log.tipo }}</span>
             </div>
@@ -660,7 +695,7 @@
             </div>
           </div>
 
-          <div class="detalhe-item" *ngIf="denunciaSelecionada.descricao">
+          <div class="detalhe-item" *ngIf="temTipoOutros() && denunciaSelecionada.descricao">
             <strong>Descrição:</strong>
             <p class="descricao-texto">{{ denunciaSelecionada.descricao }}</p>
           </div>
@@ -674,7 +709,7 @@
         </div>
       </div>
 
-      <div class="modal-footer">
+      <div class="modal-footer-column">
         <button class="btn-status pendente" (click)="alterarStatusDenuncia('pendente')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
@@ -733,6 +768,16 @@
           <input type="email" [(ngModel)]="emailUsuarioEdicao" placeholder="email@exemplo.com" />
         </div>
 
+        <div class="campo">
+          <label>Telefone *</label>
+          <input type="tel" 
+                 [(ngModel)]="telefoneUsuarioEdicao" 
+                 (keydown)="permitirApenasNumeros($event)"
+                 (input)="aplicarMascaraTelefone($event)"
+                 placeholder="(00) 00000-0000"
+                 maxlength="15" />
+        </div>
+
         <div class="divider"></div>
 
         <div class="campo">
@@ -751,6 +796,13 @@
                 <line x1="1" y1="1" x2="23" y2="23"></line>
               </svg>
             </button>
+          </div>
+          
+          <div class="password-strength" *ngIf="novaSenhaUsuario">
+            <div class="strength-bar">
+              <div class="strength-fill" [class]="getClasseForcaSenha()" [style.width.%]="getForcaSenha() * 25"></div>
+            </div>
+            <span class="strength-text" [class]="getClasseForcaSenha()">{{ getTextoForcaSenha() }}</span>
           </div>
         </div>
 
@@ -835,7 +887,7 @@
 
   <!-- Modal Editar Idioma -->
   <div class="modal-overlay" *ngIf="mostrarModalEditarIdioma" (click)="fecharModalEditarIdioma()">
-    <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-container" (click)="$event.stopPropagation(); fecharDropdownsEdicao($event)">
       <div class="modal-header">
         <h2>Editar Idioma</h2>
         <button class="btn-fechar-modal" (click)="fecharModalEditarIdioma()">
@@ -847,16 +899,100 @@
       </div>
 
       <div class="modal-body">
+        <div class="bandeira-section">
+          <div class="bandeira-preview">
+            <img *ngIf="idiomaSelecionadoEdicao" [src]="idiomaSelecionadoEdicao.bandeira" [alt]="'Bandeira ' + idiomaSelecionadoEdicao.nome" />
+            <div class="bandeira-placeholder" *ngIf="!idiomaSelecionadoEdicao">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <p>Selecione um idioma</p>
+            </div>
+          </div>
+        </div>
+
         <div class="campo">
-          <label>Nome do Idioma *</label>
-          <input type="text" [(ngModel)]="nomeIdiomaEdicao" placeholder="Nome do idioma" maxlength="80" />
+          <label>Nome *</label>
+          <input type="text" 
+                 [(ngModel)]="nomeIdiomaEdicao" 
+                 placeholder="Digite o nome do idioma"
+                 maxlength="80" />
+        </div>
+
+        <div class="campo">
+          <label>Idioma *</label>
+          <div class="select" 
+               [class.active]="mostrarIdiomasEdicao" 
+               [class.placeholder]="!idiomaSelecionadoEdicao" 
+               (click)="toggleIdiomasEdicao()">
+            {{ idiomaSelecionadoEdicao?.nome || 'Selecione um idioma' }}
+          </div>
+          <div class="dropdown" *ngIf="mostrarIdiomasEdicao">
+            <input type="text" 
+                   placeholder="Buscar..." 
+                   [(ngModel)]="buscaIdiomaEdicao" 
+                   (click)="$event.stopPropagation()" />
+            <div class="option" 
+                 *ngFor="let idioma of idiomasFiltradosEdicao" 
+                 (click)="selecionarIdiomaEdicao(idioma)">
+              {{ idioma.nome }}
+            </div>
+          </div>
         </div>
 
         <div class="campo">
           <label>Descrição *</label>
           <textarea [(ngModel)]="descricaoIdiomaEdicao" 
-                    placeholder="Descrição do idioma..."
+                    placeholder="Descreva o que você aprenderá neste idioma..."
                     rows="4"></textarea>
+        </div>
+
+        <div class="campo">
+          <label>Proficiência *</label>
+          <div class="select" 
+               [class.active]="mostrarProficienciaEdicao" 
+               [class.placeholder]="!proficienciaIdiomaEdicao" 
+               (click)="toggleProficienciaEdicao()">
+            {{ proficienciaIdiomaEdicao || 'Selecione a proficiência' }}
+          </div>
+          <div class="dropdown" *ngIf="mostrarProficienciaEdicao">
+            <div class="option" 
+                 [class.nivel-iniciante]="nivel === 'Iniciante'" 
+                 [class.nivel-basico]="nivel === 'Básico'" 
+                 [class.nivel-intermediario]="nivel === 'Intermediário'" 
+                 [class.nivel-avancado]="nivel === 'Avançado'" 
+                 [class.nivel-fluente]="nivel === 'Fluente'" 
+                 *ngFor="let nivel of proficiencias" 
+                 (click)="selecionarProficienciaEdicao(nivel)">
+              {{ nivel }}
+            </div>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Visibilidade *</label>
+          <div class="radio-group">
+            <div class="radio-option" 
+                 [class.selected]="visibilidadeIdiomaEdicao === 'publico'" 
+                 (click)="visibilidadeIdiomaEdicao = 'publico'">
+              <input type="radio" 
+                     id="publico-edicao" 
+                     value="publico" 
+                     [(ngModel)]="visibilidadeIdiomaEdicao" />
+              <label for="publico-edicao">Público</label>
+            </div>
+            <div class="radio-option" 
+                 [class.selected]="visibilidadeIdiomaEdicao === 'privado'" 
+                 (click)="visibilidadeIdiomaEdicao = 'privado'">
+              <input type="radio" 
+                     id="privado-edicao" 
+                     value="privado" 
+                     [(ngModel)]="visibilidadeIdiomaEdicao" />
+              <label for="privado-edicao">Privado</label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -868,13 +1004,16 @@
           </svg>
           Cancelar
         </button>
-        <button class="btn-salvar-modal" (click)="confirmarEdicaoIdioma()" [disabled]="!podeConfirmarEdicaoIdioma">
+        <button class="btn-salvar-modal" 
+                (click)="confirmarEdicaoIdioma()" 
+                [disabled]="!podeConfirmarEdicaoIdioma">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
           Salvar Alterações
         </button>
       </div>
+
     </div>
   </div>
 

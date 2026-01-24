@@ -34,10 +34,17 @@ interface Idioma {
   modulos: number;
   avaliacao: number;
   totalAvaliacoes: number;
+  proficiencia?: string;
+  visibilidade?: 'publico' | 'privado';
+}
+
+interface IdiomaOpcao {
+  nome: string;
+  bandeira: string;
 }
 
 interface Log {
-  id: number;
+  id: string;
   data: string;
   adminId: string;
   adminNome: string;
@@ -72,6 +79,10 @@ export class ControleAdm implements OnInit {
   buscaUsuario = '';
   buscaIdioma = '';
   filtroLogTipo = 'todos';
+  buscaDenuncia = '';
+  buscaLog = '';
+  filtroLogDataInicio = '';
+  filtroLogDataFim = '';
   
   // Paginação - Denúncias
   paginaAtualDenuncias = 1;
@@ -107,6 +118,7 @@ export class ControleAdm implements OnInit {
   // Campos de edição de usuário
   nomeUsuarioEdicao = '';
   emailUsuarioEdicao = '';
+  telefoneUsuarioEdicao = '';
   novaSenhaUsuario = '';
   confirmarSenhaUsuario = '';
   camposVisiveis = {
@@ -117,6 +129,33 @@ export class ControleAdm implements OnInit {
   // Campos de edição de idioma
   nomeIdiomaEdicao = '';
   descricaoIdiomaEdicao = '';
+  idiomaSelecionadoEdicao: IdiomaOpcao | null = null;
+  proficienciaIdiomaEdicao = '';
+  visibilidadeIdiomaEdicao: 'publico' | 'privado' = 'publico';
+  
+  // Dropdowns idioma
+  mostrarIdiomasEdicao = false;
+  mostrarProficienciaEdicao = false;
+  buscaIdiomaEdicao = '';
+  
+  // Opções disponíveis
+  idiomasDisponiveis: IdiomaOpcao[] = [
+    { nome: 'Alemão', bandeira: '../../../assets/imgs/Germany-Flag.svg.png' },
+    { nome: 'Árabe', bandeira: '../../../assets/imgs/United-Arab-Emirates-Flag.svg.png' },
+    { nome: 'Chinês (Mandarim)', bandeira: '../../../assets/imgs/China-Flag.svg' },
+    { nome: 'Coreano', bandeira: '../../../assets/imgs/South-Korea-Flag.svg.webp' },
+    { nome: 'Espanhol', bandeira: '../../../assets/imgs/Spain-Flag.svg' },
+    { nome: 'Francês', bandeira: '../../../assets/imgs/France-Flag.png' },
+    { nome: 'Inglês (Estados Unidos)', bandeira: '../../../assets/imgs/United-States-Flag.svg' },
+    { nome: 'Inglês (Reino Unido)', bandeira: '../../../assets/imgs/United-Kingdom-Flag.svg.png' },
+    { nome: 'Italiano', bandeira: '../../../assets/imgs/Italy-Flag.svg' },
+    { nome: 'Japonês', bandeira: '../../../assets/imgs/Japan-Flag.png' },
+    { nome: 'Português (Brasil)', bandeira: '../../../assets/imgs/Brazil-Flag.svg' },
+    { nome: 'Português (Portugal)', bandeira: '../../../assets/imgs/Portugal-Flag.svg.png' },
+    { nome: 'Russo', bandeira: '../../../assets/imgs/Russia-Flag.svg' }
+  ].sort((a, b) => a.nome.localeCompare(b.nome));
+  
+  proficiencias = ['Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Fluente'];
   
   // Mensagem de sucesso
   mensagemSucesso = '';
@@ -186,7 +225,8 @@ export class ControleAdm implements OnInit {
         usuarioId: 'USR321',
         usuarioNome: 'Ana Oliveira',
         data: '2024-01-17T09:20:00',
-        tipos: ['Frases Inapropriadas'],
+        tipos: ['Outros'],
+        descricao: 'Conteúdo político não relacionado ao ensino do idioma',
         status: 'rejeitada'
       }
     ];
@@ -248,7 +288,9 @@ export class ControleAdm implements OnInit {
         criadorNome: 'Lucas Henderson',
         modulos: 15,
         avaliacao: 4.5,
-        totalAvaliacoes: 234
+        totalAvaliacoes: 234,
+        proficiencia: 'Avançado',
+        visibilidade: 'publico'
       },
       {
         id: 'IDM002',
@@ -259,7 +301,9 @@ export class ControleAdm implements OnInit {
         criadorNome: 'Ana Paula Oliveira',
         modulos: 18,
         avaliacao: 4.8,
-        totalAvaliacoes: 512
+        totalAvaliacoes: 512,
+        proficiencia: 'Intermediário',
+        visibilidade: 'publico'
       },
       {
         id: 'IDM003',
@@ -270,7 +314,9 @@ export class ControleAdm implements OnInit {
         criadorNome: 'Carlos Eduardo Santos',
         modulos: 12,
         avaliacao: 4.2,
-        totalAvaliacoes: 178
+        totalAvaliacoes: 178,
+        proficiencia: 'Básico',
+        visibilidade: 'privado'
       }
     ];
   }
@@ -278,7 +324,7 @@ export class ControleAdm implements OnInit {
   carregarLogs(): void {
     this.logs = [
       {
-        id: 1,
+        id: 'LOG-001',
         data: '2024-01-20T15:30:00',
         adminId: 'ADM-001',
         adminNome: 'Administrador Principal',
@@ -287,7 +333,7 @@ export class ControleAdm implements OnInit {
         tipo: 'denuncia'
       },
       {
-        id: 2,
+        id: 'LOG-002',
         data: '2024-01-20T14:15:00',
         adminId: 'ADM-002',
         adminNome: 'João Moderador',
@@ -296,7 +342,7 @@ export class ControleAdm implements OnInit {
         tipo: 'usuario'
       },
       {
-        id: 3,
+        id: 'LOG-003',
         data: '2024-01-20T11:45:00',
         adminId: 'ADM-001',
         adminNome: 'Administrador Principal',
@@ -305,7 +351,7 @@ export class ControleAdm implements OnInit {
         tipo: 'idioma'
       },
       {
-        id: 4,
+        id: 'LOG-004',
         data: '2024-01-19T16:20:00',
         adminId: 'ADM-001',
         adminNome: 'Administrador Principal',
@@ -314,7 +360,7 @@ export class ControleAdm implements OnInit {
         tipo: 'denuncia'
       },
       {
-        id: 5,
+        id: 'LOG-005',
         data: '2024-01-19T10:30:00',
         adminId: 'ADM-002',
         adminNome: 'João Moderador',
@@ -332,6 +378,14 @@ export class ControleAdm implements OnInit {
     
     if (this.filtroDenunciaStatus !== 'todas') {
       filtradas = filtradas.filter(d => d.status === this.filtroDenunciaStatus);
+    }
+    
+    if (this.buscaDenuncia.trim()) {
+      const termo = this.buscaDenuncia.toLowerCase();
+      filtradas = filtradas.filter(d => 
+        d.id.toString().includes(termo) ||
+        d.usuarioNome.toLowerCase().includes(termo)
+      );
     }
     
     return filtradas;
@@ -421,6 +475,10 @@ export class ControleAdm implements OnInit {
     }
   }
 
+  temTipoOutros(): boolean {
+    return this.denunciaSelecionada?.tipos.includes('Outros') || false;
+  }
+
   // ===== USUÁRIOS =====
   
   get usuariosFiltrados(): Usuario[] {
@@ -462,10 +520,23 @@ export class ControleAdm implements OnInit {
     }
   }
 
+  getInitials(nome: string): string {
+    if (!nome) return 'U';
+    
+    const names = nome.trim().split(' ');
+    
+    if (names.length >= 2) {
+      return (names[0].charAt(0) + names[1].charAt(0)).toUpperCase();
+    }
+    
+    return nome.substring(0, 2).toUpperCase();
+  }
+
   editarUsuario(usuario: Usuario): void {
     this.usuarioEmEdicao = { ...usuario };
     this.nomeUsuarioEdicao = usuario.nome;
     this.emailUsuarioEdicao = usuario.email;
+    this.telefoneUsuarioEdicao = usuario.telefone;
     this.novaSenhaUsuario = '';
     this.confirmarSenhaUsuario = '';
     this.mostrarModalEditarUsuario = true;
@@ -480,6 +551,7 @@ export class ControleAdm implements OnInit {
   limparCamposUsuario(): void {
     this.nomeUsuarioEdicao = '';
     this.emailUsuarioEdicao = '';
+    this.telefoneUsuarioEdicao = '';
     this.novaSenhaUsuario = '';
     this.confirmarSenhaUsuario = '';
     this.camposVisiveis = { novaSenha: false, confirmarSenha: false };
@@ -490,17 +562,19 @@ export class ControleAdm implements OnInit {
     
     const nomeValido = this.nomeUsuarioEdicao.trim().length >= 8;
     const emailValido = this.validarEmail(this.emailUsuarioEdicao);
+    const telefoneValido = this.telefoneUsuarioEdicao.replace(/\D/g, '').length >= 10;
     
     const dadosAlterados = 
       this.nomeUsuarioEdicao !== this.usuarioEmEdicao.nome ||
-      this.emailUsuarioEdicao !== this.usuarioEmEdicao.email;
+      this.emailUsuarioEdicao !== this.usuarioEmEdicao.email ||
+      this.telefoneUsuarioEdicao !== this.usuarioEmEdicao.telefone;
     
     const senhaValida = !this.novaSenhaUsuario || (
       this.novaSenhaUsuario.length >= 6 &&
       this.novaSenhaUsuario === this.confirmarSenhaUsuario
     );
     
-    return nomeValido && emailValido && senhaValida && (dadosAlterados || !!this.novaSenhaUsuario);
+    return nomeValido && emailValido && telefoneValido && senhaValida && (dadosAlterados || !!this.novaSenhaUsuario);
   }
 
   confirmarEdicaoUsuario(): void {
@@ -510,14 +584,17 @@ export class ControleAdm implements OnInit {
     if (usuario) {
       const nomeAnterior = usuario.nome;
       const emailAnterior = usuario.email;
+      const telefoneAnterior = usuario.telefone;
       
       usuario.nome = this.nomeUsuarioEdicao.trim();
       usuario.email = this.emailUsuarioEdicao.trim();
+      usuario.telefone = this.telefoneUsuarioEdicao.trim();
       
       // Registrar log
       const alteracoes: string[] = [];
       if (nomeAnterior !== usuario.nome) alteracoes.push(`Nome: "${nomeAnterior}" → "${usuario.nome}"`);
       if (emailAnterior !== usuario.email) alteracoes.push(`Email: "${emailAnterior}" → "${usuario.email}"`);
+      if (telefoneAnterior !== usuario.telefone) alteracoes.push(`Telefone: "${telefoneAnterior}" → "${usuario.telefone}"`);
       if (this.novaSenhaUsuario) alteracoes.push('Senha atualizada');
       
       this.registrarLog(
@@ -571,6 +648,89 @@ export class ControleAdm implements OnInit {
     return regex.test(email);
   }
 
+  permitirApenasNumeros(event: KeyboardEvent): boolean {
+    const tecla = event.key;
+    
+    if (
+      tecla === 'Backspace' || 
+      tecla === 'Delete' || 
+      tecla === 'Tab' || 
+      tecla === 'ArrowLeft' || 
+      tecla === 'ArrowRight' ||
+      tecla === 'Home' ||
+      tecla === 'End'
+    ) {
+      return true;
+    }
+    
+    if (!/^\d$/.test(tecla)) {
+      event.preventDefault();
+      return false;
+    }
+    
+    return true;
+  }
+
+  aplicarMascaraTelefone(event: any): void {
+    let valor = event.target.value.replace(/\D/g, '');
+    
+    if (valor.length > 11) {
+      valor = valor.substring(0, 11);
+    }
+    
+    if (valor.length > 6) {
+      valor = valor.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+    } else if (valor.length > 2) {
+      valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+    } else if (valor.length > 0) {
+      valor = valor.replace(/^(\d*)/, '($1');
+    }
+    
+    this.telefoneUsuarioEdicao = valor;
+  }
+
+  getForcaSenha(): number {
+    const senha = this.novaSenhaUsuario;
+    
+    if (!senha) return 0;
+    
+    let forca = 0;
+    
+    if (senha.length >= 6) forca++;
+    if (senha.length >= 10) forca++;
+    
+    if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
+    if (/[0-9]/.test(senha)) forca++;
+    if (/[^a-zA-Z0-9]/.test(senha)) forca++;
+    
+    return Math.min(forca, 4);
+  }
+
+  getTextoForcaSenha(): string {
+    const forca = this.getForcaSenha();
+    
+    switch(forca) {
+      case 0: return '';
+      case 1: return 'Fraca';
+      case 2: return 'Média';
+      case 3: return 'Boa';
+      case 4: return 'Forte';
+      default: return '';
+    }
+  }
+
+  getClasseForcaSenha(): string {
+    const forca = this.getForcaSenha();
+    
+    switch(forca) {
+      case 1: return 'fraca';
+      case 2: return 'media';
+      case 3: return 'boa';
+      case 4: return 'forte';
+      default: return '';
+    }
+  }
+
   // ===== IDIOMAS =====
   
   get idiomasFiltrados(): Idioma[] {
@@ -604,10 +764,48 @@ export class ControleAdm implements OnInit {
     }
   }
 
+  get idiomasFiltradosEdicao(): IdiomaOpcao[] {
+    if (!this.buscaIdiomaEdicao.trim()) return this.idiomasDisponiveis;
+    const termo = this.buscaIdiomaEdicao.toLowerCase();
+    return this.idiomasDisponiveis.filter(i => i.nome.toLowerCase().includes(termo));
+  }
+
+  toggleIdiomasEdicao(): void {
+    this.mostrarIdiomasEdicao = !this.mostrarIdiomasEdicao;
+    this.mostrarProficienciaEdicao = false;
+  }
+
+  toggleProficienciaEdicao(): void {
+    this.mostrarProficienciaEdicao = !this.mostrarProficienciaEdicao;
+    this.mostrarIdiomasEdicao = false;
+  }
+
+  selecionarIdiomaEdicao(idioma: IdiomaOpcao): void {
+    this.idiomaSelecionadoEdicao = idioma;
+    this.mostrarIdiomasEdicao = false;
+    this.buscaIdiomaEdicao = '';
+  }
+
+  selecionarProficienciaEdicao(nivel: string): void {
+    this.proficienciaIdiomaEdicao = nivel;
+    this.mostrarProficienciaEdicao = false;
+  }
+
+  fecharDropdownsEdicao(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.campo')) {
+      this.mostrarIdiomasEdicao = false;
+      this.mostrarProficienciaEdicao = false;
+    }
+  }
+
   editarIdioma(idioma: Idioma): void {
     this.idiomaEmEdicao = { ...idioma };
     this.nomeIdiomaEdicao = idioma.nome;
     this.descricaoIdiomaEdicao = idioma.descricao;
+    this.idiomaSelecionadoEdicao = this.idiomasDisponiveis.find(i => i.nome === idioma.nome) || null;
+    this.proficienciaIdiomaEdicao = idioma.proficiencia || 'Básico';
+    this.visibilidadeIdiomaEdicao = idioma.visibilidade || 'publico';
     this.mostrarModalEditarIdioma = true;
   }
 
@@ -616,6 +814,12 @@ export class ControleAdm implements OnInit {
     this.idiomaEmEdicao = null;
     this.nomeIdiomaEdicao = '';
     this.descricaoIdiomaEdicao = '';
+    this.idiomaSelecionadoEdicao = null;
+    this.proficienciaIdiomaEdicao = '';
+    this.visibilidadeIdiomaEdicao = 'publico';
+    this.buscaIdiomaEdicao = '';
+    this.mostrarIdiomasEdicao = false;
+    this.mostrarProficienciaEdicao = false;
   }
 
   get podeConfirmarEdicaoIdioma(): boolean {
@@ -623,16 +827,21 @@ export class ControleAdm implements OnInit {
     
     const nomeValido = this.nomeIdiomaEdicao.trim().length > 0;
     const descricaoValida = this.descricaoIdiomaEdicao.trim().length > 0;
+    const idiomaValido = !!this.idiomaSelecionadoEdicao;
+    const proficienciaValida = !!this.proficienciaIdiomaEdicao;
     
     const dadosAlterados = 
       this.nomeIdiomaEdicao !== this.idiomaEmEdicao.nome ||
-      this.descricaoIdiomaEdicao !== this.idiomaEmEdicao.descricao;
+      this.descricaoIdiomaEdicao !== this.idiomaEmEdicao.descricao ||
+      this.idiomaSelecionadoEdicao?.nome !== this.idiomaEmEdicao.nome ||
+      this.proficienciaIdiomaEdicao !== this.idiomaEmEdicao.proficiencia ||
+      this.visibilidadeIdiomaEdicao !== this.idiomaEmEdicao.visibilidade;
     
-    return nomeValido && descricaoValida && dadosAlterados;
+    return nomeValido && descricaoValida && idiomaValido && proficienciaValida && dadosAlterados;
   }
 
   confirmarEdicaoIdioma(): void {
-    if (!this.podeConfirmarEdicaoIdioma || !this.idiomaEmEdicao) return;
+    if (!this.podeConfirmarEdicaoIdioma || !this.idiomaEmEdicao || !this.idiomaSelecionadoEdicao) return;
     
     const idioma = this.idiomas.find(i => i.id === this.idiomaEmEdicao!.id);
     if (idioma) {
@@ -640,7 +849,10 @@ export class ControleAdm implements OnInit {
       const descricaoAnterior = idioma.descricao;
       
       idioma.nome = this.nomeIdiomaEdicao.trim();
+      idioma.bandeira = this.idiomaSelecionadoEdicao.bandeira;
       idioma.descricao = this.descricaoIdiomaEdicao.trim();
+      idioma.proficiencia = this.proficienciaIdiomaEdicao;
+      idioma.visibilidade = this.visibilidadeIdiomaEdicao;
       
       // Registrar log
       const alteracoes: string[] = [];
@@ -700,8 +912,33 @@ export class ControleAdm implements OnInit {
   // ===== LOGS =====
   
   get logsFiltrados(): Log[] {
-    if (this.filtroLogTipo === 'todos') return this.logs;
-    return this.logs.filter(log => log.tipo === this.filtroLogTipo);
+    let logs = this.logs;
+    
+    if (this.filtroLogTipo !== 'todos') {
+      logs = logs.filter(log => log.tipo === this.filtroLogTipo);
+    }
+    
+    if (this.buscaLog.trim()) {
+      const termo = this.buscaLog.toLowerCase();
+      logs = logs.filter(log => 
+        log.id.toLowerCase().includes(termo) ||
+        log.adminNome.toLowerCase().includes(termo) ||
+        log.adminId.toLowerCase().includes(termo)
+      );
+    }
+    
+    if (this.filtroLogDataInicio) {
+      const dataInicio = new Date(this.filtroLogDataInicio);
+      logs = logs.filter(log => new Date(log.data) >= dataInicio);
+    }
+    
+    if (this.filtroLogDataFim) {
+      const dataFim = new Date(this.filtroLogDataFim);
+      dataFim.setHours(23, 59, 59, 999);
+      logs = logs.filter(log => new Date(log.data) <= dataFim);
+    }
+    
+    return logs;
   }
 
   get logsPaginados(): Log[] {
@@ -725,8 +962,10 @@ export class ControleAdm implements OnInit {
   }
 
   registrarLog(tipo: Log['tipo'], acao: string, detalhes: string): void {
+    const logId = `LOG-${String(this.logs.length + 1).padStart(3, '0')}`;
+    
     const novoLog: Log = {
-      id: this.logs.length + 1,
+      id: logId,
       data: new Date().toISOString(),
       adminId: this.adminLogadoId,
       adminNome: this.adminLogadoNome,
@@ -735,7 +974,7 @@ export class ControleAdm implements OnInit {
       tipo
     };
     
-    this.logs.unshift(novoLog); // Adiciona no início
+    this.logs.unshift(novoLog);
   }
 
   getLogTipoClass(tipo: Log['tipo']): string {
