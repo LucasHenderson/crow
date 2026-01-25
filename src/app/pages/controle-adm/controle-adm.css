@@ -1205,9 +1205,15 @@
 }
 
 .status-filter-option.active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.3) 100%);
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 15px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), 0 4px 15px rgba(59, 130, 246, 0.5);
+  transform: scale(1.02);
+}
+
+.status-filter-option.active .filter-icon {
+  transform: scale(1.15);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
 }
 
 .status-filter-option span {
@@ -1220,6 +1226,7 @@
 
 .status-filter-option.active span {
   color: white;
+  text-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
 }
 
 .filter-icon {
@@ -1955,6 +1962,41 @@
   color: white;
 }
 
+.responsavel-item {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.responsavel-info {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, rgba(51, 65, 85, 0.5) 0%, rgba(30, 41, 59, 0.5) 100%);
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.responsavel-info svg {
+  width: 20px;
+  height: 20px;
+  color: #60a5fa;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+}
+
+.responsavel-info span {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 /* RESPONSIVIDADE */
 @media (max-width: 1200px) {
   .usuarios-list {
@@ -2090,6 +2132,12 @@
     padding: 0.9rem 1rem;
     font-size: 0.85rem;
   }
+
+  .responsavel-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -2198,6 +2246,10 @@
   }
 
   .log-detalhes {
+    font-size: 0.85rem;
+  }
+
+  .responsavel-info span {
     font-size: 0.85rem;
   }
 }

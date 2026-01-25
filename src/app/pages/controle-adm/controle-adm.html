@@ -71,24 +71,8 @@
           <label>Filtrar por status:</label>
           <div class="status-filter-grid">
             <div class="status-filter-option" 
-                 [class.active]="filtroDenunciaStatus === 'todas'"
-                 (click)="filtroDenunciaStatus = 'todas'; paginaAtualDenuncias = 1">
-              <div class="filter-icon all">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="8" y1="6" x2="21" y2="6"></line>
-                  <line x1="8" y1="12" x2="21" y2="12"></line>
-                  <line x1="8" y1="18" x2="21" y2="18"></line>
-                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                </svg>
-              </div>
-              <span>Todas</span>
-            </div>
-            
-            <div class="status-filter-option" 
-                 [class.active]="filtroDenunciaStatus === 'pendente'"
-                 (click)="filtroDenunciaStatus = 'pendente'; paginaAtualDenuncias = 1">
+                 [class.active]="isStatusDenunciaSelecionado('pendente')"
+                 (click)="toggleFiltroDenunciaStatus('pendente')">
               <div class="filter-icon pendente">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10"></circle>
@@ -99,8 +83,8 @@
             </div>
             
             <div class="status-filter-option" 
-                 [class.active]="filtroDenunciaStatus === 'analisando'"
-                 (click)="filtroDenunciaStatus = 'analisando'; paginaAtualDenuncias = 1">
+                 [class.active]="isStatusDenunciaSelecionado('analisando')"
+                 (click)="toggleFiltroDenunciaStatus('analisando')">
               <div class="filter-icon analisando">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -111,8 +95,8 @@
             </div>
             
             <div class="status-filter-option" 
-                 [class.active]="filtroDenunciaStatus === 'resolvida'"
-                 (click)="filtroDenunciaStatus = 'resolvida'; paginaAtualDenuncias = 1">
+                 [class.active]="isStatusDenunciaSelecionado('resolvida')"
+                 (click)="toggleFiltroDenunciaStatus('resolvida')">
               <div class="filter-icon resolvida">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="20 6 9 17 4 12"></polyline>
@@ -122,8 +106,8 @@
             </div>
             
             <div class="status-filter-option" 
-                 [class.active]="filtroDenunciaStatus === 'rejeitada'"
-                 (click)="filtroDenunciaStatus = 'rejeitada'; paginaAtualDenuncias = 1">
+                 [class.active]="isStatusDenunciaSelecionado('rejeitada')"
+                 (click)="toggleFiltroDenunciaStatus('rejeitada')">
               <div class="filter-icon rejeitada">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -175,6 +159,13 @@
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
               <span><strong>Data:</strong> {{ formatarData(denuncia.data) }}</span>
+            </div>
+
+            <div class="denuncia-item" *ngIf="denuncia.responsavelId && denuncia.responsavelNome">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span><strong>Responsável:</strong> {{ denuncia.responsavelNome }} ({{ denuncia.responsavelId }})</span>
             </div>
 
             <div class="denuncia-tipos">
@@ -492,20 +483,8 @@
           <label>Filtrar por tipo:</label>
           <div class="status-filter-grid">
             <div class="status-filter-option" 
-                 [class.active]="filtroLogTipo === 'todos'"
-                 (click)="filtroLogTipo = 'todos'; paginaAtualLogs = 1">
-              <div class="filter-icon all">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-              </div>
-              <span>Todos</span>
-            </div>
-            
-            <div class="status-filter-option" 
-                 [class.active]="filtroLogTipo === 'denuncia'"
-                 (click)="filtroLogTipo = 'denuncia'; paginaAtualLogs = 1">
+                 [class.active]="isTipoLogSelecionado('denuncia')"
+                 (click)="toggleFiltroLogTipo('denuncia')">
               <div class="filter-icon log-denuncia">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
@@ -517,8 +496,8 @@
             </div>
             
             <div class="status-filter-option" 
-                 [class.active]="filtroLogTipo === 'usuario'"
-                 (click)="filtroLogTipo = 'usuario'; paginaAtualLogs = 1">
+                 [class.active]="isTipoLogSelecionado('usuario')"
+                 (click)="toggleFiltroLogTipo('usuario')">
               <div class="filter-icon log-usuario">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -529,8 +508,8 @@
             </div>
             
             <div class="status-filter-option" 
-                 [class.active]="filtroLogTipo === 'idioma'"
-                 (click)="filtroLogTipo = 'idioma'; paginaAtualLogs = 1">
+                 [class.active]="isTipoLogSelecionado('idioma')"
+                 (click)="toggleFiltroLogTipo('idioma')">
               <div class="filter-icon log-idioma">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10"></circle>
@@ -706,6 +685,16 @@
               {{ getStatusTexto(denunciaSelecionada.status) }}
             </span>
           </div>
+
+          <div class="detalhe-item responsavel-item" *ngIf="denunciaSelecionada.responsavelId && denunciaSelecionada.responsavelNome">
+            <strong>Responsável pela denúncia:</strong>
+            <div class="responsavel-info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span>{{ denunciaSelecionada.responsavelNome }} ({{ denunciaSelecionada.responsavelId }})</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -776,6 +765,30 @@
                  (input)="aplicarMascaraTelefone($event)"
                  placeholder="(00) 00000-0000"
                  maxlength="15" />
+        </div>
+
+        <div class="campo">
+          <label>Tipo de Usuário *</label>
+          <div class="radio-group">
+            <div class="radio-option" 
+                 [class.selected]="roleUsuarioEdicao === 'comum'" 
+                 (click)="roleUsuarioEdicao = 'comum'">
+              <input type="radio" 
+                     id="role-comum" 
+                     value="comum" 
+                     [(ngModel)]="roleUsuarioEdicao" />
+              <label for="role-comum">Usuário Comum</label>
+            </div>
+            <div class="radio-option" 
+                 [class.selected]="roleUsuarioEdicao === 'admin'" 
+                 (click)="roleUsuarioEdicao = 'admin'">
+              <input type="radio" 
+                     id="role-admin" 
+                     value="admin" 
+                     [(ngModel)]="roleUsuarioEdicao" />
+              <label for="role-admin">Administrador</label>
+            </div>
+          </div>
         </div>
 
         <div class="divider"></div>

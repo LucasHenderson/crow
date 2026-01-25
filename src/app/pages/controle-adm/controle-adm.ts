@@ -13,6 +13,8 @@ interface Denuncia {
   tipos: string[];
   descricao?: string;
   status: 'pendente' | 'analisando' | 'resolvida' | 'rejeitada';
+  responsavelId?: string;
+  responsavelNome?: string;
 }
 
 interface Usuario {
@@ -22,6 +24,7 @@ interface Usuario {
   telefone: string;
   dataEntrada: string;
   status: 'ativo' | 'inativo';
+  role: 'comum' | 'admin';
 }
 
 interface Idioma {
@@ -74,11 +77,11 @@ export class ControleAdm implements OnInit {
   logs: Log[] = [];
   
   // Filtros
-  filtroDenunciaStatus = 'todas';
+  filtroDenunciaStatus: string[] = [];
   filtroUsuarioStatus = 'todos';
   buscaUsuario = '';
   buscaIdioma = '';
-  filtroLogTipo = 'todos';
+  filtroLogTipo: string[] = [];
   buscaDenuncia = '';
   buscaLog = '';
   filtroLogDataInicio = '';
@@ -119,6 +122,7 @@ export class ControleAdm implements OnInit {
   nomeUsuarioEdicao = '';
   emailUsuarioEdicao = '';
   telefoneUsuarioEdicao = '';
+  roleUsuarioEdicao: 'comum' | 'admin' = 'comum';
   novaSenhaUsuario = '';
   confirmarSenhaUsuario = '';
   camposVisiveis = {
@@ -205,7 +209,9 @@ export class ControleAdm implements OnInit {
         usuarioNome: 'Maria Santos',
         data: '2024-01-19T10:15:00',
         tipos: ['Links Inapropriados'],
-        status: 'analisando'
+        status: 'analisando',
+        responsavelId: 'ADM-001',
+        responsavelNome: 'Administrador Principal'
       },
       {
         id: 3,
@@ -216,7 +222,9 @@ export class ControleAdm implements OnInit {
         data: '2024-01-18T16:45:00',
         tipos: ['Vídeos Inapropriados'],
         descricao: 'Vídeos com conteúdo não relacionado ao idioma',
-        status: 'resolvida'
+        status: 'resolvida',
+        responsavelId: 'ADM-002',
+        responsavelNome: 'João Moderador'
       },
       {
         id: 4,
@@ -227,7 +235,9 @@ export class ControleAdm implements OnInit {
         data: '2024-01-17T09:20:00',
         tipos: ['Outros'],
         descricao: 'Conteúdo político não relacionado ao ensino do idioma',
-        status: 'rejeitada'
+        status: 'rejeitada',
+        responsavelId: 'ADM-001',
+        responsavelNome: 'Administrador Principal'
       }
     ];
   }
@@ -240,7 +250,8 @@ export class ControleAdm implements OnInit {
         email: 'lucas@gmail.com',
         telefone: '(63) 99999-9999',
         dataEntrada: '2023-01-15',
-        status: 'ativo'
+        status: 'ativo',
+        role: 'admin'
       },
       {
         id: 'USR-2024-002',
@@ -248,7 +259,8 @@ export class ControleAdm implements OnInit {
         email: 'ana.oliveira@gmail.com',
         telefone: '(11) 98765-4321',
         dataEntrada: '2023-03-22',
-        status: 'ativo'
+        status: 'ativo',
+        role: 'comum'
       },
       {
         id: 'USR-2024-003',
@@ -256,7 +268,8 @@ export class ControleAdm implements OnInit {
         email: 'carlos.santos@hotmail.com',
         telefone: '(21) 97654-3210',
         dataEntrada: '2023-06-10',
-        status: 'inativo'
+        status: 'inativo',
+        role: 'comum'
       },
       {
         id: 'USR-2024-004',
@@ -264,7 +277,8 @@ export class ControleAdm implements OnInit {
         email: 'mariana@gmail.com',
         telefone: '(85) 98888-7777',
         dataEntrada: '2023-08-05',
-        status: 'ativo'
+        status: 'ativo',
+        role: 'comum'
       },
       {
         id: 'USR-2024-005',
@@ -272,7 +286,8 @@ export class ControleAdm implements OnInit {
         email: 'roberto@hotmail.com',
         telefone: '(41) 97777-6666',
         dataEntrada: '2023-09-12',
-        status: 'ativo'
+        status: 'ativo',
+        role: 'admin'
       }
     ];
   }
@@ -373,11 +388,25 @@ export class ControleAdm implements OnInit {
 
   // ===== DENÚNCIAS =====
   
+  toggleFiltroDenunciaStatus(status: string): void {
+    const index = this.filtroDenunciaStatus.indexOf(status);
+    if (index > -1) {
+      this.filtroDenunciaStatus.splice(index, 1);
+    } else {
+      this.filtroDenunciaStatus.push(status);
+    }
+    this.paginaAtualDenuncias = 1;
+  }
+
+  isStatusDenunciaSelecionado(status: string): boolean {
+    return this.filtroDenunciaStatus.includes(status);
+  }
+  
   get denunciasFiltradas(): Denuncia[] {
     let filtradas = this.denuncias;
     
-    if (this.filtroDenunciaStatus !== 'todas') {
-      filtradas = filtradas.filter(d => d.status === this.filtroDenunciaStatus);
+    if (this.filtroDenunciaStatus.length > 0) {
+      filtradas = filtradas.filter(d => this.filtroDenunciaStatus.includes(d.status));
     }
     
     if (this.buscaDenuncia.trim()) {
@@ -427,11 +456,25 @@ export class ControleAdm implements OnInit {
     const statusAnterior = this.denunciaSelecionada.status;
     this.denunciaSelecionada.status = status;
     
+    // Se o status não for "pendente", atribuir o responsável
+    if (status !== 'pendente') {
+      this.denunciaSelecionada.responsavelId = this.adminLogadoId;
+      this.denunciaSelecionada.responsavelNome = this.adminLogadoNome;
+    } else {
+      // Se voltar para pendente, remover o responsável
+      this.denunciaSelecionada.responsavelId = undefined;
+      this.denunciaSelecionada.responsavelNome = undefined;
+    }
+    
     // Registrar log
+    const detalhesLog = status !== 'pendente' 
+      ? `Denúncia #${this.denunciaSelecionada.id} - Status alterado de "${this.getStatusTexto(statusAnterior)}" para "${this.getStatusTexto(status)}" - Responsável: ${this.adminLogadoNome} (${this.adminLogadoId})`
+      : `Denúncia #${this.denunciaSelecionada.id} - Status alterado de "${this.getStatusTexto(statusAnterior)}" para "${this.getStatusTexto(status)}"`;
+    
     this.registrarLog(
       'denuncia',
       'Alterou status de denúncia',
-      `Denúncia #${this.denunciaSelecionada.id} - Status alterado de "${this.getStatusTexto(statusAnterior)}" para "${this.getStatusTexto(status)}"`
+      detalhesLog
     );
     
     this.fecharModalDenuncia();
@@ -441,7 +484,7 @@ export class ControleAdm implements OnInit {
   visualizarIdiomaDenuncia(): void {
     if (!this.denunciaSelecionada) return;
     console.log('Navegando para idioma:', this.denunciaSelecionada.idiomaId);
-    this.router.navigate(['/visualizar-idioma']);
+    window.open('/visualizar-idioma', '_blank');
   }
 
   formatarData(dataString: string): string {
@@ -537,6 +580,7 @@ export class ControleAdm implements OnInit {
     this.nomeUsuarioEdicao = usuario.nome;
     this.emailUsuarioEdicao = usuario.email;
     this.telefoneUsuarioEdicao = usuario.telefone;
+    this.roleUsuarioEdicao = usuario.role;
     this.novaSenhaUsuario = '';
     this.confirmarSenhaUsuario = '';
     this.mostrarModalEditarUsuario = true;
@@ -552,6 +596,7 @@ export class ControleAdm implements OnInit {
     this.nomeUsuarioEdicao = '';
     this.emailUsuarioEdicao = '';
     this.telefoneUsuarioEdicao = '';
+    this.roleUsuarioEdicao = 'comum';
     this.novaSenhaUsuario = '';
     this.confirmarSenhaUsuario = '';
     this.camposVisiveis = { novaSenha: false, confirmarSenha: false };
@@ -563,18 +608,20 @@ export class ControleAdm implements OnInit {
     const nomeValido = this.nomeUsuarioEdicao.trim().length >= 8;
     const emailValido = this.validarEmail(this.emailUsuarioEdicao);
     const telefoneValido = this.telefoneUsuarioEdicao.replace(/\D/g, '').length >= 10;
+    const roleValido = !!this.roleUsuarioEdicao;
     
     const dadosAlterados = 
       this.nomeUsuarioEdicao !== this.usuarioEmEdicao.nome ||
       this.emailUsuarioEdicao !== this.usuarioEmEdicao.email ||
-      this.telefoneUsuarioEdicao !== this.usuarioEmEdicao.telefone;
+      this.telefoneUsuarioEdicao !== this.usuarioEmEdicao.telefone ||
+      this.roleUsuarioEdicao !== this.usuarioEmEdicao.role;
     
     const senhaValida = !this.novaSenhaUsuario || (
       this.novaSenhaUsuario.length >= 6 &&
       this.novaSenhaUsuario === this.confirmarSenhaUsuario
     );
     
-    return nomeValido && emailValido && telefoneValido && senhaValida && (dadosAlterados || !!this.novaSenhaUsuario);
+    return nomeValido && emailValido && telefoneValido && roleValido && senhaValida && (dadosAlterados || !!this.novaSenhaUsuario);
   }
 
   confirmarEdicaoUsuario(): void {
@@ -585,16 +632,19 @@ export class ControleAdm implements OnInit {
       const nomeAnterior = usuario.nome;
       const emailAnterior = usuario.email;
       const telefoneAnterior = usuario.telefone;
+      const roleAnterior = usuario.role;
       
       usuario.nome = this.nomeUsuarioEdicao.trim();
       usuario.email = this.emailUsuarioEdicao.trim();
       usuario.telefone = this.telefoneUsuarioEdicao.trim();
+      usuario.role = this.roleUsuarioEdicao;
       
       // Registrar log
       const alteracoes: string[] = [];
       if (nomeAnterior !== usuario.nome) alteracoes.push(`Nome: "${nomeAnterior}" → "${usuario.nome}"`);
       if (emailAnterior !== usuario.email) alteracoes.push(`Email: "${emailAnterior}" → "${usuario.email}"`);
       if (telefoneAnterior !== usuario.telefone) alteracoes.push(`Telefone: "${telefoneAnterior}" → "${usuario.telefone}"`);
+      if (roleAnterior !== usuario.role) alteracoes.push(`Tipo: "${roleAnterior === 'admin' ? 'Administrador' : 'Usuário Comum'}" → "${usuario.role === 'admin' ? 'Administrador' : 'Usuário Comum'}"`);
       if (this.novaSenhaUsuario) alteracoes.push('Senha atualizada');
       
       this.registrarLog(
@@ -901,7 +951,7 @@ export class ControleAdm implements OnInit {
 
   visualizarIdioma(idioma: Idioma): void {
     console.log('Visualizar idioma:', idioma.nome);
-    this.router.navigate(['/visualizar-idioma']);
+    window.open('/visualizar-idioma', '_blank');
   }
 
   estrelas(nota: number): boolean[] {
@@ -911,11 +961,25 @@ export class ControleAdm implements OnInit {
 
   // ===== LOGS =====
   
+  toggleFiltroLogTipo(tipo: string): void {
+    const index = this.filtroLogTipo.indexOf(tipo);
+    if (index > -1) {
+      this.filtroLogTipo.splice(index, 1);
+    } else {
+      this.filtroLogTipo.push(tipo);
+    }
+    this.paginaAtualLogs = 1;
+  }
+
+  isTipoLogSelecionado(tipo: string): boolean {
+    return this.filtroLogTipo.includes(tipo);
+  }
+  
   get logsFiltrados(): Log[] {
     let logs = this.logs;
     
-    if (this.filtroLogTipo !== 'todos') {
-      logs = logs.filter(log => log.tipo === this.filtroLogTipo);
+    if (this.filtroLogTipo.length > 0) {
+      logs = logs.filter(log => this.filtroLogTipo.includes(log.tipo));
     }
     
     if (this.buscaLog.trim()) {
