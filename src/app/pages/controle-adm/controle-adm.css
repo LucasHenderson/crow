@@ -1997,6 +1997,41 @@
   letter-spacing: 0.01em;
 }
 
+/* ID DO IDIOMA - Display no Modal */
+.idioma-id-display {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 1.2rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.idioma-id-display svg {
+  width: 22px;
+  height: 22px;
+  color: #60a5fa;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
+}
+
+.idioma-id-display span {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.idioma-id-display strong {
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
 /* RESPONSIVIDADE */
 @media (max-width: 1200px) {
   .usuarios-list {

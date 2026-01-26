@@ -86,6 +86,8 @@ export class ControleAdm implements OnInit {
   buscaLog = '';
   filtroLogDataInicio = '';
   filtroLogDataFim = '';
+  filtroDenunciaDataInicio = '';
+  filtroDenunciaDataFim = '';
   
   // Paginação - Denúncias
   paginaAtualDenuncias = 1;
@@ -413,8 +415,21 @@ export class ControleAdm implements OnInit {
       const termo = this.buscaDenuncia.toLowerCase();
       filtradas = filtradas.filter(d => 
         d.id.toString().includes(termo) ||
-        d.usuarioNome.toLowerCase().includes(termo)
+        d.usuarioNome.toLowerCase().includes(termo) ||
+        (d.responsavelNome && d.responsavelNome.toLowerCase().includes(termo)) ||
+        (d.responsavelId && d.responsavelId.toLowerCase().includes(termo))
       );
+    }
+    
+    if (this.filtroDenunciaDataInicio) {
+      const dataInicio = new Date(this.filtroDenunciaDataInicio);
+      filtradas = filtradas.filter(d => new Date(d.data) >= dataInicio);
+    }
+    
+    if (this.filtroDenunciaDataFim) {
+      const dataFim = new Date(this.filtroDenunciaDataFim);
+      dataFim.setHours(23, 59, 59, 999);
+      filtradas = filtradas.filter(d => new Date(d.data) <= dataFim);
     }
     
     return filtradas;
