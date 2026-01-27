@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 interface Idioma {
+  id: string;
   nome: string;
   bandeira: string;
   nota: number; // 1 a 5
@@ -30,6 +31,7 @@ export class Home {
   // Lista COM idioma para testes
   idiomas: Idioma[] = [
     {
+      id: 'IDM-2024-001',
       nome: 'Inglês',
       bandeira: '../../../assets/imgs/United-States-Flag.svg',
       nota: 4,
@@ -152,7 +154,7 @@ export class Home {
   selecionarIdioma(idioma: Idioma): void {
     console.log('Idioma selecionado:', idioma.nome);
     // Aqui você pode adicionar navegação para a página de visualização
-    // this.router.navigate(['/visualizar-idioma', idioma.nome]);
+    // this.router.navigate(['/visualizar-idioma', idioma.id]);
   }
 
   /**

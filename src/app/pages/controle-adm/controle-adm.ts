@@ -805,6 +805,7 @@ export class ControleAdm implements OnInit {
     return this.idiomas.filter(i => 
       i.nome.toLowerCase().includes(termo) ||
       i.criadorNome.toLowerCase().includes(termo) ||
+      i.criadorId.toLowerCase().includes(termo) ||
       i.id.toLowerCase().includes(termo)
     );
   }
