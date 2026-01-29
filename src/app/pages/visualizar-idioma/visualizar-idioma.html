@@ -13,8 +13,13 @@
       <div class="titulo-wrapper">
         <h1 class="titulo">{{ idiomaNome }}</h1>
         <p class="subtitulo">{{ descricao }}</p>
-        <div class="id-usuario-wrapper" *ngIf="!isProprietario" (click)="navegarParaUsuario()" title="Ver perfil do usuário">
-          <span class="id-usuario">ID Usuário: {{ idUsuarioFormatado }}</span>
+        <div class="ids-container">
+          <div class="id-idioma-wrapper" (click)="copiarIdIdioma()" title="Copiar ID do Idioma">
+            <span class="id-idioma">ID Idioma: {{ idIdiomaFormatado }}</span>
+          </div>
+          <div class="id-usuario-wrapper" *ngIf="!isProprietario" (click)="navegarParaUsuario()" title="Ver perfil do usuário">
+            <span class="id-usuario">ID Usuário: {{ idUsuarioFormatado }}</span>
+          </div>
         </div>
       </div>
     </div>

@@ -92,6 +92,78 @@
   font-weight: 500;
 }
 
+/* CONTAINER DE IDS */
+.ids-container {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+  flex-wrap: wrap;
+}
+
+/* ID DO IDIOMA */
+.id-idioma-wrapper {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
+  border-radius: 8px;
+  border: 1.5px solid rgba(139, 92, 246, 0.35);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.id-idioma-wrapper:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(124, 58, 237, 0.2) 100%);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.id-idioma-wrapper:active {
+  transform: scale(0.98) translateY(-2px);
+}
+
+.id-idioma {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ID DO USUÁRIO CRIADOR */
+.id-usuario-wrapper {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+  border-radius: 8px;
+  border: 1.5px solid rgba(59, 130, 246, 0.25);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.id-usuario-wrapper:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.id-usuario-wrapper:active {
+  transform: scale(0.98) translateY(-2px);
+}
+
+.id-usuario {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .acoes-top {
   display: flex;
   gap: 0.8rem;
@@ -1369,32 +1441,6 @@
   max-width: 700px;
 }
 
-/* ========== ID DO USUÁRIO CRIADOR ========== */
-.id-usuario-wrapper {
-  display: inline-flex;
-  align-items: center;
-  margin-top: 0.8rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
-  border-radius: 8px;
-  border: 1.5px solid rgba(59, 130, 246, 0.25);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.id-usuario-wrapper:active {
-  transform: scale(0.98);
-}
-
-.id-usuario {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
 .instrucao-modal {
   color: rgba(255, 255, 255, 0.9);
   font-size: 1rem;
@@ -1696,10 +1742,17 @@
     gap: 0.8rem;
   }
   
+  .ids-container {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  
+  .id-idioma-wrapper,
   .id-usuario-wrapper {
     padding: 0.45rem 0.85rem;
   }
   
+  .id-idioma,
   .id-usuario {
     font-size: 0.8rem;
   }
@@ -1879,10 +1932,12 @@
     padding: 0.6rem;
   }
   
+  .id-idioma-wrapper,
   .id-usuario-wrapper {
     padding: 0.4rem 0.75rem;
   }
   
+  .id-idioma,
   .id-usuario {
     font-size: 0.75rem;
   }
@@ -1938,10 +1993,12 @@
     padding: 0.8rem 0.9rem;
   }
   
+  .id-idioma-wrapper,
   .id-usuario-wrapper {
     padding: 0.4rem 0.7rem;
   }
   
+  .id-idioma,
   .id-usuario {
     font-size: 0.7rem;
   }
@@ -2027,10 +2084,12 @@
     padding: 0.5rem;
   }
   
+  .id-idioma-wrapper,
   .id-usuario-wrapper {
     padding: 0.35rem 0.65rem;
   }
   
+  .id-idioma,
   .id-usuario {
     font-size: 0.65rem;
   }

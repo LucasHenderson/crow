@@ -28,6 +28,7 @@ interface IdiomaUsuario {
 export class VisualizarIdioma {
   idiomaNome = 'Japonês';
   descricao = 'Aprender japonês básico para viagens e conversação do dia a dia';
+  idIdioma = '987654321'; // ID do idioma
   idUsuarioCriador = '123456789'; // ID do usuário criador
   isProprietario = false;
   avaliacao = 4.3;
@@ -196,6 +197,24 @@ export class VisualizarIdioma {
     }
     console.log('Visualizando módulo:', mod.nome);
     this.router.navigate(['/visualizar-modulo']);
+  }
+
+  // ===== COPIAR ID DO IDIOMA =====
+  
+  copiarIdIdioma(): void {
+    navigator.clipboard.writeText(this.idIdioma).then(() => {
+      this.exibirMensagemSucesso('ID do Idioma copiado para a área de transferência!');
+    }).catch(err => {
+      console.error('Erro ao copiar ID:', err);
+      alert('Não foi possível copiar o ID. Tente novamente.');
+    });
+  }
+
+  get idIdiomaFormatado(): string {
+    if (this.idIdioma.length > 9) {
+      return this.idIdioma.substring(0, 9) + '...';
+    }
+    return this.idIdioma;
   }
 
   // ===== MODAL DE DENÚNCIA =====
