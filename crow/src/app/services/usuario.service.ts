@@ -1,35 +1,33 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Usuario, UsuarioBusca } from '../models/usuario.model';
 
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
+  private apiUrl = environment.apiUrl;
 
-  buscarUsuarios(): Observable<UsuarioBusca[]> {
-    return of([
-      { id: 'USR-2024-001', nome: 'Lucas Henderson', email: 'lucas@gmail.com', dataEntrada: new Date('2023-01-15'), quantidadeIdiomas: 3 },
-      { id: 'USR-2024-002', nome: 'Ana Silva', email: 'ana@gmail.com', dataEntrada: new Date('2023-03-20'), quantidadeIdiomas: 2 }
-    ]).pipe(delay(300));
+  constructor(private http: HttpClient) {}
+
+  buscarUsuarios(q?: string): Observable<UsuarioBusca[]> {
+    const params = q ? `?q=${encodeURIComponent(q)}` : '';
+    return this.http.get<UsuarioBusca[]>(`${this.apiUrl}/usuarios/buscar${params}`);
+  }
+
+  listarTodos(): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(`${this.apiUrl}/usuarios`);
   }
 
   getUsuarioPorId(id: string): Observable<Usuario> {
-    return of({
-      id,
-      nome: 'Lucas Henderson',
-      email: 'lucas@gmail.com',
-      telefone: '(63) 99999-9999',
-      dataEntrada: '2023-01-15',
-      status: 'ativo' as const,
-      role: 'comum' as const
-    }).pipe(delay(300));
+    return this.http.get<Usuario>(`${this.apiUrl}/usuarios/${id}`);
   }
 
   atualizarPerfil(dados: Partial<Usuario>): Observable<Usuario> {
-    return of({ ...dados, id: dados.id || '' } as Usuario).pipe(delay(300));
+    return this.http.put<Usuario>(`${this.apiUrl}/usuarios/me`, dados);
   }
 
   alterarSenha(senhaAtual: string, novaSenha: string): Observable<void> {
-    return of(undefined).pipe(delay(300));
+    return this.http.put<void>(`${this.apiUrl}/usuarios/me/senha`, { senhaAtual, novaSenha });
   }
 }

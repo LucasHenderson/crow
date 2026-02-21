@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
-import { Usuario, NovoUsuario } from '../models/usuario.model';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap, BehaviorSubject } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Usuario } from '../models/usuario.model';
 
 interface AuthResponse {
   token: string;
@@ -10,53 +11,28 @@ interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private apiUrl = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<Usuario | null>(this.getUsuarioDoStorage());
   currentUser$ = this.currentUserSubject.asObservable();
 
+  constructor(private http: HttpClient) {}
+
   login(email: string, senha: string): Observable<AuthResponse> {
-    const mockUser: Usuario = {
-      id: 'USR-2024-001',
-      nome: 'Lucas Henderson',
-      email: email,
-      telefone: '(63) 99999-9999',
-      dataEntrada: '2023-01-15',
-      status: 'ativo',
-      role: 'admin'
-    };
-    const response: AuthResponse = {
-      token: 'mock-jwt-token-' + Date.now(),
-      usuario: mockUser
-    };
-    return of(response).pipe(
-      delay(500),
-      tap(res => {
-        localStorage.setItem('authToken', res.token);
-        localStorage.setItem('usuario', JSON.stringify(res.usuario));
-        this.currentUserSubject.next(res.usuario);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, senha }).pipe(
+      tap(response => {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('usuario', JSON.stringify(response.usuario));
+        this.currentUserSubject.next(response.usuario);
       })
     );
   }
 
   register(dados: { nome: string; email: string; senha: string; telefone?: string }): Observable<AuthResponse> {
-    const mockUser: Usuario = {
-      id: 'USR-' + Date.now(),
-      nome: dados.nome,
-      email: dados.email,
-      telefone: dados.telefone || '',
-      dataEntrada: new Date().toISOString().split('T')[0],
-      status: 'ativo',
-      role: 'comum'
-    };
-    const response: AuthResponse = {
-      token: 'mock-jwt-token-' + Date.now(),
-      usuario: mockUser
-    };
-    return of(response).pipe(
-      delay(500),
-      tap(res => {
-        localStorage.setItem('authToken', res.token);
-        localStorage.setItem('usuario', JSON.stringify(res.usuario));
-        this.currentUserSubject.next(res.usuario);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, dados).pipe(
+      tap(response => {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('usuario', JSON.stringify(response.usuario));
+        this.currentUserSubject.next(response.usuario);
       })
     );
   }
@@ -75,9 +51,8 @@ export class AuthService {
     return localStorage.getItem('authToken');
   }
 
-  getUsuarioLogado(): Observable<Usuario | null> {
-    const user = this.getUsuarioDoStorage();
-    return of(user).pipe(delay(300));
+  getUsuarioLogado(): Observable<Usuario> {
+    return this.http.get<Usuario>(`${this.apiUrl}/usuarios/me`);
   }
 
   getCurrentUser(): Usuario | null {

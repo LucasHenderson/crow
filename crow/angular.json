@@ -61,7 +61,8 @@
               "buildTarget": "crow:build:production"
             },
             "development": {
-              "buildTarget": "crow:build:development"
+              "buildTarget": "crow:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Denuncia } from '../models/denuncia.model';
 import { Usuario } from '../models/usuario.model';
 import { IdiomaAdm } from '../models/idioma.model';
@@ -8,48 +9,39 @@ import { Log } from '../models/log.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
+  private apiUrl = environment.apiUrl;
+
+  constructor(private http: HttpClient) {}
 
   getDenuncias(): Observable<Denuncia[]> {
-    return of([]).pipe(delay(300));
+    return this.http.get<Denuncia[]>(`${this.apiUrl}/admin/denuncias`);
   }
 
-  alterarStatusDenuncia(id: number, status: string, responsavel: any): Observable<Denuncia> {
-    return of({ id, status } as any).pipe(delay(300));
+  alterarStatusDenuncia(id: number, status: string): Observable<Denuncia> {
+    return this.http.put<Denuncia>(`${this.apiUrl}/admin/denuncias/${id}/status`, { status });
   }
 
   getUsuariosAdmin(): Observable<Usuario[]> {
-    return of([]).pipe(delay(300));
+    return this.http.get<Usuario[]>(`${this.apiUrl}/admin/usuarios`);
   }
 
   editarUsuarioAdmin(id: string, dados: any): Observable<Usuario> {
-    return of({ id, ...dados } as Usuario).pipe(delay(300));
+    return this.http.put<Usuario>(`${this.apiUrl}/admin/usuarios/${id}`, dados);
   }
 
   alterarStatusUsuario(id: string, novoStatus: string): Observable<Usuario> {
-    return of({ id, status: novoStatus } as any).pipe(delay(300));
+    return this.http.put<Usuario>(`${this.apiUrl}/admin/usuarios/${id}/status`, { status: novoStatus });
   }
 
   getIdiomasAdmin(): Observable<IdiomaAdm[]> {
-    return of([]).pipe(delay(300));
+    return this.http.get<IdiomaAdm[]>(`${this.apiUrl}/admin/idiomas`);
   }
 
   excluirIdiomaAdmin(id: string): Observable<void> {
-    return of(undefined).pipe(delay(300));
+    return this.http.delete<void>(`${this.apiUrl}/admin/idiomas/${id}`);
   }
 
   getLogs(): Observable<Log[]> {
-    return of([]).pipe(delay(300));
-  }
-
-  registrarLog(tipo: string, acao: string, detalhes: string): Observable<Log> {
-    return of({
-      id: 'LOG-' + Date.now(),
-      data: new Date().toISOString(),
-      adminId: 'ADM-001',
-      adminNome: 'Administrador',
-      acao,
-      detalhes,
-      tipo: tipo as any
-    }).pipe(delay(300));
+    return this.http.get<Log[]>(`${this.apiUrl}/admin/logs`);
   }
 }

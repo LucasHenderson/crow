@@ -1,80 +1,49 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { Idioma, IdiomaAdm, IdiomaBusca } from '../models/idioma.model';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { IdiomaAdm, IdiomaBusca } from '../models/idioma.model';
 
 @Injectable({ providedIn: 'root' })
 export class IdiomaService {
+  private apiUrl = environment.apiUrl;
 
-  getIdiomasUsuario(): Observable<Idioma[]> {
-    return of([
-      {
-        id: 'IDM-2024-001',
-        nome: 'Inglês',
-        bandeira: '../../../assets/imgs/United-States-Flag.svg',
-        nota: 4,
-        modulos: 18,
-        descricao: 'Idioma global, utilizado em negócios, tecnologia e viagens ao redor do mundo.',
-        proficiencia: 'Avançado',
-        visibilidade: 'publico' as const
-      }
-    ]).pipe(delay(300));
+  constructor(private http: HttpClient) {}
+
+  getIdiomasUsuario(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/idiomas/meus`);
   }
 
-  buscarIdiomas(): Observable<IdiomaBusca[]> {
-    return of([
-      { id: '000001', nome: 'Japonês para iniciantes', idioma: 'Japonês', bandeira: '../../../assets/imgs/Japan-Flag.png', modulos: 5, avaliacao: 5, criadoEm: new Date('2024-05-01'), proficiencia: 'iniciante' as const },
-      { id: '000002', nome: 'Inglês para informática', idioma: 'Inglês', bandeira: '../../../assets/imgs/United-States-Flag.svg', modulos: 18, avaliacao: 4, criadoEm: new Date('2024-04-12'), proficiencia: 'intermediario' as const }
-    ]).pipe(delay(300));
+  buscarIdiomas(q?: string): Observable<IdiomaBusca[]> {
+    const params = q ? `?q=${encodeURIComponent(q)}` : '';
+    return this.http.get<IdiomaBusca[]>(`${this.apiUrl}/idiomas${params}`);
   }
 
   getIdiomaPorId(id: string): Observable<IdiomaAdm> {
-    return of({
-      id,
-      nome: 'Japonês para iniciantes',
-      bandeira: '../../../assets/imgs/Japan-Flag.png',
-      descricao: 'Aprender japonês básico para viagens e conversação do dia a dia',
-      criadorId: 'USR-2024-001',
-      criadorNome: 'Lucas Henderson',
-      modulos: 5,
-      avaliacao: 4.3,
-      totalAvaliacoes: 2134,
-      proficiencia: 'Iniciante',
-      visibilidade: 'publico' as const
-    }).pipe(delay(300));
+    return this.http.get<IdiomaAdm>(`${this.apiUrl}/idiomas/${id}`);
   }
 
-  criarIdioma(dados: any): Observable<Idioma> {
-    const novo: Idioma = {
-      id: 'IDM-' + Date.now(),
-      nome: dados.nome,
-      bandeira: dados.bandeira || '',
-      nota: 0,
-      modulos: 0,
-      descricao: dados.descricao || '',
-      proficiencia: dados.proficiencia,
-      visibilidade: dados.visibilidade
-    };
-    return of(novo).pipe(delay(300));
+  criarIdioma(dados: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/idiomas`, dados);
   }
 
-  editarIdioma(id: string, dados: any): Observable<Idioma> {
-    return of({ id, ...dados } as Idioma).pipe(delay(300));
+  editarIdioma(id: string, dados: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/idiomas/${id}`, dados);
   }
 
   excluirIdioma(id: string): Observable<void> {
-    return of(undefined).pipe(delay(300));
+    return this.http.delete<void>(`${this.apiUrl}/idiomas/${id}`);
   }
 
   importarIdioma(idiomaId: string): Observable<void> {
-    return of(undefined).pipe(delay(300));
+    return this.http.post<void>(`${this.apiUrl}/idiomas/${idiomaId}/importar`, {});
   }
 
   avaliarIdioma(idiomaId: string, nota: number): Observable<{ novaMedia: number; totalAvaliacoes: number }> {
-    return of({ novaMedia: nota, totalAvaliacoes: 1 }).pipe(delay(300));
+    return this.http.post<{ novaMedia: number; totalAvaliacoes: number }>(`${this.apiUrl}/idiomas/${idiomaId}/avaliar`, { nota });
   }
 
   denunciarIdioma(idiomaId: string, dados: any): Observable<void> {
-    return of(undefined).pipe(delay(300));
+    return this.http.post<void>(`${this.apiUrl}/idiomas/${idiomaId}/denunciar`, dados);
   }
 }
