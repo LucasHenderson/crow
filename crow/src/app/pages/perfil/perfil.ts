@@ -2,20 +2,13 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { Usuario } from '../../models/usuario.model';
 
 type CamposSenha = {
   senhaAtual: boolean;
   novaSenha: boolean;
   confirmarSenha: boolean;
 };
-
-interface Usuario {
-  id: string;
-  nome: string;
-  email: string;
-  telefone: string;
-  dataEntrada: string;
-}
 
 @Component({
   selector: 'app-perfil',

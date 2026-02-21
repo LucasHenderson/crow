@@ -2,20 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { NovoUsuario } from '../../models/usuario.model';
 
 type CamposSenha = {
   senha: boolean;
   confirmarSenha: boolean;
 };
-
-interface NovoUsuario {
-  nome: string;
-  email: string;
-  senha: string;
-  confirmarSenha: string;
-  telefone: string;
-  aceitouTermos: boolean;
-}
 
 @Component({
   selector: 'app-cadastrar-usuario',

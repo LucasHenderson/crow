@@ -4,41 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
-
-interface PalavraTrad {
-  palavra: string;
-  traducao: string;
-}
-
-interface Par {
-  imagem?: string;
-  palavra: string;
-  traducao: string;
-}
-
-interface Frase {
-  id: number;
-  modo: 'traducao' | 'pares' | 'quiz';
-  modoNome: string;
-  modoIcone: SafeHtml;
-  
-  // Tradução Direta
-  traducaoCompleta?: string;
-  palavras?: PalavraTrad[];
-  imagem?: string;
-  observacoes?: string;
-  links?: string[];
-  
-  // Selecionar Pares
-  pares?: Par[];
-  
-  // Quiz
-  imagemQuiz?: string;
-  videoQuiz?: SafeResourceUrl;
-  pergunta?: string;
-  alternativas?: string[];
-  respostaCorreta?: number;
-}
+import { Frase, PalavraTrad, Par } from '../../models/frase.model';
 
 @Component({
   selector: 'app-visualizar-modulo',

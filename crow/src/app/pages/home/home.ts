@@ -2,22 +2,7 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
-interface Idioma {
-  id: string;
-  nome: string;
-  bandeira: string;
-  nota: number; // 1 a 5
-  modulos: number; // até 20
-  descricao: string;
-  proficiencia?: string;
-  visibilidade?: 'publico' | 'privado';
-}
-
-interface IdiomaOpcao {
-  nome: string;
-  bandeira: string;
-}
+import { Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models';
 
 @Component({
   selector: 'app-home',
@@ -75,23 +60,9 @@ export class Home {
   indiceExclusao = -1;
   
   // Opções disponíveis
-  idiomasDisponiveis: IdiomaOpcao[] = [
-    { nome: 'Alemão', bandeira: '../../../assets/imgs/Germany-Flag.svg.png' },
-    { nome: 'Árabe', bandeira: '../../../assets/imgs/United-Arab-Emirates-Flag.svg.png' },
-    { nome: 'Chinês (Mandarim)', bandeira: '../../../assets/imgs/China-Flag.svg' },
-    { nome: 'Coreano', bandeira: '../../../assets/imgs/South-Korea-Flag.svg.webp' },
-    { nome: 'Espanhol', bandeira: '../../../assets/imgs/Spain-Flag.svg' },
-    { nome: 'Francês', bandeira: '../../../assets/imgs/France-Flag.png' },
-    { nome: 'Inglês (Estados Unidos)', bandeira: '../../../assets/imgs/United-States-Flag.svg' },
-    { nome: 'Inglês (Reino Unido)', bandeira: '../../../assets/imgs/United-Kingdom-Flag.svg.png' },
-    { nome: 'Italiano', bandeira: '../../../assets/imgs/Italy-Flag.svg' },
-    { nome: 'Japonês', bandeira: '../../../assets/imgs/Japan-Flag.png' },
-    { nome: 'Português (Brasil)', bandeira: '../../../assets/imgs/Brazil-Flag.svg' },
-    { nome: 'Português (Portugal)', bandeira: '../../../assets/imgs/Portugal-Flag.svg.png' },
-    { nome: 'Russo', bandeira: '../../../assets/imgs/Russia-Flag.svg' }
-  ].sort((a, b) => a.nome.localeCompare(b.nome));
-  
-  proficiencias = ['Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Fluente'];
+  idiomasDisponiveis = IDIOMAS_DISPONIVEIS;
+
+  proficiencias = PROFICIENCIAS;
 
   constructor(private cdr: ChangeDetectorRef, private router: Router) {}
 

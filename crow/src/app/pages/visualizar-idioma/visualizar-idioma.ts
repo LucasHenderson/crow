@@ -3,20 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-
-interface Modulo {
-  id: number;
-  nome: string;
-  icone: SafeHtml;
-  selecionado: boolean;
-  frases: number;
-}
-
-interface IdiomaUsuario {
-  nome: string;
-  bandeira: string;
-  selecionado: boolean;
-}
+import { Modulo } from '../../models/modulo.model';
+import { IdiomaUsuario } from '../../models/idioma.model';
 
 @Component({
   selector: 'app-visualizar-idioma',

@@ -2,14 +2,7 @@ import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-
-interface Usuario {
-  id: string;
-  nome: string;
-  email: string;
-  dataEntrada: Date;
-  quantidadeIdiomas: number; // 0 a 4
-}
+import { UsuarioBusca as Usuario } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-buscar-usuario',
