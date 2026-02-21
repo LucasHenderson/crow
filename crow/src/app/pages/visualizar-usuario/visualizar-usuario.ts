@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
 import { UsuarioVisualizar as Usuario } from '../../models/usuario.model';
+import { UsuarioService } from '../../services/usuario.service';
 
 @Component({
   selector: 'app-visualizar-usuario',
@@ -14,67 +15,40 @@ import { UsuarioVisualizar as Usuario } from '../../models/usuario.model';
 export class VisualizarUsuario implements OnInit {
 
   usuario: Usuario = {
-    id: 'USR-2024-001',
-    nome: 'Lucas Henderson',
-    email: 'lucas@gmail.com',
-    dataEntrada: new Date('2023-01-15')
+    id: '',
+    nome: '',
+    email: '',
+    dataEntrada: new Date()
   };
 
-  // Lista de idiomas do usuário (0 a 4 idiomas)
-  idiomas: Idioma[] = [
-    {
-      id: '000001',
-      nome: 'Japonês para iniciantes',
-      idioma: 'Japonês',
-      bandeira: '../../../assets/imgs/Japan-Flag.png',
-      modulos: 5,
-      avaliacao: 5,
-      criadoEm: new Date('2024-05-01'),
-      proficiencia: 'iniciante'
-    },
-    {
-      id: '000002',
-      nome: 'Inglês para informática',
-      idioma: 'Inglês',
-      bandeira: '../../../assets/imgs/United-States-Flag.svg',
-      modulos: 18,
-      avaliacao: 4,
-      criadoEm: new Date('2024-04-12'),
-      proficiencia: 'avancado'
-    },
-    {
-      id: '000003',
-      nome: 'Comidas Russas',
-      idioma: 'Russo',
-      bandeira: '../../../assets/imgs/Russia-Flag.svg',
-      modulos: 15,
-      avaliacao: 3,
-      criadoEm: new Date('2024-03-22'),
-      proficiencia: 'intermediario'
-    }
-  ];
+  idiomas: Idioma[] = [];
+  carregando = true;
 
-  // Descomente para testar estado vazio:
-  // idiomas: Idioma[] = [];
-
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private usuarioService: UsuarioService
+  ) {}
 
   ngOnInit(): void {
-    // Carregar dados do usuário (pode vir de um serviço ou rota)
-    this.carregarUsuario();
+    const id = this.route.snapshot.queryParamMap.get('id');
+    if (id) {
+      this.carregarUsuario(id);
+    }
   }
 
-  /**
-   * Carrega os dados do usuário
-   * Em produção, isso viria de um serviço ou parâmetro de rota
-   */
-  private carregarUsuario(): void {
-    // Exemplo: buscar ID da rota
-    // const userId = this.route.snapshot.paramMap.get('id');
-    // this.userService.getUsuario(userId).subscribe(user => {
-    //   this.usuario = user;
-    //   this.idiomas = user.idiomas;
-    // });
+  private carregarUsuario(id: string): void {
+    this.carregando = true;
+    this.usuarioService.getUsuarioPorId(id).subscribe({
+      next: (data: any) => {
+        this.usuario = data;
+        this.idiomas = data.idiomas || [];
+        this.carregando = false;
+      },
+      error: () => {
+        this.carregando = false;
+      }
+    });
   }
 
   /**

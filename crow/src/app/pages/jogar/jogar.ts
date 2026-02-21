@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Frase, PalavraTrad, Par } from '../../models/frase.model';
+import { FraseService } from '../../services/frase.service';
 
 interface HistoricoResposta {
   correto: boolean;
@@ -68,10 +69,13 @@ export class Jogar implements OnInit, OnDestroy {
   tempoTotalSegundos: number = 0;
   tempoFormatado: string = '';
 
+  carregando = true;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private fraseService: FraseService
   ) {}
 
   ngOnInit(): void {
@@ -92,51 +96,23 @@ export class Jogar implements OnInit, OnDestroy {
   }
 
   carregarFrases(): void {
-    // Simulação de frases - aqui você buscaria do backend
-    const todasFrases: Frase[] = [
-      // Tradução Direta
-      {
-        modo: 'traducao',
-        traducaoCompleta: 'Bom dia! Como você está?',
-        palavras: [
-          { palavra: 'Bom dia', traducao: 'Good morning' },
-          { palavra: 'Como você está', traducao: 'How are you' }
-        ],
-        imagem: '',
-        observacoes: 'Saudação formal comum',
-        links: ['https://exemplo.com/saudacoes']
+    if (this.modulosSelecionados.length === 0) return;
+
+    this.carregando = true;
+    this.fraseService.getFrasesParaJogo(this.modulosSelecionados).subscribe({
+      next: (frases) => {
+        this.frases = frases.map(f => ({
+          ...f,
+          respostaCorretaIndex: f.respostaCorreta,
+          respostaCorretaTexto: f.alternativas ? f.alternativas[f.respostaCorreta || 0] : ''
+        }));
+        this.totalEtapas = this.frases.length;
+        this.carregando = false;
       },
-      // Pares
-      {
-        modo: 'pares',
-        pares: [
-          { palavra: 'Gato', traducao: 'Cat', imagem: 'assets/imgs/cat.jpg' },
-          { palavra: 'Cachorro', traducao: 'Dog', imagem: 'assets/imgs/dog.jpg' },
-          { palavra: 'Pássaro', traducao: 'Bird' }
-        ]
-      },
-      // Quiz com imagem
-      {
-        modo: 'quiz',
-        imagemQuiz: 'assets/imgs/quiz.jpg',
-        pergunta: 'Qual é a tradução de "Hello"?',
-        alternativas: ['Olá', 'Tchau', 'Bom dia', 'Boa noite'],
-        respostaCorretaIndex: 0,
-        respostaCorretaTexto: 'Olá'
-      },
-      // Quiz com vídeo do YouTube
-      {
-        modo: 'quiz',
-        videoQuiz: this.sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/dQw4w9WgXcQ'),
-        pergunta: 'Com base no vídeo, qual idioma está sendo falado?',
-        alternativas: ['Inglês', 'Espanhol', 'Francês', 'Alemão'],
-        respostaCorretaIndex: 0,
-        respostaCorretaTexto: 'Inglês'
+      error: () => {
+        this.carregando = false;
       }
-    ];
-    
-    // Sorteia 15 frases aleatórias
-    this.frases = this.sortearFrases(todasFrases, 15);
+    });
   }
 
   sortearFrases(frases: Frase[], quantidade: number): Frase[] {

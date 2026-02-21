@@ -1,8 +1,9 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { UsuarioBusca as Usuario } from '../../models/usuario.model';
+import { UsuarioService } from '../../services/usuario.service';
 
 @Component({
   selector: 'app-buscar-usuario',
@@ -11,105 +12,41 @@ import { UsuarioBusca as Usuario } from '../../models/usuario.model';
   templateUrl: './buscar-usuario.html',
   styleUrl: './buscar-usuario.css',
 })
-export class BuscarUsuario {
+export class BuscarUsuario implements OnInit {
 
   busca = '';
-  
+
   mostrarOrdenacao = false;
   criterio: 'nome' | 'idiomas' = 'nome';
   direcao: 'asc' | 'desc' = 'asc';
-  
+
   paginaAtual = 1;
   porPagina = 9;
+  carregando = true;
 
-  usuarios: Usuario[] = [
-    {
-      id: 'USR-2024-001',
-      nome: 'Lucas Henderson',
-      email: 'lucas@gmail.com',
-      dataEntrada: new Date('2023-01-15'),
-      quantidadeIdiomas: 3
-    },
-    {
-      id: 'USR-2024-002',
-      nome: 'Maria Silva Santos',
-      email: 'maria.silva@email.com',
-      dataEntrada: new Date('2023-03-22'),
-      quantidadeIdiomas: 4
-    },
-    {
-      id: 'USR-2024-003',
-      nome: 'João Pedro Oliveira',
-      email: 'joao.oliveira@email.com',
-      dataEntrada: new Date('2023-05-10'),
-      quantidadeIdiomas: 2
-    },
-    {
-      id: 'USR-2024-004',
-      nome: 'Ana Carolina Ferreira',
-      email: 'ana.ferreira@email.com',
-      dataEntrada: new Date('2023-07-18'),
-      quantidadeIdiomas: 1
-    },
-    {
-      id: 'USR-2024-005',
-      nome: 'Carlos Eduardo Lima',
-      email: 'carlos.lima@email.com',
-      dataEntrada: new Date('2023-08-25'),
-      quantidadeIdiomas: 0
-    },
-    {
-      id: 'USR-2024-006',
-      nome: 'Fernanda Costa Rodrigues',
-      email: 'fernanda.costa@email.com',
-      dataEntrada: new Date('2023-09-12'),
-      quantidadeIdiomas: 4
-    },
-    {
-      id: 'USR-2024-007',
-      nome: 'Rafael Souza Mendes',
-      email: 'rafael.souza@email.com',
-      dataEntrada: new Date('2023-10-08'),
-      quantidadeIdiomas: 2
-    },
-    {
-      id: 'USR-2024-008',
-      nome: 'Juliana Alves Pereira',
-      email: 'juliana.alves@email.com',
-      dataEntrada: new Date('2023-11-20'),
-      quantidadeIdiomas: 3
-    },
-    {
-      id: 'USR-2024-009',
-      nome: 'Bruno Henrique Martins',
-      email: 'bruno.martins@email.com',
-      dataEntrada: new Date('2024-01-05'),
-      quantidadeIdiomas: 1
-    },
-    {
-      id: 'USR-2024-010',
-      nome: 'Patricia Gomes Azevedo',
-      email: 'patricia.gomes@email.com',
-      dataEntrada: new Date('2024-02-14'),
-      quantidadeIdiomas: 4
-    },
-    {
-      id: 'USR-2024-011',
-      nome: 'Ricardo Barbosa Santos',
-      email: 'ricardo.barbosa@email.com',
-      dataEntrada: new Date('2024-03-30'),
-      quantidadeIdiomas: 0
-    },
-    {
-      id: 'USR-2024-012',
-      nome: 'Camila Rodrigues Freitas',
-      email: 'camila.freitas@email.com',
-      dataEntrada: new Date('2024-04-17'),
-      quantidadeIdiomas: 2
-    }
-  ];
+  usuarios: Usuario[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private usuarioService: UsuarioService
+  ) {}
+
+  ngOnInit(): void {
+    this.carregarUsuarios();
+  }
+
+  carregarUsuarios(): void {
+    this.carregando = true;
+    this.usuarioService.buscarUsuarios().subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+        this.carregando = false;
+      },
+      error: () => {
+        this.carregando = false;
+      }
+    });
+  }
 
   /**
    * Fecha os menus ao clicar fora

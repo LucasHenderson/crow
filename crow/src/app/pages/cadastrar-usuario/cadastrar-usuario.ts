@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NovoUsuario } from '../../models/usuario.model';
+import { AuthService } from '../../services/auth.service';
 
 type CamposSenha = {
   senha: boolean;
@@ -17,7 +18,7 @@ type CamposSenha = {
   styleUrl: './cadastrar-usuario.css',
 })
 export class CadastrarUsuario {
-  
+
   novoUsuario: NovoUsuario = {
     nome: '',
     email: '',
@@ -33,8 +34,12 @@ export class CadastrarUsuario {
   };
 
   enviandoFormulario = false;
+  erroCadastro = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   /**
    * Permite apenas números no campo de telefone
@@ -131,29 +136,24 @@ export class CadastrarUsuario {
       return;
     }
 
-    // Simular envio
     this.enviandoFormulario = true;
+    this.erroCadastro = '';
 
-    // Aqui você implementaria a chamada ao backend
-    setTimeout(() => {
-      this.enviandoFormulario = false;
-      
-      // Salvar dados básicos no localStorage (remover senha)
-      const usuarioCadastrado = {
-        nome: this.novoUsuario.nome,
-        email: this.novoUsuario.email,
-        telefone: this.novoUsuario.telefone,
-        dataEntrada: new Date().toISOString()
-      };
-      
-      localStorage.setItem('usuario', JSON.stringify(usuarioCadastrado));
-      
-      console.log('Usuário cadastrado:', usuarioCadastrado);
-      
-      // Redirecionar para login ou home
-      alert('Cadastro realizado com sucesso! Faça login para continuar.');
-      this.router.navigate(['/login']);
-    }, 2000);
+    this.authService.register({
+      nome: this.novoUsuario.nome,
+      email: this.novoUsuario.email,
+      senha: this.novoUsuario.senha,
+      telefone: this.novoUsuario.telefone
+    }).subscribe({
+      next: () => {
+        this.enviandoFormulario = false;
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        this.enviandoFormulario = false;
+        this.erroCadastro = err.error?.message || 'Erro ao criar conta. Tente novamente.';
+      }
+    });
   }
 
   /**

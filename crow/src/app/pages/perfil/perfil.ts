@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { Usuario } from '../../models/usuario.model';
+import { AuthService } from '../../services/auth.service';
+import { UsuarioService } from '../../services/usuario.service';
 
 type CamposSenha = {
   senhaAtual: boolean;
@@ -21,16 +23,16 @@ export class Perfil implements OnInit {
   profileMenuOpen = false;
   showSuccessAlert = false;
   successMessage = '';
+  carregando = true;
 
   user: Usuario = {
-    id: 'USR-2024-001',
-    nome: 'Lucas Henderson',
-    email: 'lucas@gmail.com',
-    telefone: '(63) 99999-9999',
-    dataEntrada: '2023-01-15',
+    id: '',
+    nome: '',
+    email: '',
+    telefone: '',
+    dataEntrada: '',
   };
 
-  // Cópia dos dados originais para comparação
   userOriginal: Usuario = { ...this.user };
 
   senhaAtual = '';
@@ -43,41 +45,29 @@ export class Perfil implements OnInit {
     confirmarSenha: false,
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private usuarioService: UsuarioService
+  ) {}
 
   ngOnInit(): void {
-    // Carregar dados do usuário do localStorage ou serviço
     this.carregarDadosUsuario();
   }
 
-  /**
-   * Carrega os dados do usuário do localStorage ou serviço de autenticação
-   */
   private carregarDadosUsuario(): void {
-    // Exemplo: buscar do localStorage
-    const usuarioSalvo = localStorage.getItem('usuario');
-    if (usuarioSalvo) {
-      try {
-        this.user = JSON.parse(usuarioSalvo);
-        // Atualizar cópia original após carregar
-        this.userOriginal = { ...this.user };
-      } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
+    this.carregando = true;
+    this.authService.getUsuarioLogado().subscribe({
+      next: (user) => {
+        this.user = user;
+        this.userOriginal = { ...user };
+        this.carregando = false;
+      },
+      error: () => {
+        this.carregando = false;
+        this.showError('Erro ao carregar dados do perfil.');
       }
-    }
-
-    // Ou buscar de um serviço de autenticação
-    // this.authService.getUsuario().subscribe(user => {
-    //   this.user = user;
-    //   this.userOriginal = { ...user };
-    // });
-  }
-
-  /**
-   * Salva os dados do usuário no localStorage
-   */
-  private salvarDadosUsuario(): void {
-    localStorage.setItem('usuario', JSON.stringify(this.user));
+    });
   }
 
   /**
@@ -172,39 +162,41 @@ export class Perfil implements OnInit {
    * Valida e salva as alterações do perfil
    */
   salvar(): void {
-    // Validação básica dos campos obrigatórios (já é feita pelo Angular)
-    // Não precisa mais de alert, pois os spans de erro já aparecem
-
-    // Se houver campos de senha preenchidos, validar alteração de senha
     if (this.senhaAtual || this.novaSenha || this.confirmarSenha) {
       if (!this.validarAlteracaoSenha()) {
         return;
       }
-      
-      // Aqui você implementaria a chamada ao backend para alterar a senha
-      // this.authService.alterarSenha(this.senhaAtual, this.novaSenha).subscribe(...)
-      
-      this.showSuccess('Senha alterada com sucesso!');
-      this.limparCamposSenha();
+
+      this.usuarioService.alterarSenha(this.senhaAtual, this.novaSenha).subscribe({
+        next: () => {
+          this.showSuccess('Senha alterada com sucesso!');
+          this.limparCamposSenha();
+        },
+        error: (err) => {
+          this.showError(err.error?.message || 'Erro ao alterar senha.');
+        }
+      });
     }
-    
-    // Salvar dados do perfil se houver alterações
+
     if (this.user.nome !== this.userOriginal.nome ||
         this.user.email !== this.userOriginal.email ||
         this.user.telefone !== this.userOriginal.telefone) {
-      
-      this.salvarDadosUsuario();
-      
-      // Atualizar cópia original após salvar
-      this.userOriginal = { ...this.user };
-      
-      // Aqui você implementaria a chamada ao backend para atualizar o perfil
-      // this.userService.atualizarPerfil(this.user).subscribe(...)
-      
-      this.showSuccess('Dados do perfil atualizados com sucesso!');
-    }
 
-    console.log('Perfil salvo:', this.user);
+      this.usuarioService.atualizarPerfil({
+        nome: this.user.nome,
+        email: this.user.email,
+        telefone: this.user.telefone
+      }).subscribe({
+        next: (updated) => {
+          this.user = updated;
+          this.userOriginal = { ...updated };
+          this.showSuccess('Dados do perfil atualizados com sucesso!');
+        },
+        error: (err) => {
+          this.showError(err.error?.message || 'Erro ao atualizar perfil.');
+        }
+      });
+    }
   }
 
   /**

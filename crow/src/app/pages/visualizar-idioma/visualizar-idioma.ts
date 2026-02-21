@@ -1,10 +1,13 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Modulo } from '../../models/modulo.model';
 import { IdiomaUsuario } from '../../models/idioma.model';
+import { IdiomaService } from '../../services/idioma.service';
+import { ModuloService } from '../../services/modulo.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-visualizar-idioma',
@@ -13,12 +16,13 @@ import { IdiomaUsuario } from '../../models/idioma.model';
   templateUrl: './visualizar-idioma.html',
   styleUrl: './visualizar-idioma.css',
 })
-export class VisualizarIdioma {
-  idiomaNome = 'Japonês';
-  descricao = 'Aprender japonês básico para viagens e conversação do dia a dia';
-  idIdioma = '987654321'; // ID do idioma
-  idUsuarioCriador = '123456789'; // ID do usuário criador
+export class VisualizarIdioma implements OnInit {
+  idiomaNome = '';
+  descricao = '';
+  idIdioma = '';
+  idUsuarioCriador = '';
   isProprietario = false;
+  carregando = true;
   avaliacao = 4.3;
   totalAvaliacoes = 2134;
   
@@ -89,17 +93,59 @@ export class VisualizarIdioma {
   constructor(
     private sanitizer: DomSanitizer,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    private idiomaService: IdiomaService,
+    private moduloService: ModuloService,
+    private authService: AuthService
   ) {
     this.carregarIcones();
-    
-    this.addModule('Saudações');
-    this.addModule('Vocabulário Básico');
-    this.addModule('Frases Comuns');
-    this.addModule('Números e Contagem');
-    this.addModule('Dias da Semana');
-    
-    this.carregarIdiomasUsuario();
+  }
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.queryParamMap.get('id');
+    if (id) {
+      this.idIdioma = id;
+      this.carregarDadosIdioma(id);
+    }
+  }
+
+  carregarDadosIdioma(id: string): void {
+    this.carregando = true;
+    this.idiomaService.getIdiomaPorId(id).subscribe({
+      next: (idioma) => {
+        this.idiomaNome = idioma.nome;
+        this.descricao = idioma.descricao;
+        this.idUsuarioCriador = idioma.criadorId;
+        this.avaliacao = idioma.avaliacao;
+        this.totalAvaliacoes = idioma.totalAvaliacoes;
+        const user = this.authService.getCurrentUser();
+        this.isProprietario = user?.id === idioma.criadorId;
+        this.carregarModulos(id);
+      },
+      error: () => {
+        this.carregando = false;
+      }
+    });
+  }
+
+  carregarModulos(idiomaId: string): void {
+    this.moduloService.getModulosPorIdioma(idiomaId).subscribe({
+      next: (modulos) => {
+        this.modulos = modulos.map((m: any) => ({
+          id: m.id,
+          nome: m.nome,
+          icone: this.makeIconSvg(this.rawIcons[(m.id - 1) % this.rawIcons.length]),
+          selecionado: false,
+          frases: m.frases || 0
+        }));
+        this.nextId = this.modulos.length + 1;
+        this.carregando = false;
+      },
+      error: () => {
+        this.carregando = false;
+      }
+    });
   }
 
   carregarIcones(): void {
@@ -241,18 +287,26 @@ export class VisualizarIdioma {
 
   enviarDenuncia(): void {
     if (!this.podeEnviarDenuncia) return;
-    
-    console.log('Denúncia enviada:', {
-      imagens: this.denunciaImagensInapropriadas,
-      videos: this.denunciaVideosInapropriados,
-      links: this.denunciaLinksInapropriados,
-      frases: this.denunciaFrasesInapropriadas,
-      outros: this.denunciaOutros,
+
+    const tipos: string[] = [];
+    if (this.denunciaImagensInapropriadas) tipos.push('Imagens Inapropriadas');
+    if (this.denunciaVideosInapropriados) tipos.push('Vídeos Inapropriados');
+    if (this.denunciaLinksInapropriados) tipos.push('Links Inapropriados');
+    if (this.denunciaFrasesInapropriadas) tipos.push('Frases Inapropriadas');
+    if (this.denunciaOutros) tipos.push('Outros');
+
+    this.idiomaService.denunciarIdioma(this.idIdioma, {
+      tipos,
       descricao: this.denunciaDescricao
+    }).subscribe({
+      next: () => {
+        this.fecharModalDenuncia();
+        this.exibirMensagemSucesso('Obrigado por sua colaboração! A moderação verificará e agirá assim que possível.');
+      },
+      error: () => {
+        this.fecharModalDenuncia();
+      }
     });
-    
-    this.fecharModalDenuncia();
-    this.exibirMensagemSucesso('Obrigado por sua colaboração! A moderação verificará e agirá assim que possível.');
   }
 
   // ===== MODAL DE AVALIAÇÃO =====
@@ -283,23 +337,18 @@ export class VisualizarIdioma {
 
   enviarAvaliacao(): void {
     if (this.notaAvaliacao === 0) return;
-    
-    const somaTotal = (this.avaliacao * this.totalAvaliacoes) + this.notaAvaliacao;
-    const novoTotal = this.totalAvaliacoes + 1;
-    let novaMedia = somaTotal / novoTotal;
-    
-    if (novaMedia >= 4.5) {
-      novaMedia = 5;
-    }
-    
-    this.avaliacao = novaMedia;
-    this.totalAvaliacoes = novoTotal;
-    
-    console.log('Avaliação enviada:', this.notaAvaliacao);
-    console.log('Nova média:', this.avaliacao);
-    
-    this.fecharModalAvaliacao();
-    this.exibirMensagemSucesso('Avaliação enviada com sucesso! Obrigado pelo seu feedback.');
+
+    this.idiomaService.avaliarIdioma(this.idIdioma, this.notaAvaliacao).subscribe({
+      next: (resultado) => {
+        this.avaliacao = resultado.novaMedia;
+        this.totalAvaliacoes = resultado.totalAvaliacoes;
+        this.fecharModalAvaliacao();
+        this.exibirMensagemSucesso('Avaliação enviada com sucesso! Obrigado pelo seu feedback.');
+      },
+      error: () => {
+        this.fecharModalAvaliacao();
+      }
+    });
   }
 
   // ===== MODAL DE IMPORTAÇÃO =====
@@ -323,12 +372,16 @@ export class VisualizarIdioma {
   }
 
   carregarIdiomasUsuario(): void {
-    this.idiomasUsuario = [
-      { nome: 'Inglês', bandeira: '../../../assets/imgs/United-States-Flag.svg', selecionado: false },
-      { nome: 'Espanhol', bandeira: '../../../assets/imgs/Spain-Flag.svg', selecionado: false },
-      { nome: 'Francês', bandeira: '../../../assets/imgs/France-Flag.png', selecionado: false },
-      { nome: 'Alemão', bandeira: '../../../assets/imgs/Germany-Flag.svg.png', selecionado: false }
-    ];
+    this.idiomaService.getIdiomasUsuario().subscribe({
+      next: (idiomas) => {
+        this.idiomasUsuario = idiomas.map((i: any) => ({
+          nome: i.nome,
+          bandeira: i.bandeira,
+          selecionado: false
+        }));
+      },
+      error: () => {}
+    });
   }
 
   limparSelecaoIdiomas(): void {
@@ -348,9 +401,16 @@ export class VisualizarIdioma {
   }
 
   confirmarImportacao(): void {
-    console.log('Importando idioma:', this.idiomaNome);
-    this.fecharModalImportacao();
-    this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
+    this.idiomaService.importarIdioma(this.idIdioma).subscribe({
+      next: () => {
+        this.fecharModalImportacao();
+        this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
+      },
+      error: (err) => {
+        this.fecharModalImportacao();
+        this.exibirMensagemSucesso(err.error?.message || 'Erro ao importar idioma.');
+      }
+    });
   }
 
   excluirEImportar(): void {

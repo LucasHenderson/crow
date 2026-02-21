@@ -1,6 +1,8 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-topbar',
@@ -9,30 +11,25 @@ import { RouterLink } from '@angular/router';
   templateUrl: './topbar.html',
   styleUrls: ['./topbar.css']
 })
-export class Topbar implements OnInit {
+export class Topbar implements OnInit, OnDestroy {
 
   menuAberto = false;
-  nomeUsuario = 'Lucas';
+  nomeUsuario = '';
+  private sub?: Subscription;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    // Aqui você pode buscar o nome do usuário do localStorage ou de um serviço
-    this.carregarNomeUsuario();
+    this.sub = this.authService.currentUser$.subscribe(user => {
+      this.nomeUsuario = user?.nome?.split(' ')[0] || '';
+    });
   }
 
-  /**
-   * Carrega o nome do usuário do localStorage ou serviço de autenticação
-   */
-  private carregarNomeUsuario(): void {
-    // Exemplo: buscar do localStorage
-    const usuario = localStorage.getItem('nomeUsuario');
-    if (usuario) {
-      this.nomeUsuario = usuario;
-    }
-    
-    // Ou buscar de um serviço de autenticação
-    // this.authService.getUsuarioAtual().subscribe(user => {
-    //   this.nomeUsuario = user.nome;
-    // });
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 
   /**
@@ -79,22 +76,10 @@ export class Topbar implements OnInit {
     this.fecharMenu();
   }
 
-  /**
-   * Realiza o logout do usuário
-   */
   logout(): void {
-    console.log('Realizando logout...');
-    
-    // Limpar dados do localStorage
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('nomeUsuario');
-    
-    // Ou chamar serviço de autenticação
-    // this.authService.logout();
-    
+    this.authService.logout();
     this.fecharMenu();
-    
-    // A navegação para /login já é feita pelo routerLink no template
+    this.router.navigate(['/login']);
   }
 
   /**
