@@ -1,8 +1,9 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models';
+import { IdiomaService } from '../../services/idioma.service';
 
 @Component({
   selector: 'app-home',
@@ -11,25 +12,11 @@ import { Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../m
   templateUrl: './home.html',
   styleUrls: ['./home.css']
 })
-export class Home {
+export class Home implements OnInit {
 
-  // Lista COM idioma para testes
-  idiomas: Idioma[] = [
-    {
-      id: 'IDM-2024-001',
-      nome: 'Inglês',
-      bandeira: '../../../assets/imgs/United-States-Flag.svg',
-      nota: 4,
-      modulos: 18,
-      descricao: 'Idioma global, utilizado em negócios, tecnologia e viagens ao redor do mundo.',
-      proficiencia: 'Avançado',
-      visibilidade: 'publico'
-    }
-  ];
+  idiomas: Idioma[] = [];
+  carregando = true;
 
-  // Lista SEM idiomas (descomente para testar tela vazia)
-  // idiomas: Idioma[] = [];
-  
   // Controle dos modals
   mostrarModalEdicao = false;
   mostrarModalExclusao = false;
@@ -64,7 +51,28 @@ export class Home {
 
   proficiencias = PROFICIENCIAS;
 
-  constructor(private cdr: ChangeDetectorRef, private router: Router) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private router: Router,
+    private idiomaService: IdiomaService
+  ) {}
+
+  ngOnInit(): void {
+    this.carregarIdiomas();
+  }
+
+  carregarIdiomas(): void {
+    this.carregando = true;
+    this.idiomaService.getIdiomasUsuario().subscribe({
+      next: (idiomas) => {
+        this.idiomas = idiomas;
+        this.carregando = false;
+      },
+      error: () => {
+        this.carregando = false;
+      }
+    });
+  }
 
   /**
    * Abre o modal de opções para adicionar idioma

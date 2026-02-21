@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +14,8 @@ import { Router } from '@angular/router';
 export class Login {
 
   loginForm: FormGroup;
+  erroLogin = '';
+  carregando = false;
 
   camposVisiveis = {
     senha: false
@@ -20,7 +23,8 @@ export class Login {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -33,57 +37,35 @@ export class Login {
   }
 
   entrar(): void {
-    // Marca todos os campos como tocados para exibir erros
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
-      console.warn('Formulário inválido. Verifique os campos.');
       return;
     }
 
-    // Dados do formulário
     const { email, senha } = this.loginForm.value;
-    
-    console.log('Tentativa de login:', { email, senha: '***' });
+    this.carregando = true;
+    this.erroLogin = '';
 
-    // Simulação de login bem-sucedido
-    // Aqui você implementaria a chamada ao seu serviço de autenticação
-    this.realizarLogin(email, senha);
+    this.authService.login(email, senha).subscribe({
+      next: () => {
+        this.carregando = false;
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        this.carregando = false;
+        this.erroLogin = err.error?.message || 'Email ou senha incorretos.';
+      }
+    });
   }
 
-  private realizarLogin(email: string, senha: string): void {
-    // Simulação de autenticação
-    // Em produção, substituir por chamada real ao backend
-    
-    // Exemplo de validação simples (remover em produção)
-    if (email && senha.length >= 6) {
-      console.log('Login realizado com sucesso!');
-      
-      // Armazena o token (exemplo)
-      // localStorage.setItem('authToken', 'seu-token-aqui');
-      
-      // Navega para a página home
-      // this.router.navigate(['/home']);
-      
-      alert('Login realizado com sucesso!');
-    } else {
-      console.error('Credenciais inválidas');
-      alert('Email ou senha incorretos');
-    }
-  }
-
-  // ✅ NOVO: Navega para recuperação de senha
   esqueceuSenha(): void {
-    console.log('Navegando para recuperação de senha');
     this.router.navigate(['/recuperar-senha']);
   }
 
-  // ✅ NOVO: Navega para cadastro de novo usuário
   cadastrarUsuario(): void {
-    console.log('Navegando para cadastro de usuário');
     this.router.navigate(['/cadastrar-usuario']);
   }
 
-  // Getters para facilitar acesso aos controles no template
   get email() {
     return this.loginForm.get('email');
   }
@@ -92,8 +74,7 @@ export class Login {
     return this.loginForm.get('senha');
   }
 
-  // Verifica se o formulário pode ser enviado
   get podeEnviar(): boolean {
-    return this.loginForm.valid;
+    return this.loginForm.valid && !this.carregando;
   }
 }

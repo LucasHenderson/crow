@@ -6,6 +6,8 @@ import { Denuncia } from '../../models/denuncia.model';
 import { Usuario } from '../../models/usuario.model';
 import { IdiomaAdm as Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
 import { Log } from '../../models/log.model';
+import { AdminService } from '../../services/admin.service';
+import { AuthService } from '../../services/auth.service';
 
 type AbaAtiva = 'denuncias' | 'usuarios' | 'idiomas' | 'logs';
 
@@ -17,16 +19,17 @@ type AbaAtiva = 'denuncias' | 'usuarios' | 'idiomas' | 'logs';
   styleUrl: './controle-adm.css',
 })
 export class ControleAdm implements OnInit {
-  
+
   // Controle de abas
   abaAtiva: AbaAtiva = 'denuncias';
-  
+  carregando = true;
+
   // Dados
   denuncias: Denuncia[] = [];
   usuarios: Usuario[] = [];
   idiomas: Idioma[] = [];
   logs: Log[] = [];
-  
+
   // Filtros
   filtroDenunciaStatus: string[] = [];
   filtroUsuarioStatus = 'todos';
@@ -109,8 +112,16 @@ export class ControleAdm implements OnInit {
 
   constructor(
     private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private adminService: AdminService,
+    private authService: AuthService
+  ) {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      this.adminLogadoId = user.id;
+      this.adminLogadoNome = user.nome;
+    }
+  }
 
   ngOnInit(): void {
     this.carregarDenuncias();
@@ -128,201 +139,36 @@ export class ControleAdm implements OnInit {
   // ===== CARREGAMENTO DE DADOS =====
   
   carregarDenuncias(): void {
-    this.denuncias = [
-      {
-        id: 1,
-        idiomaId: 'IDM001',
-        idiomaNome: 'Japonês',
-        usuarioId: 'USR123',
-        usuarioNome: 'João Silva',
-        data: '2024-01-20T14:30:00',
-        tipos: ['Imagens Inapropriadas', 'Frases Inapropriadas'],
-        descricao: 'Conteúdo ofensivo nos módulos 2 e 3',
-        status: 'pendente'
-      },
-      {
-        id: 2,
-        idiomaId: 'IDM002',
-        idiomaNome: 'Espanhol',
-        usuarioId: 'USR456',
-        usuarioNome: 'Maria Santos',
-        data: '2024-01-19T10:15:00',
-        tipos: ['Links Inapropriados'],
-        status: 'analisando',
-        responsavelId: 'ADM-001',
-        responsavelNome: 'Administrador Principal'
-      },
-      {
-        id: 3,
-        idiomaId: 'IDM003',
-        idiomaNome: 'Francês',
-        usuarioId: 'USR789',
-        usuarioNome: 'Pedro Costa',
-        data: '2024-01-18T16:45:00',
-        tipos: ['Vídeos Inapropriados'],
-        descricao: 'Vídeos com conteúdo não relacionado ao idioma',
-        status: 'resolvida',
-        responsavelId: 'ADM-002',
-        responsavelNome: 'João Moderador'
-      },
-      {
-        id: 4,
-        idiomaId: 'IDM004',
-        idiomaNome: 'Alemão',
-        usuarioId: 'USR321',
-        usuarioNome: 'Ana Oliveira',
-        data: '2024-01-17T09:20:00',
-        tipos: ['Outros'],
-        descricao: 'Conteúdo político não relacionado ao ensino do idioma',
-        status: 'rejeitada',
-        responsavelId: 'ADM-001',
-        responsavelNome: 'Administrador Principal'
-      }
-    ];
+    this.adminService.getDenuncias().subscribe({
+      next: (denuncias) => this.denuncias = denuncias,
+      error: () => {}
+    });
   }
 
   carregarUsuarios(): void {
-    this.usuarios = [
-      {
-        id: 'USR-2024-001',
-        nome: 'Lucas Henderson',
-        email: 'lucas@gmail.com',
-        telefone: '(63) 99999-9999',
-        dataEntrada: '2023-01-15',
-        status: 'ativo',
-        role: 'admin'
-      },
-      {
-        id: 'USR-2024-002',
-        nome: 'Ana Paula Oliveira',
-        email: 'ana.oliveira@gmail.com',
-        telefone: '(11) 98765-4321',
-        dataEntrada: '2023-03-22',
-        status: 'ativo',
-        role: 'comum'
-      },
-      {
-        id: 'USR-2024-003',
-        nome: 'Carlos Eduardo Santos',
-        email: 'carlos.santos@hotmail.com',
-        telefone: '(21) 97654-3210',
-        dataEntrada: '2023-06-10',
-        status: 'inativo',
-        role: 'comum'
-      },
-      {
-        id: 'USR-2024-004',
-        nome: 'Mariana Costa',
-        email: 'mariana@gmail.com',
-        telefone: '(85) 98888-7777',
-        dataEntrada: '2023-08-05',
-        status: 'ativo',
-        role: 'comum'
-      },
-      {
-        id: 'USR-2024-005',
-        nome: 'Roberto Alves',
-        email: 'roberto@hotmail.com',
-        telefone: '(41) 97777-6666',
-        dataEntrada: '2023-09-12',
-        status: 'ativo',
-        role: 'admin'
-      }
-    ];
+    this.adminService.getUsuariosAdmin().subscribe({
+      next: (usuarios) => this.usuarios = usuarios,
+      error: () => {}
+    });
   }
 
   carregarIdiomas(): void {
-    this.idiomas = [
-      {
-        id: 'IDM001',
-        nome: 'Japonês',
-        bandeira: '../../../assets/imgs/Japan-Flag.png',
-        descricao: 'Aprenda japonês básico para viagens',
-        criadorId: 'USR-2024-001',
-        criadorNome: 'Lucas Henderson',
-        modulos: 15,
-        avaliacao: 4.5,
-        totalAvaliacoes: 234,
-        proficiencia: 'Avançado',
-        visibilidade: 'publico'
+    this.adminService.getIdiomasAdmin().subscribe({
+      next: (idiomas) => {
+        this.idiomas = idiomas;
+        this.carregando = false;
       },
-      {
-        id: 'IDM002',
-        nome: 'Espanhol',
-        bandeira: '../../../assets/imgs/Spain-Flag.svg',
-        descricao: 'Espanhol para conversação do dia a dia',
-        criadorId: 'USR-2024-002',
-        criadorNome: 'Ana Paula Oliveira',
-        modulos: 18,
-        avaliacao: 4.8,
-        totalAvaliacoes: 512,
-        proficiencia: 'Intermediário',
-        visibilidade: 'publico'
-      },
-      {
-        id: 'IDM003',
-        nome: 'Francês',
-        bandeira: '../../../assets/imgs/France-Flag.png',
-        descricao: 'Francês básico e intermediário',
-        criadorId: 'USR-2024-003',
-        criadorNome: 'Carlos Eduardo Santos',
-        modulos: 12,
-        avaliacao: 4.2,
-        totalAvaliacoes: 178,
-        proficiencia: 'Básico',
-        visibilidade: 'privado'
+      error: () => {
+        this.carregando = false;
       }
-    ];
+    });
   }
 
   carregarLogs(): void {
-    this.logs = [
-      {
-        id: 'LOG-001',
-        data: '2024-01-20T15:30:00',
-        adminId: 'ADM-001',
-        adminNome: 'Administrador Principal',
-        acao: 'Alterou status de denúncia',
-        detalhes: 'Denúncia #1 - Status alterado de "Pendente" para "Analisando"',
-        tipo: 'denuncia'
-      },
-      {
-        id: 'LOG-002',
-        data: '2024-01-20T14:15:00',
-        adminId: 'ADM-002',
-        adminNome: 'João Moderador',
-        acao: 'Desativou usuário',
-        detalhes: 'Usuário "Carlos Eduardo Santos" (USR-2024-003) foi desativado',
-        tipo: 'usuario'
-      },
-      {
-        id: 'LOG-003',
-        data: '2024-01-20T11:45:00',
-        adminId: 'ADM-001',
-        adminNome: 'Administrador Principal',
-        acao: 'Editou idioma',
-        detalhes: 'Idioma "Japonês" (IDM001) - Descrição atualizada',
-        tipo: 'idioma'
-      },
-      {
-        id: 'LOG-004',
-        data: '2024-01-19T16:20:00',
-        adminId: 'ADM-001',
-        adminNome: 'Administrador Principal',
-        acao: 'Resolveu denúncia',
-        detalhes: 'Denúncia #3 - Status alterado para "Resolvida"',
-        tipo: 'denuncia'
-      },
-      {
-        id: 'LOG-005',
-        data: '2024-01-19T10:30:00',
-        adminId: 'ADM-002',
-        adminNome: 'João Moderador',
-        acao: 'Ativou usuário',
-        detalhes: 'Usuário "Mariana Costa" (USR-2024-004) foi reativado',
-        tipo: 'usuario'
-      }
-    ];
+    this.adminService.getLogs().subscribe({
+      next: (logs) => this.logs = logs,
+      error: () => {}
+    });
   }
 
   // ===== DENÚNCIAS =====
@@ -404,33 +250,19 @@ export class ControleAdm implements OnInit {
 
   alterarStatusDenuncia(status: Denuncia['status']): void {
     if (!this.denunciaSelecionada) return;
-    
-    const statusAnterior = this.denunciaSelecionada.status;
-    this.denunciaSelecionada.status = status;
-    
-    // Se o status não for "pendente", atribuir o responsável
-    if (status !== 'pendente') {
-      this.denunciaSelecionada.responsavelId = this.adminLogadoId;
-      this.denunciaSelecionada.responsavelNome = this.adminLogadoNome;
-    } else {
-      // Se voltar para pendente, remover o responsável
-      this.denunciaSelecionada.responsavelId = undefined;
-      this.denunciaSelecionada.responsavelNome = undefined;
-    }
-    
-    // Registrar log
-    const detalhesLog = status !== 'pendente' 
-      ? `Denúncia #${this.denunciaSelecionada.id} - Status alterado de "${this.getStatusTexto(statusAnterior)}" para "${this.getStatusTexto(status)}" - Responsável: ${this.adminLogadoNome} (${this.adminLogadoId})`
-      : `Denúncia #${this.denunciaSelecionada.id} - Status alterado de "${this.getStatusTexto(statusAnterior)}" para "${this.getStatusTexto(status)}"`;
-    
-    this.registrarLog(
-      'denuncia',
-      'Alterou status de denúncia',
-      detalhesLog
-    );
-    
-    this.fecharModalDenuncia();
-    this.exibirMensagemSucesso('Status da denúncia atualizado com sucesso!');
+
+    this.adminService.alterarStatusDenuncia(this.denunciaSelecionada.id, status).subscribe({
+      next: (denunciaAtualizada) => {
+        const index = this.denuncias.findIndex(d => d.id === denunciaAtualizada.id);
+        if (index >= 0) this.denuncias[index] = denunciaAtualizada;
+        this.fecharModalDenuncia();
+        this.exibirMensagemSucesso('Status da denúncia atualizado com sucesso!');
+        this.carregarLogs();
+      },
+      error: () => {
+        this.exibirMensagemSucesso('Erro ao alterar status da denúncia.');
+      }
+    });
   }
 
   visualizarIdiomaDenuncia(): void {
@@ -578,36 +410,29 @@ export class ControleAdm implements OnInit {
 
   confirmarEdicaoUsuario(): void {
     if (!this.podeConfirmarEdicaoUsuario || !this.usuarioEmEdicao) return;
-    
-    const usuario = this.usuarios.find(u => u.id === this.usuarioEmEdicao!.id);
-    if (usuario) {
-      const nomeAnterior = usuario.nome;
-      const emailAnterior = usuario.email;
-      const telefoneAnterior = usuario.telefone;
-      const roleAnterior = usuario.role;
-      
-      usuario.nome = this.nomeUsuarioEdicao.trim();
-      usuario.email = this.emailUsuarioEdicao.trim();
-      usuario.telefone = this.telefoneUsuarioEdicao.trim();
-      usuario.role = this.roleUsuarioEdicao;
-      
-      // Registrar log
-      const alteracoes: string[] = [];
-      if (nomeAnterior !== usuario.nome) alteracoes.push(`Nome: "${nomeAnterior}" → "${usuario.nome}"`);
-      if (emailAnterior !== usuario.email) alteracoes.push(`Email: "${emailAnterior}" → "${usuario.email}"`);
-      if (telefoneAnterior !== usuario.telefone) alteracoes.push(`Telefone: "${telefoneAnterior}" → "${usuario.telefone}"`);
-      if (roleAnterior !== usuario.role) alteracoes.push(`Tipo: "${roleAnterior === 'admin' ? 'Administrador' : 'Usuário Comum'}" → "${usuario.role === 'admin' ? 'Administrador' : 'Usuário Comum'}"`);
-      if (this.novaSenhaUsuario) alteracoes.push('Senha atualizada');
-      
-      this.registrarLog(
-        'usuario',
-        'Editou usuário',
-        `Usuário "${usuario.nome}" (${usuario.id}) - ${alteracoes.join(', ')}`
-      );
+
+    const dados: any = {
+      nome: this.nomeUsuarioEdicao.trim(),
+      email: this.emailUsuarioEdicao.trim(),
+      telefone: this.telefoneUsuarioEdicao.trim(),
+      role: this.roleUsuarioEdicao
+    };
+    if (this.novaSenhaUsuario) {
+      dados.novaSenha = this.novaSenhaUsuario;
     }
-    
-    this.fecharModalEditarUsuario();
-    this.exibirMensagemSucesso(`Usuário "${usuario?.nome}" atualizado com sucesso!`);
+
+    this.adminService.editarUsuarioAdmin(this.usuarioEmEdicao.id, dados).subscribe({
+      next: (updated) => {
+        const index = this.usuarios.findIndex(u => u.id === updated.id);
+        if (index >= 0) this.usuarios[index] = updated;
+        this.fecharModalEditarUsuario();
+        this.exibirMensagemSucesso(`Usuário "${updated.nome}" atualizado com sucesso!`);
+        this.carregarLogs();
+      },
+      error: () => {
+        this.exibirMensagemSucesso('Erro ao editar usuário.');
+      }
+    });
   }
 
   abrirModalDesativarUsuario(usuario: Usuario): void {
@@ -622,23 +447,22 @@ export class ControleAdm implements OnInit {
 
   confirmarAlteracaoStatusUsuario(): void {
     if (!this.usuarioEmDesativacao) return;
-    
-    const usuario = this.usuarios.find(u => u.id === this.usuarioEmDesativacao!.id);
-    if (usuario) {
-      const novoStatus = usuario.status === 'ativo' ? 'inativo' : 'ativo';
-      usuario.status = novoStatus;
-      
-      // Registrar log
-      this.registrarLog(
-        'usuario',
-        novoStatus === 'ativo' ? 'Ativou usuário' : 'Desativou usuário',
-        `Usuário "${usuario.nome}" (${usuario.id}) foi ${novoStatus === 'ativo' ? 'ativado' : 'desativado'}`
-      );
-      
-      const acao = novoStatus === 'ativo' ? 'ativada' : 'desativada';
-      this.fecharModalDesativarUsuario();
-      this.exibirMensagemSucesso(`Conta de "${usuario.nome}" ${acao} com sucesso!`);
-    }
+
+    const novoStatus = this.usuarioEmDesativacao.status === 'ativo' ? 'inativo' : 'ativo';
+
+    this.adminService.alterarStatusUsuario(this.usuarioEmDesativacao.id, novoStatus).subscribe({
+      next: (updated) => {
+        const index = this.usuarios.findIndex(u => u.id === updated.id);
+        if (index >= 0) this.usuarios[index] = updated;
+        const acao = novoStatus === 'ativo' ? 'ativada' : 'desativada';
+        this.fecharModalDesativarUsuario();
+        this.exibirMensagemSucesso(`Conta de "${updated.nome}" ${acao} com sucesso!`);
+        this.carregarLogs();
+      },
+      error: () => {
+        this.exibirMensagemSucesso('Erro ao alterar status do usuário.');
+      }
+    });
   }
 
   togglePassword(field: 'novaSenha' | 'confirmarSenha'): void {
@@ -885,21 +709,20 @@ export class ControleAdm implements OnInit {
 
   confirmarExclusaoIdioma(): void {
     if (!this.idiomaEmExclusao) return;
-    
+
     const nomeIdioma = this.idiomaEmExclusao.nome;
-    const idIdioma = this.idiomaEmExclusao.id;
-    
-    this.idiomas = this.idiomas.filter(i => i.id !== this.idiomaEmExclusao!.id);
-    
-    // Registrar log
-    this.registrarLog(
-      'idioma',
-      'Excluiu idioma',
-      `Idioma "${nomeIdioma}" (${idIdioma}) foi excluído permanentemente`
-    );
-    
-    this.fecharModalExcluirIdioma();
-    this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído com sucesso!`);
+
+    this.adminService.excluirIdiomaAdmin(this.idiomaEmExclusao.id).subscribe({
+      next: () => {
+        this.idiomas = this.idiomas.filter(i => i.id !== this.idiomaEmExclusao!.id);
+        this.fecharModalExcluirIdioma();
+        this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído com sucesso!`);
+        this.carregarLogs();
+      },
+      error: () => {
+        this.exibirMensagemSucesso('Erro ao excluir idioma.');
+      }
+    });
   }
 
   visualizarIdioma(idioma: Idioma): void {

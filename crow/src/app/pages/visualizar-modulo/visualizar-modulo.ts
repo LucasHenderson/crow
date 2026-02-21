@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { Frase, PalavraTrad, Par } from '../../models/frase.model';
+import { FraseService } from '../../services/frase.service';
 
 @Component({
   selector: 'app-visualizar-modulo',
@@ -67,11 +68,14 @@ export class VisualizarModulo implements OnInit {
   indiceExclusao = -1;
   numeroFraseExclusao = 0;
 
+  carregando = true;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private fraseService: FraseService
   ) {}
 
   ngOnInit(): void {
@@ -96,47 +100,33 @@ export class VisualizarModulo implements OnInit {
   }
 
   carregarFrases(): void {
-    this.frases = [
-      {
-        id: 1,
-        modo: 'traducao',
-        modoNome: 'Tradução Direta',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>'),
-        traducaoCompleta: 'Bom dia! Como você está?',
-        palavras: [
-          { palavra: 'Bom dia', traducao: 'Good morning' },
-          { palavra: 'Como você está?', traducao: 'How are you?' }
-        ],
-        imagem: '../../../assets/imgs/United-States-Flag.svg',
-        observacoes: 'Expressão formal comum em contextos profissionais.',
-        links: ['https://www.exemplo.com/artigo1', 'https://www.exemplo.com/artigo2']
-      },
-      {
-        id: 2,
-        modo: 'pares',
-        modoNome: 'Selecionar Pares',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'),
-        pares: [
-          { palavra: 'Gato', traducao: 'Cat', imagem: '../../../assets/imgs/logo.png' },
-          { palavra: 'Cachorro', traducao: 'Dog', imagem: '../../../assets/imgs/United-States-Flag.svg' },
-          { palavra: 'Pássaro', traducao: 'Bird' }
-        ]
-      },
-      {
-        id: 3,
-        modo: 'quiz',
-        modoNome: 'Quiz',
-        modoIcone: this.sanitizer.bypassSecurityTrustHtml('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'),
-        imagemQuiz: '../../../assets/imgs/Brazil-Flag.svg',
-        pergunta: 'Qual é a tradução correta de "Hello" em português?',
-        alternativas: ['Olá', 'Tchau', 'Bom dia', 'Boa noite'],
-        respostaCorreta: 0
-      }
-    ];
+    if (!this.moduloId) return;
+    this.carregando = true;
 
-    this.totalFrases = this.frases.length;
-    this.calcularPaginacao();
-    this.atualizarFrasesPaginadas();
+    this.fraseService.getFrasesPorModulo(this.moduloId).subscribe({
+      next: (frases) => {
+        this.frases = frases.map(f => this.enriquecerFrase(f));
+        this.totalFrases = this.frases.length;
+        this.calcularPaginacao();
+        this.atualizarFrasesPaginadas();
+        this.carregando = false;
+      },
+      error: () => {
+        this.carregando = false;
+      }
+    });
+  }
+
+  private enriquecerFrase(f: Frase): Frase {
+    const modoNomes: Record<string, string> = {
+      'traducao': 'Tradução Direta',
+      'pares': 'Selecionar Pares',
+      'quiz': 'Quiz'
+    };
+    return {
+      ...f,
+      modoNome: modoNomes[f.modo] || f.modo
+    };
   }
 
   calcularPaginacao(): void {
@@ -498,22 +488,25 @@ export class VisualizarModulo implements OnInit {
   }
 
   confirmarExclusao(): void {
-    if (this.indiceExclusao >= 0 && this.fraseEmExclusao) {
+    if (this.indiceExclusao >= 0 && this.fraseEmExclusao && this.fraseEmExclusao.id) {
       const modoNome = this.fraseEmExclusao.modoNome;
-      this.frases.splice(this.indiceExclusao, 1);
-      this.totalFrases = this.frases.length;
-      
-      this.calcularPaginacao();
-      
-      if (this.frasesPaginadas.length === 1 && this.paginaAtual > 1) {
-        this.paginaAtual--;
-      }
-      
-      this.atualizarFrasesPaginadas();
-      
-      console.log(`Frase excluída com sucesso`);
-      this.fecharModalExclusao();
-      this.exibirMensagemSucesso(`Frase "${modoNome}" excluída com sucesso!`);
+
+      this.fraseService.excluirFrase(this.moduloId, this.fraseEmExclusao.id).subscribe({
+        next: () => {
+          this.frases.splice(this.indiceExclusao, 1);
+          this.totalFrases = this.frases.length;
+          this.calcularPaginacao();
+          if (this.frasesPaginadas.length === 1 && this.paginaAtual > 1) {
+            this.paginaAtual--;
+          }
+          this.atualizarFrasesPaginadas();
+          this.fecharModalExclusao();
+          this.exibirMensagemSucesso(`Frase "${modoNome}" excluída com sucesso!`);
+        },
+        error: () => {
+          this.fecharModalExclusao();
+        }
+      });
     }
   }
 

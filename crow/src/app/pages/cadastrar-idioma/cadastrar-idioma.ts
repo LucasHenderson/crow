@@ -1,11 +1,14 @@
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
+import { IdiomaService } from '../../services/idioma.service';
+import { ModuloService } from '../../services/modulo.service';
+import { FraseService } from '../../services/frase.service';
 
 @Component({
   selector: 'app-cadastrar-idioma',
@@ -67,7 +70,14 @@ export class CadastrarIdioma {
 
   iconesModulo: SafeHtml[] = [];
 
-  constructor(private router: Router, private sanitizer: DomSanitizer, private cdr: ChangeDetectorRef) {
+  constructor(
+    private router: Router,
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef,
+    private idiomaService: IdiomaService,
+    private moduloService: ModuloService,
+    private fraseService: FraseService
+  ) {
     this.carregarIcones();
   }
 
@@ -345,29 +355,39 @@ export class CadastrarIdioma {
   }
 
   finalizar(): void {
-    const cadastro = {
-      etapa1: {
-        idioma: this.idiomaSelecionado,
-        nome: this.nomeIdioma,
-        descricao: this.descricaoIdioma,
-        proficiencia: this.proficiencia,
-        visibilidade: this.visibilidade
-      },
-      etapa2: {
-        icone: this.iconeModuloSelecionado,
-        nomeModulo: this.nomeModulo
-      },
-      etapa3: {
-        modo: this.modoFrase,
-        dados: this.getDadosFrase()
-      }
+    const dadosIdioma = {
+      nome: this.nomeIdioma,
+      idioma: this.idiomaSelecionado?.nome,
+      bandeira: this.idiomaSelecionado?.bandeira,
+      descricao: this.descricaoIdioma,
+      proficiencia: this.proficiencia,
+      visibilidade: this.visibilidade
     };
 
-    console.log('Cadastro completo:', cadastro);
-    localStorage.setItem('idioma-cadastrado', JSON.stringify(cadastro));
-    
-    alert('Idioma cadastrado com sucesso!');
-    this.router.navigate(['/buscar-idioma']);
+    this.idiomaService.criarIdioma(dadosIdioma).subscribe({
+      next: (idiomaCriado: any) => {
+        const dadosModulo = { nome: this.nomeModulo, icone: '' };
+        this.moduloService.criarModulo(idiomaCriado.id, dadosModulo).subscribe({
+          next: (moduloCriado: any) => {
+            const dadosFrase = { modo: this.modoFrase, ...this.getDadosFrase() };
+            this.fraseService.criarFrase(moduloCriado.id, dadosFrase).subscribe({
+              next: () => {
+                this.router.navigate(['/home']);
+              },
+              error: () => {
+                this.router.navigate(['/home']);
+              }
+            });
+          },
+          error: () => {
+            this.router.navigate(['/home']);
+          }
+        });
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Erro ao criar idioma.');
+      }
+    });
   }
 
   getDadosFrase(): any {

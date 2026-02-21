@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { PalavraTrad, Par } from '../../models/frase.model';
+import { FraseService } from '../../services/frase.service';
 
 @Component({
   selector: 'app-cadastrar-frase',
@@ -44,11 +45,17 @@ export class CadastrarFrase {
   alternativas: string[] = ['', ''];
   respostaCorreta: number = 0;
 
+  moduloId = '';
+
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private fraseService: FraseService
+  ) {
+    this.moduloId = this.route.snapshot.queryParamMap.get('moduloId') || '';
+  }
 
   getLetraAlternativa(index: number): string {
     return String.fromCharCode(65 + index);
@@ -238,16 +245,21 @@ export class CadastrarFrase {
   }
 
   finalizar(): void {
-    const frase = {
-      modo: this.modoFrase,
-      dados: this.getDadosFrase()
-    };
+    if (!this.moduloId) {
+      alert('ID do módulo não encontrado.');
+      return;
+    }
 
-    console.log('Frase cadastrada:', frase);
-    localStorage.setItem('frase-cadastrada', JSON.stringify(frase));
-    
-    alert('Frase cadastrada com sucesso!');
-    this.voltar();
+    const dados = { modo: this.modoFrase, ...this.getDadosFrase() };
+
+    this.fraseService.criarFrase(this.moduloId, dados).subscribe({
+      next: () => {
+        this.voltar();
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Erro ao cadastrar frase.');
+      }
+    });
   }
 
   getDadosFrase(): any {

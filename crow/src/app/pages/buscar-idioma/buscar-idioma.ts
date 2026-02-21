@@ -1,8 +1,9 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
+import { IdiomaService } from '../../services/idioma.service';
 
 @Component({
   selector: 'app-buscar-idioma',
@@ -11,145 +12,45 @@ import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
   templateUrl: './buscar-idioma.html',
   styleUrl: './buscar-idioma.css',
 })
-export class BuscarIdioma {
+export class BuscarIdioma implements OnInit {
 
   busca = '';
 
   mostrarOrdenacao = false;
   mostrarProficiencia = false;
-  
+
   criterio: 'avaliacao' | 'data' = 'avaliacao';
   direcao: 'asc' | 'desc' = 'desc';
-  
+
   proficienciaSelecionada: Proficiencia | null = null;
 
   paginaAtual = 1;
   porPagina = 9;
+  carregando = true;
 
-  idiomas: Idioma[] = [
-    {
-      id: '000001',
-      nome: 'Japonês para iniciantes',
-      idioma: 'Japonês',
-      bandeira: '../../../assets/imgs/Japan-Flag.png',
-      modulos: 5,
-      avaliacao: 5,
-      criadoEm: new Date('2024-05-01'),
-      proficiencia: 'iniciante'
-    },
-    {
-      id: '000002',
-      nome: 'Inglês para informática',
-      idioma: 'Inglês',
-      bandeira: '../../../assets/imgs/United-States-Flag.svg',
-      modulos: 18,
-      avaliacao: 4,
-      criadoEm: new Date('2024-04-12'),
-      proficiencia: 'avancado'
-    },
-    {
-      id: '000003',
-      nome: 'Comidas Russas',
-      idioma: 'Russo',
-      bandeira: '../../../assets/imgs/Russia-Flag.svg',
-      modulos: 15,
-      avaliacao: 3,
-      criadoEm: new Date('2024-03-22'),
-      proficiencia: 'intermediario'
-    },
-    {
-      id: '000004',
-      nome: 'Espanhol para turismo',
-      idioma: 'Espanhol',
-      bandeira: '../../../assets/imgs/Spain-Flag.svg',
-      modulos: 8,
-      avaliacao: 4,
-      criadoEm: new Date('2024-06-10'),
-      proficiencia: 'basico'
-    },
-    {
-      id: '000005',
-      nome: 'Francês básico',
-      idioma: 'Francês',
-      bandeira: '../../../assets/imgs/France-Flag.png',
-      modulos: 7,
-      avaliacao: 3,
-      criadoEm: new Date('2024-02-18'),
-      proficiencia: 'basico'
-    },
-    {
-      id: '000006',
-      nome: 'Alemão técnico',
-      idioma: 'Alemão',
-      bandeira: '../../../assets/imgs/Germany-Flag.svg.png',
-      modulos: 14,
-      avaliacao: 4,
-      criadoEm: new Date('2024-07-05'),
-      proficiencia: 'intermediario'
-    },
-    {
-      id: '000007',
-      nome: 'Mandarim para negócios',
-      idioma: 'Mandarim',
-      bandeira: '../../../assets/imgs/China-Flag.svg',
-      modulos: 20,
-      avaliacao: 5,
-      criadoEm: new Date('2024-08-20'),
-      proficiencia: 'fluente'
-    },
-    {
-      id: '000008',
-      nome: 'Italiano culinário',
-      idioma: 'Italiano',
-      bandeira: '../../../assets/imgs/Italy-Flag.svg',
-      modulos: 11,
-      avaliacao: 4,
-      criadoEm: new Date('2024-01-30'),
-      proficiencia: 'intermediario'
-    },
-    {
-      id: '000009',
-      nome: 'Coreano para K-pop',
-      idioma: 'Coreano',
-      bandeira: '../../../assets/imgs/South-Korea-Flag.svg.webp',
-      modulos: 17,
-      avaliacao: 5,
-      criadoEm: new Date('2024-09-12'),
-      proficiencia: 'avancado'
-    },
-    {
-      id: '000010',
-      nome: 'Português europeu',
-      idioma: 'Português',
-      bandeira: '../../../assets/imgs/Portugal-Flag.svg.png',
-      modulos: 13,
-      avaliacao: 3,
-      criadoEm: new Date('2024-04-25'),
-      proficiencia: 'intermediario'
-    },
-    {
-      id: '000011',
-      nome: 'Árabe iniciante',
-      idioma: 'Árabe',
-      bandeira: '../../../assets/imgs/United-Arab-Emirates-Flag.svg.png',
-      modulos: 3,
-      avaliacao: 4,
-      criadoEm: new Date('2024-10-15'),
-      proficiencia: 'iniciante'
-    },
-    {
-      id: '000012',
-      nome: 'Inglês fluente - Business',
-      idioma: 'Inglês',
-      bandeira: '../../../assets/imgs/United-States-Flag.svg',
-      modulos: 20,
-      avaliacao: 5,
-      criadoEm: new Date('2024-11-01'),
-      proficiencia: 'fluente'
-    },
-  ];
+  idiomas: Idioma[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private idiomaService: IdiomaService
+  ) {}
+
+  ngOnInit(): void {
+    this.carregarIdiomas();
+  }
+
+  carregarIdiomas(): void {
+    this.carregando = true;
+    this.idiomaService.buscarIdiomas().subscribe({
+      next: (idiomas) => {
+        this.idiomas = idiomas;
+        this.carregando = false;
+      },
+      error: () => {
+        this.carregando = false;
+      }
+    });
+  }
 
   /**
    * Fecha os menus ao clicar fora
