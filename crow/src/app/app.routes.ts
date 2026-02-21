@@ -1,11 +1,13 @@
 import { Routes } from '@angular/router';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { MainLayout } from './layouts/main-layout/main-layout';
+import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/role.guard';
 
-export const routes: Routes = [{ 
+export const routes: Routes = [{
   path: '', redirectTo: 'login', pathMatch: 'full' },
 
-  // Rotas de Autenticação
+  // Rotas de Autenticação (sem guard)
   {
     path: '',
     component: AuthLayout,
@@ -24,10 +26,11 @@ export const routes: Routes = [{
       },
     ],
   },
-  // Rotas Principais
+  // Rotas Principais (protegidas por authGuard)
   {
     path: '',
     component: MainLayout,
+    canActivate: [authGuard],
     children: [
       {
         path: 'home',
@@ -76,6 +79,7 @@ export const routes: Routes = [{
       {
         path: 'controle-adm',
         loadComponent: () => import('./pages/controle-adm/controle-adm').then((m) => m.ControleAdm),
+        canActivate: [adminGuard],
       }
     ]
   }

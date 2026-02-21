@@ -4,22 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
-
-interface IdiomaOpcao {
-  nome: string;
-  bandeira: string;
-}
-
-interface PalavraTrad {
-  palavra: string;
-  traducao: string;
-}
-
-interface Par {
-  imagem?: string;
-  palavra: string;
-  traducao: string;
-}
+import { IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
+import { PalavraTrad, Par } from '../../models/frase.model';
 
 @Component({
   selector: 'app-cadastrar-idioma',
@@ -75,23 +61,9 @@ export class CadastrarIdioma {
   alternativas: string[] = ['', ''];
   respostaCorreta: number = 0;
 
-  idiomas: IdiomaOpcao[] = [
-    { nome: 'Alemão', bandeira: 'assets/imgs/Germany-Flag.svg.png' },
-    { nome: 'Árabe', bandeira: 'assets/imgs/United-Arab-Emirates-Flag.svg.png' },
-    { nome: 'Chinês (Mandarim)', bandeira: 'assets/imgs/China-Flag.svg' },
-    { nome: 'Coreano', bandeira: 'assets/imgs/South-Korea-Flag.svg.webp' },
-    { nome: 'Espanhol', bandeira: 'assets/imgs/Spain-Flag.svg' },
-    { nome: 'Francês', bandeira: 'assets/imgs/France-Flag.png' },
-    { nome: 'Inglês (Estados Unidos)', bandeira: 'assets/imgs/United-States-Flag.svg' },
-    { nome: 'Inglês (Reino Unido)', bandeira: 'assets/imgs/United-Kingdom-Flag.svg.png' },
-    { nome: 'Italiano', bandeira: 'assets/imgs/Italy-Flag.svg' },
-    { nome: 'Japonês', bandeira: 'assets/imgs/Japan-Flag.png' },
-    { nome: 'Português (Brasil)', bandeira: 'assets/imgs/Brazil-Flag.svg' },
-    { nome: 'Português (Portugal)', bandeira: 'assets/imgs/Portugal-Flag.svg.png' },
-    { nome: 'Russo', bandeira: 'assets/imgs/Russia-Flag.svg' }
-  ].sort((a, b) => a.nome.localeCompare(b.nome));
+  idiomas = IDIOMAS_DISPONIVEIS;
 
-  proficiencias = ['Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Fluente'];
+  proficiencias = PROFICIENCIAS;
 
   iconesModulo: SafeHtml[] = [];
 

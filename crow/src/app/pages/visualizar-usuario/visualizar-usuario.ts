@@ -1,26 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-
-type Proficiencia = 'iniciante' | 'basico' | 'intermediario' | 'avancado' | 'fluente';
-
-interface Idioma {
-  id: string;
-  nome: string;
-  idioma: string;
-  bandeira: string;
-  modulos: number;
-  avaliacao: number;
-  criadoEm: Date;
-  proficiencia: Proficiencia;
-}
-
-interface Usuario {
-  id: string;
-  nome: string;
-  email: string;
-  dataEntrada: Date;
-}
+import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
+import { UsuarioVisualizar as Usuario } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-visualizar-usuario',

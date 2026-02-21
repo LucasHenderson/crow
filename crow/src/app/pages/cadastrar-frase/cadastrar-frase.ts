@@ -4,17 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
-
-interface PalavraTrad {
-  palavra: string;
-  traducao: string;
-}
-
-interface Par {
-  imagem?: string;
-  palavra: string;
-  traducao: string;
-}
+import { PalavraTrad, Par } from '../../models/frase.model';
 
 @Component({
   selector: 'app-cadastrar-frase',

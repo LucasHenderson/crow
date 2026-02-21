@@ -2,41 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-
-interface PalavraTrad {
-  palavra: string;
-  traducao: string;
-  usado?: boolean;
-}
-
-interface Par {
-  imagem?: string;
-  palavra: string;
-  traducao: string;
-}
-
-interface Frase {
-  modo: 'traducao' | 'pares' | 'quiz';
-  
-  // Tradução Direta
-  traducaoCompleta?: string;
-  palavras?: PalavraTrad[];
-  imagem?: string;
-  observacoes?: string;
-  links?: string[];
-  
-  // Selecionar Pares
-  pares?: Par[];
-  
-  // Quiz
-  imagemQuiz?: string;
-  videoQuiz?: SafeResourceUrl;
-  pergunta?: string;
-  alternativas?: string[];
-  alternativasEmbaralhadas?: string[];
-  respostaCorretaIndex?: number;
-  respostaCorretaTexto?: string;
-}
+import { Frase, PalavraTrad, Par } from '../../models/frase.model';
 
 interface HistoricoResposta {
   correto: boolean;

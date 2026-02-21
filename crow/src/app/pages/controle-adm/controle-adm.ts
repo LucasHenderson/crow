@@ -2,59 +2,10 @@ import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
-interface Denuncia {
-  id: number;
-  idiomaId: string;
-  idiomaNome: string;
-  usuarioId: string;
-  usuarioNome: string;
-  data: string;
-  tipos: string[];
-  descricao?: string;
-  status: 'pendente' | 'analisando' | 'resolvida' | 'rejeitada';
-  responsavelId?: string;
-  responsavelNome?: string;
-}
-
-interface Usuario {
-  id: string;
-  nome: string;
-  email: string;
-  telefone: string;
-  dataEntrada: string;
-  status: 'ativo' | 'inativo';
-  role: 'comum' | 'admin';
-}
-
-interface Idioma {
-  id: string;
-  nome: string;
-  bandeira: string;
-  descricao: string;
-  criadorId: string;
-  criadorNome: string;
-  modulos: number;
-  avaliacao: number;
-  totalAvaliacoes: number;
-  proficiencia?: string;
-  visibilidade?: 'publico' | 'privado';
-}
-
-interface IdiomaOpcao {
-  nome: string;
-  bandeira: string;
-}
-
-interface Log {
-  id: string;
-  data: string;
-  adminId: string;
-  adminNome: string;
-  acao: string;
-  detalhes: string;
-  tipo: 'denuncia' | 'usuario' | 'idioma';
-}
+import { Denuncia } from '../../models/denuncia.model';
+import { Usuario } from '../../models/usuario.model';
+import { IdiomaAdm as Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
+import { Log } from '../../models/log.model';
 
 type AbaAtiva = 'denuncias' | 'usuarios' | 'idiomas' | 'logs';
 
@@ -145,23 +96,9 @@ export class ControleAdm implements OnInit {
   buscaIdiomaEdicao = '';
   
   // Opções disponíveis
-  idiomasDisponiveis: IdiomaOpcao[] = [
-    { nome: 'Alemão', bandeira: '../../../assets/imgs/Germany-Flag.svg.png' },
-    { nome: 'Árabe', bandeira: '../../../assets/imgs/United-Arab-Emirates-Flag.svg.png' },
-    { nome: 'Chinês (Mandarim)', bandeira: '../../../assets/imgs/China-Flag.svg' },
-    { nome: 'Coreano', bandeira: '../../../assets/imgs/South-Korea-Flag.svg.webp' },
-    { nome: 'Espanhol', bandeira: '../../../assets/imgs/Spain-Flag.svg' },
-    { nome: 'Francês', bandeira: '../../../assets/imgs/France-Flag.png' },
-    { nome: 'Inglês (Estados Unidos)', bandeira: '../../../assets/imgs/United-States-Flag.svg' },
-    { nome: 'Inglês (Reino Unido)', bandeira: '../../../assets/imgs/United-Kingdom-Flag.svg.png' },
-    { nome: 'Italiano', bandeira: '../../../assets/imgs/Italy-Flag.svg' },
-    { nome: 'Japonês', bandeira: '../../../assets/imgs/Japan-Flag.png' },
-    { nome: 'Português (Brasil)', bandeira: '../../../assets/imgs/Brazil-Flag.svg' },
-    { nome: 'Português (Portugal)', bandeira: '../../../assets/imgs/Portugal-Flag.svg.png' },
-    { nome: 'Russo', bandeira: '../../../assets/imgs/Russia-Flag.svg' }
-  ].sort((a, b) => a.nome.localeCompare(b.nome));
-  
-  proficiencias = ['Iniciante', 'Básico', 'Intermediário', 'Avançado', 'Fluente'];
+  idiomasDisponiveis = IDIOMAS_DISPONIVEIS;
+
+  proficiencias = PROFICIENCIAS;
   
   // Mensagem de sucesso
   mensagemSucesso = '';
@@ -595,7 +532,7 @@ export class ControleAdm implements OnInit {
     this.nomeUsuarioEdicao = usuario.nome;
     this.emailUsuarioEdicao = usuario.email;
     this.telefoneUsuarioEdicao = usuario.telefone;
-    this.roleUsuarioEdicao = usuario.role;
+    this.roleUsuarioEdicao = usuario.role || 'comum';
     this.novaSenhaUsuario = '';
     this.confirmarSenhaUsuario = '';
     this.mostrarModalEditarUsuario = true;

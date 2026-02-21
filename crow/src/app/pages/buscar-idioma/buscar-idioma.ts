@@ -2,20 +2,7 @@ import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-
-
-type Proficiencia = 'iniciante' | 'basico' | 'intermediario' | 'avancado' | 'fluente';
-
-interface Idioma {
-  id: string;
-  nome: string;
-  idioma: string;
-  bandeira: string;
-  modulos: number;
-  avaliacao: number;
-  criadoEm: Date;
-  proficiencia: Proficiencia;
-}
+import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
 
 @Component({
   selector: 'app-buscar-idioma',
