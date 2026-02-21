@@ -1,0 +1,12 @@
+package com.crow.api.repository;
+
+import com.crow.api.entity.LogAdmin;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface LogAdminRepository extends JpaRepository<LogAdmin, String> {
+    List<LogAdmin> findByTipo(LogAdmin.TipoLog tipo);
+    List<LogAdmin> findByAdminId(String adminId);
+    List<LogAdmin> findAllByOrderByDataDesc();
+}
