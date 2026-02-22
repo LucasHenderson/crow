@@ -200,6 +200,188 @@
   min-width: 350px;
 }
 
+/* EMAIL VERIFICATION */
+.email-verify-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.email-input-wrapper {
+  flex: 1;
+}
+
+.btn-verificar-email {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-verificar-email:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.btn-verificar-email:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-verificar-email.verificado {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.btn-verificar-email svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Código de verificação */
+.codigo-verificacao {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 10px;
+}
+
+.codigo-verificacao label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 0.5rem;
+}
+
+.codigo-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.codigo-input {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5rem;
+  text-align: center;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  transition: border-color 0.2s ease;
+}
+
+.codigo-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.codigo-input::placeholder {
+  letter-spacing: 0.3rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-confirmar-codigo {
+  padding: 0.65rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-confirmar-codigo:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.btn-confirmar-codigo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-reenviar {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #60a5fa;
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.btn-reenviar:hover:not(:disabled) {
+  color: #93bbfd;
+}
+
+.btn-reenviar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Feedback de email */
+.email-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+.email-feedback.erro {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.email-feedback.sucesso {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+.email-feedback svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Campo de telefone com o mesmo tamanho do email */
 .form-group.telefone-field input {
   min-width: 350px;
@@ -733,9 +915,22 @@
     padding: 0.85rem 1.2rem;
     font-size: 0.9rem;
   }
-  
+
   .form-group.email-field input,
   .form-group.telefone-field input {
     min-width: 100%;
+  }
+
+  .email-verify-row {
+    flex-direction: column;
+  }
+
+  .btn-verificar-email {
+    justify-content: center;
+    padding: 0.6rem 1rem;
+  }
+
+  .codigo-row {
+    flex-direction: column;
   }
 }

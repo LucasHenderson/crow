@@ -37,6 +37,14 @@ export class AuthService {
     );
   }
 
+  enviarCodigoVerificacao(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/enviar-codigo`, { email });
+  }
+
+  verificarCodigo(email: string, codigo: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/verificar-codigo`, { email, codigo });
+  }
+
   logout(): void {
     localStorage.removeItem('authToken');
     localStorage.removeItem('usuario');
