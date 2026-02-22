@@ -1,7 +1,8 @@
 package com.crow.api.dto.usuario;
 
 public record UsuarioResponse(
-    String id,
+    Long id,
+    String codigo,
     String nome,
     String email,
     String telefone,

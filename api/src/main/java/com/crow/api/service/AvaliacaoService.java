@@ -21,7 +21,7 @@ public class AvaliacaoService {
     private final IdiomaService idiomaService;
     private final UsuarioService usuarioService;
 
-    public AvaliacaoResponse avaliar(String usuarioId, String idiomaId, int nota) {
+    public AvaliacaoResponse avaliar(Long usuarioId, Long idiomaId, int nota) {
         Usuario usuario = usuarioService.buscarPorId(usuarioId);
         Idioma idioma = idiomaService.buscarPorId(idiomaId);
 

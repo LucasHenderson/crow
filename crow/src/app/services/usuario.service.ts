@@ -19,7 +19,7 @@ export class UsuarioService {
     return this.http.get<Usuario[]>(`${this.apiUrl}/usuarios`);
   }
 
-  getUsuarioPorId(id: string): Observable<Usuario> {
+  getUsuarioPorId(id: number | string): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}/usuarios/${id}`);
   }
 

@@ -19,7 +19,7 @@ export class IdiomaService {
     return this.http.get<IdiomaBusca[]>(`${this.apiUrl}/idiomas${params}`);
   }
 
-  getIdiomaPorId(id: string): Observable<IdiomaAdm> {
+  getIdiomaPorId(id: number | string): Observable<IdiomaAdm> {
     return this.http.get<IdiomaAdm>(`${this.apiUrl}/idiomas/${id}`);
   }
 
@@ -27,23 +27,23 @@ export class IdiomaService {
     return this.http.post(`${this.apiUrl}/idiomas`, dados);
   }
 
-  editarIdioma(id: string, dados: any): Observable<any> {
+  editarIdioma(id: number | string, dados: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/idiomas/${id}`, dados);
   }
 
-  excluirIdioma(id: string): Observable<void> {
+  excluirIdioma(id: number | string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/idiomas/${id}`);
   }
 
-  importarIdioma(idiomaId: string): Observable<void> {
+  importarIdioma(idiomaId: number | string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/idiomas/${idiomaId}/importar`, {});
   }
 
-  avaliarIdioma(idiomaId: string, nota: number): Observable<{ novaMedia: number; totalAvaliacoes: number }> {
+  avaliarIdioma(idiomaId: number | string, nota: number): Observable<{ novaMedia: number; totalAvaliacoes: number }> {
     return this.http.post<{ novaMedia: number; totalAvaliacoes: number }>(`${this.apiUrl}/idiomas/${idiomaId}/avaliar`, { nota });
   }
 
-  denunciarIdioma(idiomaId: string, dados: any): Observable<void> {
+  denunciarIdioma(idiomaId: number | string, dados: any): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/idiomas/${idiomaId}/denunciar`, dados);
   }
 }

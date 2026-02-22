@@ -26,7 +26,8 @@ export class Perfil implements OnInit {
   carregando = true;
 
   user: Usuario = {
-    id: '',
+    id: 0,
+    codigo: '',
     nome: '',
     email: '',
     telefone: '',

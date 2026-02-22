@@ -44,7 +44,7 @@ public class AdminController {
             @PathVariable Long id,
             @Valid @RequestBody AlterarStatusDenunciaRequest request,
             Authentication authentication) {
-        Usuario admin = usuarioService.buscarPorId(authentication.getName());
+        Usuario admin = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         Denuncia denuncia = denunciaService.alterarStatus(id, request.status(), admin);
 
         logAdminService.registrar(admin, LogAdmin.TipoLog.DENUNCIA,
@@ -67,10 +67,10 @@ public class AdminController {
 
     @PutMapping("/usuarios/{id}")
     public ResponseEntity<UsuarioResponse> editarUsuario(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody UsuarioUpdateRequest request,
             Authentication authentication) {
-        Usuario admin = usuarioService.buscarPorId(authentication.getName());
+        Usuario admin = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         Usuario atualizado = usuarioService.editarUsuarioAdmin(id, request);
 
         logAdminService.registrar(admin, LogAdmin.TipoLog.USUARIO,
@@ -82,10 +82,10 @@ public class AdminController {
 
     @PutMapping("/usuarios/{id}/status")
     public ResponseEntity<UsuarioResponse> alterarStatusUsuario(
-            @PathVariable String id,
+            @PathVariable Long id,
             @RequestBody Map<String, String> body,
             Authentication authentication) {
-        Usuario admin = usuarioService.buscarPorId(authentication.getName());
+        Usuario admin = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         String novoStatus = body.get("status");
         Usuario atualizado = usuarioService.alterarStatus(id, Usuario.Status.valueOf(novoStatus.toUpperCase()));
 
@@ -109,9 +109,9 @@ public class AdminController {
 
     @DeleteMapping("/idiomas/{id}")
     public ResponseEntity<Void> excluirIdioma(
-            @PathVariable String id,
+            @PathVariable Long id,
             Authentication authentication) {
-        Usuario admin = usuarioService.buscarPorId(authentication.getName());
+        Usuario admin = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         Idioma idioma = idiomaService.buscarPorId(id);
 
         logAdminService.registrar(admin, LogAdmin.TipoLog.IDIOMA,
@@ -130,8 +130,10 @@ public class AdminController {
                 logAdminService.listarTodos().stream()
                         .map(log -> Map.<String, Object>of(
                                 "id", log.getId(),
+                                "codigo", "LOG-" + log.getId(),
                                 "data", log.getData() != null ? log.getData().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : "",
                                 "adminId", log.getAdmin() != null ? log.getAdmin().getId() : "",
+                                "codigoAdmin", log.getAdmin() != null ? "USR-" + log.getAdmin().getId() : "",
                                 "adminNome", log.getAdmin() != null ? log.getAdmin().getNome() : "",
                                 "acao", log.getAcao(),
                                 "detalhes", log.getDetalhes(),
@@ -146,15 +148,19 @@ public class AdminController {
     private DenunciaResponse toDenunciaResponse(Denuncia d) {
         return new DenunciaResponse(
                 d.getId(),
+                "DEN-" + d.getId(),
                 d.getIdioma() != null ? d.getIdioma().getId() : null,
+                d.getIdioma() != null ? "IDM-" + d.getIdioma().getId() : null,
                 d.getIdioma() != null ? d.getIdioma().getNome() : null,
                 d.getUsuario() != null ? d.getUsuario().getId() : null,
+                d.getUsuario() != null ? "USR-" + d.getUsuario().getId() : null,
                 d.getUsuario() != null ? d.getUsuario().getNome() : null,
                 d.getData() != null ? d.getData().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null,
                 d.getTiposJson(),
                 d.getDescricao(),
                 d.getStatus() != null ? d.getStatus().name().toLowerCase() : null,
                 d.getResponsavel() != null ? d.getResponsavel().getId() : null,
+                d.getResponsavel() != null ? "USR-" + d.getResponsavel().getId() : null,
                 d.getResponsavel() != null ? d.getResponsavel().getNome() : null
         );
     }
@@ -162,11 +168,13 @@ public class AdminController {
     private IdiomaResponse toIdiomaResponse(Idioma idioma) {
         return new IdiomaResponse(
                 idioma.getId(),
+                "IDM-" + idioma.getId(),
                 idioma.getNome(),
                 idioma.getIdioma(),
                 idioma.getBandeira(),
                 idioma.getDescricao(),
                 idioma.getCriador() != null ? idioma.getCriador().getId() : null,
+                idioma.getCriador() != null ? "USR-" + idioma.getCriador().getId() : null,
                 idioma.getCriador() != null ? idioma.getCriador().getNome() : null,
                 idioma.getModulos(),
                 idioma.getAvaliacao(),

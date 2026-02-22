@@ -32,13 +32,13 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> buscarPorId(@PathVariable String id) {
+    public ResponseEntity<UsuarioResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(authService.toUsuarioResponse(usuarioService.buscarPorId(id)));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponse> me(Authentication authentication) {
-        String userId = authentication.getName();
+        Long userId = Long.valueOf(authentication.getName());
         return ResponseEntity.ok(authService.toUsuarioResponse(usuarioService.buscarPorId(userId)));
     }
 
@@ -46,7 +46,7 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponse> atualizarPerfil(
             Authentication authentication,
             @RequestBody UsuarioUpdateRequest request) {
-        String userId = authentication.getName();
+        Long userId = Long.valueOf(authentication.getName());
         Usuario atualizado = usuarioService.atualizarPerfil(userId, request);
         return ResponseEntity.ok(authService.toUsuarioResponse(atualizado));
     }
@@ -55,7 +55,7 @@ public class UsuarioController {
     public ResponseEntity<Void> alterarSenha(
             Authentication authentication,
             @Valid @RequestBody AlterarSenhaRequest request) {
-        String userId = authentication.getName();
+        Long userId = Long.valueOf(authentication.getName());
         usuarioService.alterarSenha(userId, request.senhaAtual(), request.novaSenha());
         return ResponseEntity.noContent().build();
     }

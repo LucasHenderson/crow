@@ -177,7 +177,7 @@ export class BuscarIdioma implements OnInit {
     if (this.busca) {
       const termo = this.busca.toLowerCase();
       resultado = resultado.filter(i =>
-        i.id.toLowerCase().includes(termo) ||
+        i.codigo.toLowerCase().includes(termo) ||
         i.nome.toLowerCase().includes(termo) ||
         i.idioma.toLowerCase().includes(termo)
       );

@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { AuthLayout } from './layouts/auth-layout/auth-layout';
 import { MainLayout } from './layouts/main-layout/main-layout';
 import { authGuard } from './guards/auth.guard';
-import { adminGuard } from './guards/role.guard';
+import { adminGuard, comunGuard } from './guards/role.guard';
 
 export const routes: Routes = [{
   path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -26,11 +26,11 @@ export const routes: Routes = [{
       },
     ],
   },
-  // Rotas Principais (protegidas por authGuard)
+  // Rotas do Usuário Comum (bloqueadas para admin)
   {
     path: '',
     component: MainLayout,
-    canActivate: [authGuard],
+    canActivate: [authGuard, comunGuard],
     children: [
       {
         path: 'home',
@@ -76,10 +76,17 @@ export const routes: Routes = [{
         path: 'buscar-usuario',
         loadComponent: () => import('./pages/buscar-usuario/buscar-usuario').then((m) => m.BuscarUsuario),
       },
+    ]
+  },
+  // Rota do Administrador (bloqueada para user comum)
+  {
+    path: '',
+    component: MainLayout,
+    canActivate: [authGuard, adminGuard],
+    children: [
       {
         path: 'controle-adm',
         loadComponent: () => import('./pages/controle-adm/controle-adm').then((m) => m.ControleAdm),
-        canActivate: [adminGuard],
       }
     ]
   }

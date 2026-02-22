@@ -2,6 +2,7 @@ package com.crow.api.dto.frase;
 
 public record FraseResponse(
     Long id,
+    String codigo,
     String modo,
     String traducaoCompleta,
     String palavrasJson,

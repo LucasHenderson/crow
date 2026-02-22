@@ -26,12 +26,12 @@ public class IdiomaService {
         return idiomaRepository.findAll();
     }
 
-    public Idioma buscarPorId(String id) {
+    public Idioma buscarPorId(Long id) {
         return idiomaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
     }
 
-    public List<Idioma> buscarPorCriador(String criadorId) {
+    public List<Idioma> buscarPorCriador(Long criadorId) {
         return idiomaRepository.findByCriadorId(criadorId);
     }
 
@@ -64,7 +64,7 @@ public class IdiomaService {
         return idiomaRepository.save(idioma);
     }
 
-    public Idioma editar(String id, IdiomaRequest dto) {
+    public Idioma editar(Long id, IdiomaRequest dto) {
         Idioma idioma = buscarPorId(id);
 
         if (dto.nome() != null) idioma.setNome(dto.nome());
@@ -82,12 +82,12 @@ public class IdiomaService {
         return idiomaRepository.save(idioma);
     }
 
-    public void excluir(String id) {
+    public void excluir(Long id) {
         Idioma idioma = buscarPorId(id);
         idiomaRepository.delete(idioma);
     }
 
-    public void importar(String usuarioId, String idiomaId, Usuario usuario) {
+    public void importar(Long usuarioId, Long idiomaId, Usuario usuario) {
         if (idiomaUsuarioRepository.existsByUsuarioIdAndIdiomaId(usuarioId, idiomaId)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Idioma já importado");
         }
@@ -105,7 +105,7 @@ public class IdiomaService {
         idiomaUsuarioRepository.save(iu);
     }
 
-    public List<Idioma> getIdiomasDoUsuario(String usuarioId) {
+    public List<Idioma> getIdiomasDoUsuario(Long usuarioId) {
         List<IdiomaUsuario> relacoes = idiomaUsuarioRepository.findByUsuarioId(usuarioId);
         return relacoes.stream()
                 .map(IdiomaUsuario::getIdioma)

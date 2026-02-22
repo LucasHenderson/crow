@@ -18,7 +18,7 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (usuarioRepository.count() == 0) {
+        if (!usuarioRepository.existsByEmail("admin@crow.com")) {
             Usuario admin = Usuario.builder()
                     .nome("Administrador")
                     .email("admin@crow.com")
@@ -26,7 +26,11 @@ public class DataSeeder implements CommandLineRunner {
                     .telefone("63999999999")
                     .role(Usuario.Role.ADMIN)
                     .build();
+            usuarioRepository.save(admin);
+            log.info("Seed: admin criado com sucesso");
+        }
 
+        if (!usuarioRepository.existsByEmail("usuario@crow.com")) {
             Usuario usuario = Usuario.builder()
                     .nome("Usuário Teste")
                     .email("usuario@crow.com")
@@ -34,11 +38,8 @@ public class DataSeeder implements CommandLineRunner {
                     .telefone("63988888888")
                     .role(Usuario.Role.COMUM)
                     .build();
-
-            usuarioRepository.save(admin);
             usuarioRepository.save(usuario);
-
-            log.info("Seed: admin e usuario criados com sucesso");
+            log.info("Seed: usuario criado com sucesso");
         }
     }
 }

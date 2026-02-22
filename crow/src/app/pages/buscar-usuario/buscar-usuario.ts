@@ -134,7 +134,7 @@ export class BuscarUsuario implements OnInit {
       const termo = this.busca.toLowerCase();
       resultado = resultado.filter(u =>
         u.nome.toLowerCase().includes(termo) ||
-        u.id.toLowerCase().includes(termo)
+        u.codigo.toLowerCase().includes(termo)
       );
     }
 

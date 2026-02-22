@@ -64,14 +64,26 @@
         </span>
       </div>
 
-      <!-- ✅ NOVO: Link para recuperar senha -->
+      <!-- Mensagem de erro de login -->
+      <div class="erro-login" *ngIf="erroLogin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ erroLogin }}</span>
+      </div>
+
+      <!-- Link para recuperar senha -->
       <div class="forgot-password">
         <button type="button" class="link-btn" (click)="esqueceuSenha()">
           Esqueci minha senha
         </button>
       </div>
 
-      <button type="submit">Entrar</button>
+      <button type="submit" [disabled]="carregando">
+        {{ carregando ? 'Entrando...' : 'Entrar' }}
+      </button>
     </form>
 
     <!-- ✅ NOVO: Divisor -->

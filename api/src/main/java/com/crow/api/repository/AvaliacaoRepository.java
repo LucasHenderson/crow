@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AvaliacaoRepository extends JpaRepository<Avaliacao, Long> {
-    Optional<Avaliacao> findByUsuarioIdAndIdiomaId(String usuarioId, String idiomaId);
-    List<Avaliacao> findByIdiomaId(String idiomaId);
+    Optional<Avaliacao> findByUsuarioIdAndIdiomaId(Long usuarioId, Long idiomaId);
+    List<Avaliacao> findByIdiomaId(Long idiomaId);
 }

@@ -1,5 +1,6 @@
 export interface Usuario {
-  id: string;
+  id: number;
+  codigo: string;
   nome: string;
   email: string;
   telefone: string;
@@ -9,7 +10,8 @@ export interface Usuario {
 }
 
 export interface UsuarioBusca {
-  id: string;
+  id: number;
+  codigo: string;
   nome: string;
   email: string;
   dataEntrada: Date;
@@ -17,7 +19,8 @@ export interface UsuarioBusca {
 }
 
 export interface UsuarioVisualizar {
-  id: string;
+  id: number;
+  codigo: string;
   nome: string;
   email: string;
   dataEntrada: Date;

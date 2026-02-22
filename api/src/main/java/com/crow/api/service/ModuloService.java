@@ -20,7 +20,7 @@ public class ModuloService {
     private final FraseRepository fraseRepository;
     private final IdiomaService idiomaService;
 
-    public List<Modulo> buscarPorIdioma(String idiomaId) {
+    public List<Modulo> buscarPorIdioma(Long idiomaId) {
         return moduloRepository.findByIdiomaId(idiomaId);
     }
 
@@ -29,7 +29,7 @@ public class ModuloService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Módulo não encontrado"));
     }
 
-    public Modulo criar(String idiomaId, ModuloRequest dto) {
+    public Modulo criar(Long idiomaId, ModuloRequest dto) {
         int count = moduloRepository.countByIdiomaId(idiomaId);
         if (count >= 20) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limite máximo de 20 módulos por idioma atingido");
@@ -59,7 +59,7 @@ public class ModuloService {
 
     public void excluir(Long id) {
         Modulo modulo = buscarPorId(id);
-        String idiomaId = modulo.getIdioma().getId();
+        Long idiomaId = modulo.getIdioma().getId();
         moduloRepository.delete(modulo);
 
         // Atualiza contagem

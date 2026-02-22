@@ -1,5 +1,6 @@
 export interface Idioma {
-  id: string;
+  id: number;
+  codigo: string;
   nome: string;
   bandeira: string;
   nota: number; // 1 a 5
@@ -10,11 +11,13 @@ export interface Idioma {
 }
 
 export interface IdiomaAdm {
-  id: string;
+  id: number;
+  codigo: string;
   nome: string;
   bandeira: string;
   descricao: string;
-  criadorId: string;
+  criadorId: number;
+  codigoCriador: string;
   criadorNome: string;
   modulos: number;
   avaliacao: number;
@@ -24,7 +27,8 @@ export interface IdiomaAdm {
 }
 
 export interface IdiomaBusca {
-  id: string;
+  id: number;
+  codigo: string;
   nome: string;
   idioma: string;
   bandeira: string;

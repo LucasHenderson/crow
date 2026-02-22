@@ -18,7 +18,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public Usuario buscarPorId(String id) {
+    public Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
     }
@@ -31,7 +31,7 @@ public class UsuarioService {
         return usuarioRepository.findByNomeContainingIgnoreCase(nome);
     }
 
-    public Usuario atualizarPerfil(String id, UsuarioUpdateRequest dto) {
+    public Usuario atualizarPerfil(Long id, UsuarioUpdateRequest dto) {
         Usuario usuario = buscarPorId(id);
 
         if (dto.nome() != null && !dto.nome().isBlank()) {
@@ -50,7 +50,7 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    public void alterarSenha(String id, String senhaAtual, String novaSenha) {
+    public void alterarSenha(Long id, String senhaAtual, String novaSenha) {
         Usuario usuario = buscarPorId(id);
 
         if (!passwordEncoder.matches(senhaAtual, usuario.getSenha())) {
@@ -61,13 +61,13 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
-    public Usuario alterarStatus(String id, Usuario.Status novoStatus) {
+    public Usuario alterarStatus(Long id, Usuario.Status novoStatus) {
         Usuario usuario = buscarPorId(id);
         usuario.setStatus(novoStatus);
         return usuarioRepository.save(usuario);
     }
 
-    public Usuario editarUsuarioAdmin(String id, UsuarioUpdateRequest dto) {
+    public Usuario editarUsuarioAdmin(Long id, UsuarioUpdateRequest dto) {
         return atualizarPerfil(id, dto);
     }
 }

@@ -20,7 +20,9 @@ export class VisualizarIdioma implements OnInit {
   idiomaNome = '';
   descricao = '';
   idIdioma = '';
-  idUsuarioCriador = '';
+  codigoIdioma = '';
+  idUsuarioCriador: number = 0;
+  codigoCriador = '';
   isProprietario = false;
   carregando = true;
   avaliacao = 4.3;
@@ -116,7 +118,9 @@ export class VisualizarIdioma implements OnInit {
       next: (idioma) => {
         this.idiomaNome = idioma.nome;
         this.descricao = idioma.descricao;
+        this.codigoIdioma = idioma.codigo;
         this.idUsuarioCriador = idioma.criadorId;
+        this.codigoCriador = idioma.codigoCriador;
         this.avaliacao = idioma.avaliacao;
         this.totalAvaliacoes = idioma.totalAvaliacoes;
         const user = this.authService.getCurrentUser();
@@ -236,7 +240,7 @@ export class VisualizarIdioma implements OnInit {
   // ===== COPIAR ID DO IDIOMA =====
   
   copiarIdIdioma(): void {
-    navigator.clipboard.writeText(this.idIdioma).then(() => {
+    navigator.clipboard.writeText(this.codigoIdioma).then(() => {
       this.exibirMensagemSucesso('ID do Idioma copiado para a área de transferência!');
     }).catch(err => {
       console.error('Erro ao copiar ID:', err);
@@ -245,10 +249,7 @@ export class VisualizarIdioma implements OnInit {
   }
 
   get idIdiomaFormatado(): string {
-    if (this.idIdioma.length > 9) {
-      return this.idIdioma.substring(0, 9) + '...';
-    }
-    return this.idIdioma;
+    return this.codigoIdioma;
   }
 
   // ===== MODAL DE DENÚNCIA =====
@@ -511,10 +512,7 @@ export class VisualizarIdioma implements OnInit {
   }
 
   get idUsuarioFormatado(): string {
-    if (this.idUsuarioCriador.length > 9) {
-      return this.idUsuarioCriador.substring(0, 9) + '...';
-    }
-    return this.idUsuarioCriador;
+    return this.codigoCriador;
   }
 
   navegarParaUsuario(): void {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -24,7 +24,8 @@ export class Login {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -49,11 +50,13 @@ export class Login {
     this.authService.login(email, senha).subscribe({
       next: () => {
         this.carregando = false;
-        this.router.navigate(['/home']);
+        const role = this.authService.getRole();
+        this.router.navigate([role === 'admin' ? '/controle-adm' : '/home']);
       },
       error: (err) => {
         this.carregando = false;
         this.erroLogin = err.error?.message || 'Email ou senha incorretos.';
+        this.cdr.detectChanges();
       }
     });
   }

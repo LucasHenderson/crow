@@ -1,12 +1,14 @@
 package com.crow.api.dto.idioma;
 
 public record IdiomaResponse(
-    String id,
+    Long id,
+    String codigo,
     String nome,
     String idioma,
     String bandeira,
     String descricao,
-    String criadorId,
+    Long criadorId,
+    String codigoCriador,
     String criadorNome,
     int modulos,
     double avaliacao,

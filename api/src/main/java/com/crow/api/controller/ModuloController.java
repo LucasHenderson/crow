@@ -23,7 +23,7 @@ public class ModuloController {
     private final FraseRepository fraseRepository;
 
     @GetMapping
-    public ResponseEntity<List<ModuloResponse>> listar(@PathVariable String idiomaId) {
+    public ResponseEntity<List<ModuloResponse>> listar(@PathVariable Long idiomaId) {
         return ResponseEntity.ok(
                 moduloService.buscarPorIdioma(idiomaId).stream()
                         .map(this::toResponse)
@@ -33,7 +33,7 @@ public class ModuloController {
 
     @PostMapping
     public ResponseEntity<ModuloResponse> criar(
-            @PathVariable String idiomaId,
+            @PathVariable Long idiomaId,
             @Valid @RequestBody ModuloRequest request) {
         Modulo modulo = moduloService.criar(idiomaId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(modulo));
@@ -41,7 +41,7 @@ public class ModuloController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ModuloResponse> editar(
-            @PathVariable String idiomaId,
+            @PathVariable Long idiomaId,
             @PathVariable Long id,
             @Valid @RequestBody ModuloRequest request) {
         return ResponseEntity.ok(toResponse(moduloService.editar(id, request)));
@@ -49,7 +49,7 @@ public class ModuloController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(
-            @PathVariable String idiomaId,
+            @PathVariable Long idiomaId,
             @PathVariable Long id) {
         moduloService.excluir(id);
         return ResponseEntity.noContent().build();
@@ -58,6 +58,7 @@ public class ModuloController {
     private ModuloResponse toResponse(Modulo modulo) {
         return new ModuloResponse(
                 modulo.getId(),
+                "MOD-" + modulo.getId(),
                 modulo.getNome(),
                 modulo.getIcone(),
                 fraseRepository.countByModuloId(modulo.getId()),

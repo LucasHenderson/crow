@@ -10,19 +10,19 @@ export class FraseService {
 
   constructor(private http: HttpClient) {}
 
-  getFrasesPorModulo(moduloId: string): Observable<Frase[]> {
+  getFrasesPorModulo(moduloId: number | string): Observable<Frase[]> {
     return this.http.get<Frase[]>(`${this.apiUrl}/modulos/${moduloId}/frases`);
   }
 
-  criarFrase(moduloId: string, dados: any): Observable<Frase> {
+  criarFrase(moduloId: number | string, dados: any): Observable<Frase> {
     return this.http.post<Frase>(`${this.apiUrl}/modulos/${moduloId}/frases`, dados);
   }
 
-  editarFrase(moduloId: string, id: number, dados: any): Observable<Frase> {
+  editarFrase(moduloId: number | string, id: number, dados: any): Observable<Frase> {
     return this.http.put<Frase>(`${this.apiUrl}/modulos/${moduloId}/frases/${id}`, dados);
   }
 
-  excluirFrase(moduloId: string, id: number): Observable<void> {
+  excluirFrase(moduloId: number | string, id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/modulos/${moduloId}/frases/${id}`);
   }
 

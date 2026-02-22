@@ -37,13 +37,13 @@ public class IdiomaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IdiomaResponse> buscarPorId(@PathVariable String id) {
+    public ResponseEntity<IdiomaResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(toResponse(idiomaService.buscarPorId(id)));
     }
 
     @GetMapping("/meus")
     public ResponseEntity<List<IdiomaResponse>> meusIdiomas(Authentication authentication) {
-        String userId = authentication.getName();
+        Long userId = Long.valueOf(authentication.getName());
         return ResponseEntity.ok(
                 idiomaService.getIdiomasDoUsuario(userId).stream()
                         .map(this::toResponse)
@@ -55,29 +55,29 @@ public class IdiomaController {
     public ResponseEntity<IdiomaResponse> criar(
             Authentication authentication,
             @Valid @RequestBody IdiomaRequest request) {
-        Usuario criador = usuarioService.buscarPorId(authentication.getName());
+        Usuario criador = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         Idioma idioma = idiomaService.criar(request, criador);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(idioma));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<IdiomaResponse> editar(
-            @PathVariable String id,
+            @PathVariable Long id,
             @Valid @RequestBody IdiomaRequest request) {
         return ResponseEntity.ok(toResponse(idiomaService.editar(id, request)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable String id) {
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
         idiomaService.excluir(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/importar")
     public ResponseEntity<Void> importar(
-            @PathVariable String id,
+            @PathVariable Long id,
             Authentication authentication) {
-        String userId = authentication.getName();
+        Long userId = Long.valueOf(authentication.getName());
         Usuario usuario = usuarioService.buscarPorId(userId);
         idiomaService.importar(userId, id, usuario);
         return ResponseEntity.ok().build();
@@ -85,19 +85,19 @@ public class IdiomaController {
 
     @PostMapping("/{id}/avaliar")
     public ResponseEntity<AvaliacaoResponse> avaliar(
-            @PathVariable String id,
+            @PathVariable Long id,
             Authentication authentication,
             @Valid @RequestBody AvaliacaoRequest request) {
-        String userId = authentication.getName();
+        Long userId = Long.valueOf(authentication.getName());
         return ResponseEntity.ok(avaliacaoService.avaliar(userId, id, request.nota()));
     }
 
     @PostMapping("/{id}/denunciar")
     public ResponseEntity<Void> denunciar(
-            @PathVariable String id,
+            @PathVariable Long id,
             Authentication authentication,
             @Valid @RequestBody DenunciaRequest request) {
-        Usuario usuario = usuarioService.buscarPorId(authentication.getName());
+        Usuario usuario = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         denunciaService.criar(request, usuario);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -105,11 +105,13 @@ public class IdiomaController {
     private IdiomaResponse toResponse(Idioma idioma) {
         return new IdiomaResponse(
                 idioma.getId(),
+                "IDM-" + idioma.getId(),
                 idioma.getNome(),
                 idioma.getIdioma(),
                 idioma.getBandeira(),
                 idioma.getDescricao(),
                 idioma.getCriador() != null ? idioma.getCriador().getId() : null,
+                idioma.getCriador() != null ? "USR-" + idioma.getCriador().getId() : null,
                 idioma.getCriador() != null ? idioma.getCriador().getNome() : null,
                 idioma.getModulos(),
                 idioma.getAvaliacao(),

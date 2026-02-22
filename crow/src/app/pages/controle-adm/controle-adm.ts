@@ -106,8 +106,8 @@ export class ControleAdm implements OnInit {
   // Mensagem de sucesso
   mensagemSucesso = '';
   
-  // ID do admin logado (simulado)
-  adminLogadoId = 'ADM-001';
+  // ID do admin logado
+  adminLogadoId: number = 0;
   adminLogadoNome = 'Administrador Principal';
 
   constructor(
@@ -196,11 +196,11 @@ export class ControleAdm implements OnInit {
     
     if (this.buscaDenuncia.trim()) {
       const termo = this.buscaDenuncia.toLowerCase();
-      filtradas = filtradas.filter(d => 
-        d.id.toString().includes(termo) ||
+      filtradas = filtradas.filter(d =>
+        d.codigo.toLowerCase().includes(termo) ||
         d.usuarioNome.toLowerCase().includes(termo) ||
         (d.responsavelNome && d.responsavelNome.toLowerCase().includes(termo)) ||
-        (d.responsavelId && d.responsavelId.toLowerCase().includes(termo))
+        (d.codigoResponsavel && d.codigoResponsavel.toLowerCase().includes(termo))
       );
     }
     
@@ -317,10 +317,10 @@ export class ControleAdm implements OnInit {
     
     if (this.buscaUsuario.trim()) {
       const termo = this.buscaUsuario.toLowerCase();
-      usuarios = usuarios.filter(u => 
+      usuarios = usuarios.filter(u =>
         u.nome.toLowerCase().includes(termo) ||
         u.email.toLowerCase().includes(termo) ||
-        u.id.toLowerCase().includes(termo)
+        u.codigo.toLowerCase().includes(termo)
       );
     }
     
@@ -563,11 +563,11 @@ export class ControleAdm implements OnInit {
     if (!this.buscaIdioma.trim()) return this.idiomas;
     
     const termo = this.buscaIdioma.toLowerCase();
-    return this.idiomas.filter(i => 
+    return this.idiomas.filter(i =>
       i.nome.toLowerCase().includes(termo) ||
       i.criadorNome.toLowerCase().includes(termo) ||
-      i.criadorId.toLowerCase().includes(termo) ||
-      i.id.toLowerCase().includes(termo)
+      i.codigoCriador.toLowerCase().includes(termo) ||
+      i.codigo.toLowerCase().includes(termo)
     );
   }
 
@@ -760,10 +760,10 @@ export class ControleAdm implements OnInit {
     
     if (this.buscaLog.trim()) {
       const termo = this.buscaLog.toLowerCase();
-      logs = logs.filter(log => 
-        log.id.toLowerCase().includes(termo) ||
+      logs = logs.filter(log =>
+        log.codigo.toLowerCase().includes(termo) ||
         log.adminNome.toLowerCase().includes(termo) ||
-        log.adminId.toLowerCase().includes(termo)
+        log.codigoAdmin.toLowerCase().includes(termo)
       );
     }
     
@@ -802,19 +802,7 @@ export class ControleAdm implements OnInit {
   }
 
   registrarLog(tipo: Log['tipo'], acao: string, detalhes: string): void {
-    const logId = `LOG-${String(this.logs.length + 1).padStart(3, '0')}`;
-    
-    const novoLog: Log = {
-      id: logId,
-      data: new Date().toISOString(),
-      adminId: this.adminLogadoId,
-      adminNome: this.adminLogadoNome,
-      acao,
-      detalhes,
-      tipo
-    };
-    
-    this.logs.unshift(novoLog);
+    this.carregarLogs();
   }
 
   getLogTipoClass(tipo: Log['tipo']): string {
