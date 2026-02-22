@@ -1,9 +1,9 @@
 package com.crow.api.dto.denuncia;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record DenunciaRequest(
-    @NotBlank String idiomaId,
+    @NotNull Long idiomaId,
     String tiposJson,
     String descricao
 ) {}

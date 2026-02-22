@@ -25,11 +25,11 @@ export class AdminService {
     return this.http.get<Usuario[]>(`${this.apiUrl}/admin/usuarios`);
   }
 
-  editarUsuarioAdmin(id: string, dados: any): Observable<Usuario> {
+  editarUsuarioAdmin(id: number | string, dados: any): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}/admin/usuarios/${id}`, dados);
   }
 
-  alterarStatusUsuario(id: string, novoStatus: string): Observable<Usuario> {
+  alterarStatusUsuario(id: number | string, novoStatus: string): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}/admin/usuarios/${id}/status`, { status: novoStatus });
   }
 
@@ -37,7 +37,7 @@ export class AdminService {
     return this.http.get<IdiomaAdm[]>(`${this.apiUrl}/admin/idiomas`);
   }
 
-  excluirIdiomaAdmin(id: string): Observable<void> {
+  excluirIdiomaAdmin(id: number | string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/idiomas/${id}`);
   }
 

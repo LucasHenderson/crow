@@ -19,9 +19,9 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public String gerarToken(String userId, String email, String role) {
+    public String gerarToken(Long userId, String email, String role) {
         return Jwts.builder()
-                .subject(userId)
+                .subject(String.valueOf(userId))
                 .claim("email", email)
                 .claim("role", role)
                 .issuedAt(new Date())

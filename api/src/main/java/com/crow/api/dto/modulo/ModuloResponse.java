@@ -2,6 +2,7 @@ package com.crow.api.dto.modulo;
 
 public record ModuloResponse(
     Long id,
+    String codigo,
     String nome,
     String icone,
     int frases,

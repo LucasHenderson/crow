@@ -59,6 +59,7 @@ public class AuthService {
     public UsuarioResponse toUsuarioResponse(Usuario usuario) {
         return new UsuarioResponse(
                 usuario.getId(),
+                "USR-" + usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.getTelefone(),

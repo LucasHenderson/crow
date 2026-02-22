@@ -9,19 +9,19 @@ export class ModuloService {
 
   constructor(private http: HttpClient) {}
 
-  getModulosPorIdioma(idiomaId: string): Observable<any[]> {
+  getModulosPorIdioma(idiomaId: number | string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/idiomas/${idiomaId}/modulos`);
   }
 
-  criarModulo(idiomaId: string, dados: any): Observable<any> {
+  criarModulo(idiomaId: number | string, dados: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/idiomas/${idiomaId}/modulos`, dados);
   }
 
-  editarModulo(idiomaId: string, id: number, dados: any): Observable<any> {
+  editarModulo(idiomaId: number | string, id: number, dados: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/idiomas/${idiomaId}/modulos/${id}`, dados);
   }
 
-  excluirModulo(idiomaId: string, id: number): Observable<void> {
+  excluirModulo(idiomaId: number | string, id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/idiomas/${idiomaId}/modulos/${id}`);
   }
 }

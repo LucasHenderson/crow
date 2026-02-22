@@ -147,7 +147,7 @@
           <div class="denuncia-header">
             <div class="denuncia-info">
               <h3>{{ denuncia.idiomaNome }}</h3>
-              <span class="denuncia-id">ID: {{ denuncia.idiomaId }}</span>
+              <span class="denuncia-id">ID: {{ denuncia.codigoIdioma }}</span>
             </div>
             <span class="status-badge" [ngClass]="getStatusClass(denuncia.status)">
               {{ getStatusTexto(denuncia.status) }}
@@ -160,7 +160,7 @@
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
-              <span><strong>Denunciante:</strong> {{ denuncia.usuarioNome }} ({{ denuncia.usuarioId }})</span>
+              <span><strong>Denunciante:</strong> {{ denuncia.usuarioNome }} ({{ denuncia.codigoUsuario }})</span>
             </div>
 
             <div class="denuncia-item">
@@ -175,7 +175,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
-              <span><strong>Responsável:</strong> {{ denuncia.responsavelNome }} ({{ denuncia.responsavelId }})</span>
+              <span><strong>Responsável:</strong> {{ denuncia.responsavelNome }} ({{ denuncia.codigoResponsavel }})</span>
             </div>
 
             <div class="denuncia-tipos">
@@ -306,7 +306,7 @@
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
-              <span>ID: {{ usuario.id }}</span>
+              <span>ID: {{ usuario.codigo }}</span>
             </div>
           </div>
 
@@ -410,7 +410,7 @@
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
-              <span>{{ idioma.criadorNome }} ({{ idioma.criadorId }})</span>
+              <span>{{ idioma.criadorNome }} ({{ idioma.codigoCriador }})</span>
             </div>
 
             <div class="idioma-info-row">
@@ -418,7 +418,7 @@
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
-              <span>ID: {{ idioma.id }}</span>
+              <span>ID: {{ idioma.codigo }}</span>
             </div>
 
             <div class="idioma-stats">
@@ -583,7 +583,7 @@
           <div class="log-content">
             <div class="log-header">
               <div class="log-title-wrapper">
-                <span class="log-id">{{ log.id }}</span>
+                <span class="log-id">{{ log.codigo }}</span>
                 <h3 class="log-acao">{{ log.acao }}</h3>
               </div>
               <span class="log-data">{{ formatarData(log.data) }}</span>
@@ -596,7 +596,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
-                <span>{{ log.adminNome }} ({{ log.adminId }})</span>
+                <span>{{ log.adminNome }} ({{ log.codigoAdmin }})</span>
               </div>
               <span class="log-tipo-badge">{{ log.tipo }}</span>
             </div>
@@ -668,14 +668,14 @@
             <line x1="12" y1="9" x2="12" y2="13"></line>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
-          <span>ID da Denúncia: <strong>#{{ denunciaSelecionada.id }}</strong></span>
+          <span>ID da Denúncia: <strong>{{ denunciaSelecionada.codigo }}</strong></span>
         </div>
 
         <div class="denuncia-detalhes" *ngIf="denunciaSelecionada">
           <div class="detalhe-item">
             <strong>Idioma:</strong>
             <div class="idioma-link" (click)="visualizarIdiomaDenuncia()">
-              <span>{{ denunciaSelecionada.idiomaNome }} ({{ denunciaSelecionada.idiomaId }})</span>
+              <span>{{ denunciaSelecionada.idiomaNome }} ({{ denunciaSelecionada.codigoIdioma }})</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -686,7 +686,7 @@
 
           <div class="detalhe-item">
             <strong>Denunciante:</strong>
-            <span>{{ denunciaSelecionada.usuarioNome }} ({{ denunciaSelecionada.usuarioId }})</span>
+            <span>{{ denunciaSelecionada.usuarioNome }} ({{ denunciaSelecionada.codigoUsuario }})</span>
           </div>
 
           <div class="detalhe-item">
@@ -719,7 +719,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
-              <span>{{ denunciaSelecionada.responsavelNome }} ({{ denunciaSelecionada.responsavelId }})</span>
+              <span>{{ denunciaSelecionada.responsavelNome }} ({{ denunciaSelecionada.codigoResponsavel }})</span>
             </div>
           </div>
         </div>
@@ -779,7 +779,7 @@
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
-          <span>ID do Usuário: <strong>{{ usuarioEmEdicao.id }}</strong></span>
+          <span>ID do Usuário: <strong>{{ usuarioEmEdicao.codigo }}</strong></span>
         </div>
 
         <div class="campo">
@@ -914,7 +914,7 @@
           </svg>
           <p>
             Tem certeza que deseja <strong>{{ usuarioEmDesativacao?.status === 'ativo' ? 'desativar' : 'ativar' }}</strong> 
-            a conta de <strong>"{{ usuarioEmDesativacao?.nome }}"</strong> (ID: <strong>{{ usuarioEmDesativacao?.id }}</strong>)?
+            a conta de <strong>"{{ usuarioEmDesativacao?.nome }}"</strong> (ID: <strong>{{ usuarioEmDesativacao?.codigo }}</strong>)?
           </p>
           <p class="aviso-acao" *ngIf="usuarioEmDesativacao?.status === 'ativo'">
             O usuário não poderá mais acessar a plataforma.
@@ -952,7 +952,7 @@
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
-          <span>ID do Idioma: <strong>{{ idiomaEmEdicao.id }}</strong></span>
+          <span>ID do Idioma: <strong>{{ idiomaEmEdicao.codigo }}</strong></span>
         </div>
 
         <div class="bandeira-section">
@@ -1094,7 +1094,7 @@
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
           <p>
-            Tem certeza que deseja excluir o idioma <strong>"{{ idiomaEmExclusao?.nome }}"</strong> (ID: <strong>{{ idiomaEmExclusao?.id }}</strong>)?
+            Tem certeza que deseja excluir o idioma <strong>"{{ idiomaEmExclusao?.nome }}"</strong> (ID: <strong>{{ idiomaEmExclusao?.codigo }}</strong>)?
           </p>
           <p class="aviso-acao">
             Esta ação é <strong>irreversível</strong>. Todos os módulos e frases serão permanentemente removidos.

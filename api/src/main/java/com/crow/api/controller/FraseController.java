@@ -71,6 +71,7 @@ public class FraseController {
     private FraseResponse toResponse(Frase frase) {
         return new FraseResponse(
                 frase.getId(),
+                "FRS-" + frase.getId(),
                 frase.getModo() != null ? frase.getModo().name().toLowerCase() : null,
                 frase.getTraducaoCompleta(),
                 frase.getPalavrasJson(),

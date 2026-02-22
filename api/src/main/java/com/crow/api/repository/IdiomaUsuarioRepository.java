@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IdiomaUsuarioRepository extends JpaRepository<IdiomaUsuario, Long> {
-    List<IdiomaUsuario> findByUsuarioId(String usuarioId);
-    Optional<IdiomaUsuario> findByUsuarioIdAndIdiomaId(String usuarioId, String idiomaId);
-    int countByUsuarioId(String usuarioId);
-    boolean existsByUsuarioIdAndIdiomaId(String usuarioId, String idiomaId);
+    List<IdiomaUsuario> findByUsuarioId(Long usuarioId);
+    Optional<IdiomaUsuario> findByUsuarioIdAndIdiomaId(Long usuarioId, Long idiomaId);
+    int countByUsuarioId(Long usuarioId);
+    boolean existsByUsuarioIdAndIdiomaId(Long usuarioId, Long idiomaId);
 }

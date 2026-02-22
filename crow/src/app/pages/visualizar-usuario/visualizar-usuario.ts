@@ -15,7 +15,8 @@ import { UsuarioService } from '../../services/usuario.service';
 export class VisualizarUsuario implements OnInit {
 
   usuario: Usuario = {
-    id: '',
+    id: 0,
+    codigo: '',
     nome: '',
     email: '',
     dataEntrada: new Date()
@@ -55,8 +56,8 @@ export class VisualizarUsuario implements OnInit {
    * Copia o ID do usuário para a área de transferência
    */
   copiarId(): void {
-    navigator.clipboard.writeText(this.usuario.id).then(() => {
-      console.log('ID copiado:', this.usuario.id);
+    navigator.clipboard.writeText(this.usuario.codigo).then(() => {
+      console.log('ID copiado:', this.usuario.codigo);
       // Aqui você pode adicionar um toast/notificação de sucesso
       // this.showToast('ID copiado para a área de transferência!');
     }).catch(err => {
