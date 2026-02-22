@@ -109,18 +109,83 @@
 
           <div class="form-group full-width email-field">
             <label for="email">E-mail *</label>
-            <div class="input-with-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
+            <div class="email-verify-row">
+              <div class="input-with-icon email-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  [(ngModel)]="novoUsuario.email"
+                  (ngModelChange)="onEmailChange()"
+                  placeholder="seu@email.com"
+                  required
+                  [readonly]="emailVerificado" />
+              </div>
+              <button
+                type="button"
+                class="btn-verificar-email"
+                [class.verificado]="emailVerificado"
+                [disabled]="!podeEnviarCodigo()"
+                (click)="enviarCodigo()">
+                <svg *ngIf="!enviandoCodigo && !emailVerificado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 2L11 13"></path>
+                  <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                </svg>
+                <svg *ngIf="emailVerificado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span *ngIf="enviandoCodigo">Enviando...</span>
+                <span *ngIf="!enviandoCodigo && !emailVerificado">Verificar</span>
+                <span *ngIf="emailVerificado">Verificado</span>
+              </button>
+            </div>
+
+            <!-- Campo de código -->
+            <div class="codigo-verificacao" *ngIf="codigoEnviado && !emailVerificado">
+              <label>Código de verificação</label>
+              <div class="codigo-row">
+                <input
+                  type="text"
+                  name="codigoVerificacao"
+                  [(ngModel)]="codigoDigitado"
+                  (keydown)="permitirApenasNumerosCodigo($event)"
+                  placeholder="000000"
+                  maxlength="6"
+                  class="codigo-input" />
+                <button
+                  type="button"
+                  class="btn-confirmar-codigo"
+                  [disabled]="codigoDigitado.length !== 6 || verificandoCodigo"
+                  (click)="verificarCodigo()">
+                  <span *ngIf="!verificandoCodigo">Confirmar</span>
+                  <span *ngIf="verificandoCodigo">Verificando...</span>
+                </button>
+              </div>
+              <button
+                type="button"
+                class="btn-reenviar"
+                [disabled]="enviandoCodigo"
+                (click)="enviarCodigo()">
+                Reenviar código
+              </button>
+            </div>
+
+            <!-- Mensagem de feedback -->
+            <div class="email-feedback" *ngIf="mensagemEmail" [class.erro]="erroEmail" [class.sucesso]="!erroEmail">
+              <svg *ngIf="erroEmail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
-              <input 
-                id="email" 
-                name="email" 
-                type="email" 
-                [(ngModel)]="novoUsuario.email"
-                placeholder="seu@email.com" 
-                required />
+              <svg *ngIf="!erroEmail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <span>{{ mensagemEmail }}</span>
             </div>
           </div>
 

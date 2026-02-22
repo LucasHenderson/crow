@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -36,49 +36,52 @@ export class CadastrarUsuario {
   enviandoFormulario = false;
   erroCadastro = '';
 
+  // Verificação de email
+  emailVerificado = false;
+  codigoEnviado = false;
+  codigoDigitado = '';
+  enviandoCodigo = false;
+  verificandoCodigo = false;
+  mensagemEmail = '';
+  erroEmail = false;
+  private emailVerificadoValor = '';
+
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
-  /**
-   * Permite apenas números no campo de telefone
-   */
   permitirApenasNumeros(event: KeyboardEvent): boolean {
     const tecla = event.key;
-    
-    // Permite teclas de controle (Backspace, Delete, Tab, Arrow keys, etc)
+
     if (
-      tecla === 'Backspace' || 
-      tecla === 'Delete' || 
-      tecla === 'Tab' || 
-      tecla === 'ArrowLeft' || 
+      tecla === 'Backspace' ||
+      tecla === 'Delete' ||
+      tecla === 'Tab' ||
+      tecla === 'ArrowLeft' ||
       tecla === 'ArrowRight' ||
       tecla === 'Home' ||
       tecla === 'End'
     ) {
       return true;
     }
-    
-    // Bloqueia se não for número
+
     if (!/^\d$/.test(tecla)) {
       event.preventDefault();
       return false;
     }
-    
+
     return true;
   }
 
-  /**
-   * Aplica máscara ao campo de telefone
-   */
   aplicarMascaraTelefone(event: any): void {
     let valor = event.target.value.replace(/\D/g, '');
-    
+
     if (valor.length > 11) {
       valor = valor.substring(0, 11);
     }
-    
+
     if (valor.length > 6) {
       valor = valor.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
     } else if (valor.length > 2) {
@@ -86,51 +89,137 @@ export class CadastrarUsuario {
     } else if (valor.length > 0) {
       valor = valor.replace(/^(\d*)/, '($1');
     }
-    
+
     this.novoUsuario.telefone = valor;
   }
 
-  /**
-   * Verifica se todos os campos obrigatórios foram preenchidos
-   */
   formularioValido(): boolean {
     return !!(
       this.novoUsuario.nome.trim() &&
       this.novoUsuario.email.trim() &&
       this.novoUsuario.senha &&
       this.novoUsuario.confirmarSenha &&
-      this.novoUsuario.aceitouTermos
+      this.novoUsuario.aceitouTermos &&
+      this.emailVerificado
     );
   }
 
-  /**
-   * Alterna a visibilidade dos campos de senha
-   */
   togglePassword(field: keyof CamposSenha): void {
     this.camposVisiveis[field] = !this.camposVisiveis[field];
   }
 
-  /**
-   * Valida e cadastra o novo usuário
-   */
+  // --- Verificação de Email ---
+
+  onEmailChange(): void {
+    if (this.emailVerificado && this.novoUsuario.email !== this.emailVerificadoValor) {
+      this.emailVerificado = false;
+      this.codigoEnviado = false;
+      this.codigoDigitado = '';
+      this.mensagemEmail = '';
+      this.erroEmail = false;
+      this.emailVerificadoValor = '';
+    }
+  }
+
+  podeEnviarCodigo(): boolean {
+    return this.validarEmail(this.novoUsuario.email) && !this.enviandoCodigo && !this.emailVerificado;
+  }
+
+  enviarCodigo(): void {
+    if (!this.validarEmail(this.novoUsuario.email)) {
+      this.mensagemEmail = 'Informe um email válido.';
+      this.erroEmail = true;
+      return;
+    }
+
+    this.enviandoCodigo = true;
+    this.mensagemEmail = '';
+    this.erroEmail = false;
+
+    this.authService.enviarCodigoVerificacao(this.novoUsuario.email).subscribe({
+      next: () => {
+        this.enviandoCodigo = false;
+        this.codigoEnviado = true;
+        this.mensagemEmail = 'Código enviado! Verifique sua caixa de entrada.';
+        this.erroEmail = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.enviandoCodigo = false;
+        this.mensagemEmail = err.error?.message || 'Erro ao enviar código. Tente novamente.';
+        this.erroEmail = true;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  verificarCodigo(): void {
+    if (!this.codigoDigitado || this.codigoDigitado.length !== 6) {
+      this.mensagemEmail = 'Digite o código de 6 dígitos.';
+      this.erroEmail = true;
+      return;
+    }
+
+    this.verificandoCodigo = true;
+    this.mensagemEmail = '';
+    this.erroEmail = false;
+
+    this.authService.verificarCodigo(this.novoUsuario.email, this.codigoDigitado).subscribe({
+      next: (res) => {
+        this.verificandoCodigo = false;
+        if (res.valido) {
+          this.emailVerificado = true;
+          this.emailVerificadoValor = this.novoUsuario.email;
+          this.mensagemEmail = 'Email verificado com sucesso!';
+          this.erroEmail = false;
+        } else {
+          this.mensagemEmail = 'Código inválido ou expirado. Tente novamente.';
+          this.erroEmail = true;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.verificandoCodigo = false;
+        this.mensagemEmail = 'Erro ao verificar código. Tente novamente.';
+        this.erroEmail = true;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  permitirApenasNumerosCodigo(event: KeyboardEvent): boolean {
+    const tecla = event.key;
+    if (['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(tecla)) {
+      return true;
+    }
+    if (!/^\d$/.test(tecla)) {
+      event.preventDefault();
+      return false;
+    }
+    return true;
+  }
+
+  // --- Cadastro ---
+
   cadastrar(): void {
-    // Validação dos campos obrigatórios
     if (!this.validarCamposObrigatorios()) {
       return;
     }
 
-    // Validação de email
     if (!this.validarEmail(this.novoUsuario.email)) {
       this.showError('Por favor, insira um email válido.');
       return;
     }
 
-    // Validação de senha
+    if (!this.emailVerificado) {
+      this.showError('Por favor, verifique seu email antes de continuar.');
+      return;
+    }
+
     if (!this.validarSenha()) {
       return;
     }
 
-    // Validação dos termos
     if (!this.novoUsuario.aceitouTermos) {
       this.showError('Você precisa aceitar os termos de uso e política de privacidade.');
       return;
@@ -152,13 +241,11 @@ export class CadastrarUsuario {
       error: (err) => {
         this.enviandoFormulario = false;
         this.erroCadastro = err.error?.message || 'Erro ao criar conta. Tente novamente.';
+        this.cdr.detectChanges();
       }
     });
   }
 
-  /**
-   * Valida os campos obrigatórios
-   */
   private validarCamposObrigatorios(): boolean {
     if (!this.novoUsuario.nome.trim() || this.novoUsuario.nome.trim().length < 8) {
       this.showError('Por favor, informe seu nome completo (mínimo 8 caracteres).');
@@ -183,17 +270,11 @@ export class CadastrarUsuario {
     return true;
   }
 
-  /**
-   * Valida o formato do email
-   */
   private validarEmail(email: string): boolean {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   }
 
-  /**
-   * Valida a senha
-   */
   private validarSenha(): boolean {
     if (this.novoUsuario.senha.length < 6) {
       this.showError('A senha deve ter no mínimo 6 caracteres.');
@@ -205,7 +286,6 @@ export class CadastrarUsuario {
       return false;
     }
 
-    // Validação adicional: pelo menos uma letra e um número
     const temLetra = /[a-zA-Z]/.test(this.novoUsuario.senha);
     const temNumero = /[0-9]/.test(this.novoUsuario.senha);
 
@@ -217,48 +297,34 @@ export class CadastrarUsuario {
     return true;
   }
 
-  /**
-   * Exibe mensagem de erro
-   */
   private showError(message: string): void {
     alert(message);
   }
 
-  /**
-   * Navega para a página de login
-   */
   irParaLogin(): void {
     this.router.navigate(['/login']);
   }
 
-  /**
-   * Retorna a força da senha (0 a 4)
-   */
   getForcaSenha(): number {
     const senha = this.novoUsuario.senha;
-    
+
     if (!senha) return 0;
-    
+
     let forca = 0;
-    
-    // Comprimento
+
     if (senha.length >= 6) forca++;
     if (senha.length >= 10) forca++;
-    
-    // Complexidade
+
     if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
     if (/[0-9]/.test(senha)) forca++;
     if (/[^a-zA-Z0-9]/.test(senha)) forca++;
-    
+
     return Math.min(forca, 4);
   }
 
-  /**
-   * Retorna o texto da força da senha
-   */
   getTextoForcaSenha(): string {
     const forca = this.getForcaSenha();
-    
+
     switch(forca) {
       case 0: return '';
       case 1: return 'Fraca';
@@ -269,12 +335,9 @@ export class CadastrarUsuario {
     }
   }
 
-  /**
-   * Retorna a classe CSS da força da senha
-   */
   getClasseForcaSenha(): string {
     const forca = this.getForcaSenha();
-    
+
     switch(forca) {
       case 1: return 'fraca';
       case 2: return 'media';
