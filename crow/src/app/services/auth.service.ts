@@ -45,6 +45,10 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/verificar-codigo`, { email, codigo });
   }
 
+  redefinirSenha(email: string, novaSenha: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/redefinir-senha`, { email, novaSenha });
+  }
+
   logout(): void {
     localStorage.removeItem('authToken');
     localStorage.removeItem('usuario');

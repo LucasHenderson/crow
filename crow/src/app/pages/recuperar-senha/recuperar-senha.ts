@@ -2,13 +2,12 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 type CamposSenha = {
   novaSenha: boolean;
   confirmarSenha: boolean;
 };
-
-type MetodoRecuperacao = 'email' | 'sms' | null;
 
 @Component({
   selector: 'app-recuperar-senha',
@@ -18,25 +17,23 @@ type MetodoRecuperacao = 'email' | 'sms' | null;
   styleUrl: './recuperar-senha.css',
 })
 export class RecuperarSenha {
-  
-  // Controle de etapas
+
+  // Controle de etapas (1: Email, 2: Código, 3: Nova Senha)
   etapaAtual = 1;
-  totalEtapas = 4;
+  totalEtapas = 3;
 
   // Etapa 1: Email
   email = '';
   emailErro = '';
 
-  // Etapa 2: Método de recuperação
-  metodoSelecionado: MetodoRecuperacao = null;
-  metodoErro = '';
-
-  // Etapa 3: Código de verificação
+  // Etapa 2: Código de verificação
   codigoDigitado = '';
-  codigoEnviado = ''; // Simulação do código enviado
   codigoErro = '';
+  enviandoCodigo = false;
+  verificandoCodigo = false;
+  mensagemCodigo = '';
 
-  // Etapa 4: Nova senha
+  // Etapa 3: Nova senha
   novaSenha = '';
   confirmarSenha = '';
   senhaErro = '';
@@ -53,71 +50,33 @@ export class RecuperarSenha {
 
   constructor(
     private router: Router,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  /**
-   * Avança para a próxima etapa
-   */
-  async proximaEtapa(): Promise<void> {
+  proximaEtapa(): void {
     if (this.etapaAtual === 1) {
       if (!this.validarEmail()) return;
-      
-      // Simular verificação se o email existe
-      this.carregando = true;
-      this.emailErro = '';
-      
-      setTimeout(() => {
-        this.carregando = false;
-        this.etapaAtual++;
-        // Força atualização da view
-        this.forcarAtualizacao();
-      }, 1000);
-    } 
-    else if (this.etapaAtual === 2) {
-      if (!this.validarMetodo()) return;
-      
-      // Enviar código via API
-      this.carregando = true;
-      this.metodoErro = '';
-      await this.enviarCodigoVerificacao();
-      // Força atualização da view
-      this.forcarAtualizacao();
+      this.enviarCodigoVerificacao();
     }
-    else if (this.etapaAtual === 3) {
+    else if (this.etapaAtual === 2) {
       if (!this.validarCodigo()) return;
-      
-      this.carregando = true;
-      this.codigoErro = '';
-      
-      setTimeout(() => {
-        this.carregando = false;
-        this.etapaAtual++;
-        // Força atualização da view
-        this.forcarAtualizacao();
-      }, 800);
+      this.verificarCodigoBackend();
     }
   }
 
-  /**
-   * Força atualização da view
-   */
   private forcarAtualizacao(): void {
     this.cdr.detectChanges();
   }
 
-  /**
-   * Volta para a etapa anterior
-   */
   voltarEtapa(): void {
     if (this.etapaAtual > 1) {
       this.etapaAtual--;
+      this.codigoErro = '';
+      this.mensagemCodigo = '';
     }
   }
 
-  /**
-   * Valida o email informado
-   */
   private validarEmail(): boolean {
     this.emailErro = '';
 
@@ -135,135 +94,35 @@ export class RecuperarSenha {
     return true;
   }
 
-  /**
-   * Valida se um método foi selecionado
-   */
-  private validarMetodo(): boolean {
-    this.metodoErro = '';
+  enviarCodigoVerificacao(): void {
+    this.carregando = true;
+    this.emailErro = '';
+    this.enviandoCodigo = true;
 
-    if (!this.metodoSelecionado) {
-      this.metodoErro = 'Por favor, selecione um método de recuperação.';
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Seleciona o método de recuperação
-   */
-  selecionarMetodo(metodo: MetodoRecuperacao): void {
-    this.metodoSelecionado = metodo;
-    this.metodoErro = '';
-  }
-
-  /**
-   * Gera um código de verificação aleatório de 6 dígitos
-   */
-  private gerarCodigoVerificacao(): void {
-    //this.codigoEnviado = Math.floor(100000 + Math.random() * 900000).toString();
-    this.codigoEnviado = Math.floor(100000).toString();
-  }
-
-  /**
-   * Envia código de verificação via API
-   */
-  private async enviarCodigoVerificacao(): Promise<void> {
-    this.gerarCodigoVerificacao();
-
-    try {
-      if (this.metodoSelecionado === 'email') {
-        // Enviar via email (Gmail API ou serviço de email)
-        await this.enviarCodigoPorEmail();
-      } else {
-        // Enviar via SMS (Twilio, AWS SNS, etc)
-        await this.enviarCodigoPorSMS();
+    this.authService.enviarCodigoVerificacao(this.email).subscribe({
+      next: () => {
+        this.carregando = false;
+        this.enviandoCodigo = false;
+        this.etapaAtual = 2;
+        this.mensagemCodigo = 'Código enviado! Verifique sua caixa de entrada.';
+        this.forcarAtualizacao();
+      },
+      error: (err) => {
+        this.carregando = false;
+        this.enviandoCodigo = false;
+        this.emailErro = err.error?.message || 'Erro ao enviar código. Tente novamente.';
+        this.forcarAtualizacao();
       }
-
-      this.carregando = false;
-      this.etapaAtual++;
-      
-      // Apenas para desenvolvimento - remover em produção
-      console.log(`Código enviado: ${this.codigoEnviado}`);
-    } catch (error) {
-      this.carregando = false;
-      this.metodoErro = 'Erro ao enviar código. Tente novamente.';
-      console.error('Erro ao enviar código:', error);
-    }
-  }
-
-  /**
-   * Envia código por email usando API
-   */
-  private async enviarCodigoPorEmail(): Promise<void> {
-    // Simulação de envio por email
-    // Em produção, implementar com serviço real como:
-    // - Gmail API
-    // - SendGrid
-    // - Amazon SES
-    // - Mailgun
-    
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`Email enviado para ${this.email} com código: ${this.codigoEnviado}`);
-        
-        // Exemplo de implementação com backend:
-        /*
-        fetch('/api/enviar-codigo-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: this.email,
-            codigo: this.codigoEnviado
-          })
-        }).then(response => {
-          if (response.ok) resolve();
-          else throw new Error('Erro ao enviar email');
-        });
-        */
-        
-        resolve();
-      }, 1500);
     });
   }
 
-  /**
-   * Envia código por SMS usando API
-   */
-  private async enviarCodigoPorSMS(): Promise<void> {
-    // Simulação de envio por SMS
-    // Em produção, implementar com serviço real como:
-    // - Twilio
-    // - AWS SNS
-    // - Nexmo/Vonage
-    
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(`SMS enviado com código: ${this.codigoEnviado}`);
-        
-        // Exemplo de implementação com backend:
-        /*
-        fetch('/api/enviar-codigo-sms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            telefone: this.telefoneUsuario,
-            codigo: this.codigoEnviado
-          })
-        }).then(response => {
-          if (response.ok) resolve();
-          else throw new Error('Erro ao enviar SMS');
-        });
-        */
-        
-        resolve();
-      }, 1500);
-    });
+  reenviarCodigo(): void {
+    this.codigoErro = '';
+    this.mensagemCodigo = '';
+    this.codigoDigitado = '';
+    this.enviarCodigoVerificacao();
   }
 
-  /**
-   * Valida o código informado
-   */
   private validarCodigo(): boolean {
     this.codigoErro = '';
 
@@ -277,50 +136,53 @@ export class RecuperarSenha {
       return false;
     }
 
-    if (this.codigoDigitado !== this.codigoEnviado) {
-      this.codigoErro = 'Código inválido. Por favor, verifique e tente novamente.';
-      return false;
-    }
-
     return true;
   }
 
-  /**
-   * Permite apenas números no campo de código
-   */
+  verificarCodigoBackend(): void {
+    this.verificandoCodigo = true;
+    this.carregando = true;
+    this.codigoErro = '';
+
+    this.authService.verificarCodigo(this.email, this.codigoDigitado).subscribe({
+      next: (res) => {
+        this.verificandoCodigo = false;
+        this.carregando = false;
+        if (res.valido) {
+          this.etapaAtual = 3;
+        } else {
+          this.codigoErro = 'Código inválido ou expirado. Tente novamente.';
+        }
+        this.forcarAtualizacao();
+      },
+      error: () => {
+        this.verificandoCodigo = false;
+        this.carregando = false;
+        this.codigoErro = 'Erro ao verificar código. Tente novamente.';
+        this.forcarAtualizacao();
+      }
+    });
+  }
+
   permitirApenasNumeros(event: KeyboardEvent): boolean {
     const tecla = event.key;
-    
-    if (
-      tecla === 'Backspace' || 
-      tecla === 'Delete' || 
-      tecla === 'Tab' || 
-      tecla === 'ArrowLeft' || 
-      tecla === 'ArrowRight' ||
-      tecla === 'Home' ||
-      tecla === 'End'
-    ) {
+
+    if (['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(tecla)) {
       return true;
     }
-    
+
     if (!/^\d$/.test(tecla)) {
       event.preventDefault();
       return false;
     }
-    
+
     return true;
   }
 
-  /**
-   * Alterna a visibilidade dos campos de senha
-   */
   togglePassword(field: keyof CamposSenha): void {
     this.camposVisiveis[field] = !this.camposVisiveis[field];
   }
 
-  /**
-   * Verifica se pode confirmar a nova senha
-   */
   podeConfirmarSenha(): boolean {
     return !!(
       this.novaSenha &&
@@ -330,9 +192,6 @@ export class RecuperarSenha {
     );
   }
 
-  /**
-   * Confirma a nova senha e exibe modal de sucesso
-   */
   confirmarNovaSenha(): void {
     this.senhaErro = '';
 
@@ -346,7 +205,6 @@ export class RecuperarSenha {
       return;
     }
 
-    // Validação adicional: pelo menos uma letra e um número
     const temLetra = /[a-zA-Z]/.test(this.novaSenha);
     const temNumero = /[0-9]/.test(this.novaSenha);
 
@@ -355,61 +213,52 @@ export class RecuperarSenha {
       return;
     }
 
-    // Simular salvamento da nova senha
     this.carregando = true;
-    setTimeout(() => {
-      this.carregando = false;
-      this.mostrarModalSucesso = true;
-      this.cdr.detectChanges();
-      
-      console.log('Senha alterada com sucesso!');
-    }, 1000);
+
+    this.authService.redefinirSenha(this.email, this.novaSenha).subscribe({
+      next: () => {
+        this.carregando = false;
+        this.mostrarModalSucesso = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.carregando = false;
+        this.senhaErro = err.error?.message || 'Erro ao redefinir senha. Tente novamente.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
-  /**
-   * Fecha o modal de sucesso e redireciona para login
-   */
   fecharModalSucesso(): void {
     this.mostrarModalSucesso = false;
     this.router.navigate(['/login']);
   }
 
-  /**
-   * Redireciona diretamente para login (botão do modal)
-   */
   irParaLogin(): void {
     this.mostrarModalSucesso = false;
     this.router.navigate(['/login']);
   }
 
-  /**
-   * Retorna a força da senha (0 a 4)
-   */
   getForcaSenha(): number {
     const senha = this.novaSenha;
-    
+
     if (!senha) return 0;
-    
+
     let forca = 0;
-    
-    // Comprimento
+
     if (senha.length >= 6) forca++;
     if (senha.length >= 10) forca++;
-    
-    // Complexidade
+
     if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
     if (/[0-9]/.test(senha)) forca++;
     if (/[^a-zA-Z0-9]/.test(senha)) forca++;
-    
+
     return Math.min(forca, 4);
   }
 
-  /**
-   * Retorna o texto da força da senha
-   */
   getTextoForcaSenha(): string {
     const forca = this.getForcaSenha();
-    
+
     switch(forca) {
       case 0: return '';
       case 1: return 'Fraca';
@@ -420,12 +269,9 @@ export class RecuperarSenha {
     }
   }
 
-  /**
-   * Retorna a classe CSS da força da senha
-   */
   getClasseForcaSenha(): string {
     const forca = this.getForcaSenha();
-    
+
     switch(forca) {
       case 1: return 'fraca';
       case 2: return 'media';
@@ -435,18 +281,10 @@ export class RecuperarSenha {
     }
   }
 
-  /**
-   * Cancela o processo e volta para login
-   */
   cancelar(): void {
-    if (confirm('Deseja cancelar a recuperação de senha?')) {
-      this.router.navigate(['/login']);
-    }
+    this.router.navigate(['/login']);
   }
 
-  /**
-   * Calcula a porcentagem de progresso
-   */
   getProgresso(): number {
     return (this.etapaAtual / this.totalEtapas) * 100;
   }

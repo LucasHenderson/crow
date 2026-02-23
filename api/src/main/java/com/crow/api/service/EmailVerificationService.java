@@ -20,6 +20,7 @@ public class EmailVerificationService {
     private record CodigoVerificacao(String codigo, LocalDateTime criadoEm) {}
 
     private final ConcurrentHashMap<String, CodigoVerificacao> codigos = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, LocalDateTime> emailsVerificados = new ConcurrentHashMap<>();
 
     private static final int EXPIRACAO_MINUTOS = 10;
 
@@ -71,9 +72,26 @@ public class EmailVerificationService {
 
         if (registro.codigo().equals(codigo)) {
             codigos.remove(email.toLowerCase());
+            emailsVerificados.put(email.toLowerCase(), LocalDateTime.now());
             return true;
         }
 
         return false;
+    }
+
+    public boolean isEmailVerificado(String email) {
+        LocalDateTime verificadoEm = emailsVerificados.get(email.toLowerCase());
+        if (verificadoEm == null) {
+            return false;
+        }
+        if (verificadoEm.plusMinutes(EXPIRACAO_MINUTOS).isBefore(LocalDateTime.now())) {
+            emailsVerificados.remove(email.toLowerCase());
+            return false;
+        }
+        return true;
+    }
+
+    public void consumirVerificacao(String email) {
+        emailsVerificados.remove(email.toLowerCase());
     }
 }
