@@ -52,47 +52,6 @@ export class CadastrarUsuario {
     private cdr: ChangeDetectorRef
   ) {}
 
-  permitirApenasNumeros(event: KeyboardEvent): boolean {
-    const tecla = event.key;
-
-    if (
-      tecla === 'Backspace' ||
-      tecla === 'Delete' ||
-      tecla === 'Tab' ||
-      tecla === 'ArrowLeft' ||
-      tecla === 'ArrowRight' ||
-      tecla === 'Home' ||
-      tecla === 'End'
-    ) {
-      return true;
-    }
-
-    if (!/^\d$/.test(tecla)) {
-      event.preventDefault();
-      return false;
-    }
-
-    return true;
-  }
-
-  aplicarMascaraTelefone(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-
-    if (valor.length > 11) {
-      valor = valor.substring(0, 11);
-    }
-
-    if (valor.length > 6) {
-      valor = valor.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
-    } else if (valor.length > 2) {
-      valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-    } else if (valor.length > 0) {
-      valor = valor.replace(/^(\d*)/, '($1');
-    }
-
-    this.novoUsuario.telefone = valor;
-  }
-
   formularioValido(): boolean {
     return !!(
       this.novoUsuario.nome.trim() &&
@@ -202,17 +161,19 @@ export class CadastrarUsuario {
   // --- Cadastro ---
 
   cadastrar(): void {
+    this.erroCadastro = '';
+
     if (!this.validarCamposObrigatorios()) {
       return;
     }
 
     if (!this.validarEmail(this.novoUsuario.email)) {
-      this.showError('Por favor, insira um email válido.');
+      this.erroCadastro = 'Por favor, insira um email válido.';
       return;
     }
 
     if (!this.emailVerificado) {
-      this.showError('Por favor, verifique seu email antes de continuar.');
+      this.erroCadastro = 'Por favor, verifique seu email antes de continuar.';
       return;
     }
 
@@ -221,18 +182,16 @@ export class CadastrarUsuario {
     }
 
     if (!this.novoUsuario.aceitouTermos) {
-      this.showError('Você precisa aceitar os termos de uso e política de privacidade.');
+      this.erroCadastro = 'Você precisa aceitar os termos de uso e política de privacidade.';
       return;
     }
 
     this.enviandoFormulario = true;
-    this.erroCadastro = '';
 
     this.authService.register({
       nome: this.novoUsuario.nome,
       email: this.novoUsuario.email,
-      senha: this.novoUsuario.senha,
-      telefone: this.novoUsuario.telefone
+      senha: this.novoUsuario.senha
     }).subscribe({
       next: () => {
         this.enviandoFormulario = false;
@@ -248,22 +207,22 @@ export class CadastrarUsuario {
 
   private validarCamposObrigatorios(): boolean {
     if (!this.novoUsuario.nome.trim() || this.novoUsuario.nome.trim().length < 8) {
-      this.showError('Por favor, informe seu nome completo (mínimo 8 caracteres).');
+      this.erroCadastro = 'Por favor, informe seu nome completo (mínimo 8 caracteres).';
       return false;
     }
 
     if (!this.novoUsuario.email.trim()) {
-      this.showError('Por favor, informe seu email.');
+      this.erroCadastro = 'Por favor, informe seu email.';
       return false;
     }
 
     if (!this.novoUsuario.senha) {
-      this.showError('Por favor, informe uma senha.');
+      this.erroCadastro = 'Por favor, informe uma senha.';
       return false;
     }
 
     if (!this.novoUsuario.confirmarSenha) {
-      this.showError('Por favor, confirme sua senha.');
+      this.erroCadastro = 'Por favor, confirme sua senha.';
       return false;
     }
 
@@ -277,12 +236,12 @@ export class CadastrarUsuario {
 
   private validarSenha(): boolean {
     if (this.novoUsuario.senha.length < 6) {
-      this.showError('A senha deve ter no mínimo 6 caracteres.');
+      this.erroCadastro = 'A senha deve ter no mínimo 6 caracteres.';
       return false;
     }
 
     if (this.novoUsuario.senha !== this.novoUsuario.confirmarSenha) {
-      this.showError('As senhas não coincidem.');
+      this.erroCadastro = 'As senhas não coincidem.';
       return false;
     }
 
@@ -290,15 +249,11 @@ export class CadastrarUsuario {
     const temNumero = /[0-9]/.test(this.novoUsuario.senha);
 
     if (!temLetra || !temNumero) {
-      this.showError('A senha deve conter pelo menos uma letra e um número.');
+      this.erroCadastro = 'A senha deve conter pelo menos uma letra e um número.';
       return false;
     }
 
     return true;
-  }
-
-  private showError(message: string): void {
-    alert(message);
   }
 
   irParaLogin(): void {
