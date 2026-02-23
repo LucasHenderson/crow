@@ -70,4 +70,12 @@ public class UsuarioService {
     public Usuario editarUsuarioAdmin(Long id, UsuarioUpdateRequest dto) {
         return atualizarPerfil(id, dto);
     }
+
+    public void redefinirSenha(String email, String novaSenha) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
+        usuarioRepository.save(usuario);
+    }
 }

@@ -147,10 +147,10 @@
 
 /* ETAPA CARD */
 .etapa-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.15);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   transition: all 0.3s ease;
@@ -217,12 +217,16 @@
 }
 
 .etapa-descricao {
-  color: #64748b;
+  color: #94a3b8;
   font-size: 0.95rem;
   line-height: 1.6;
   margin: 0;
   text-align: center;
   font-weight: 500;
+}
+
+.etapa-descricao strong {
+  color: #60a5fa;
 }
 
 /* FORM GROUP */
@@ -232,7 +236,6 @@
   gap: 0.5rem;
 }
 
-/* Campo de email com maior comprimento */
 .form-group.email-field input {
   min-width: 100%;
 }
@@ -240,35 +243,40 @@
 .form-group label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #cbd5e1;
   margin-left: 0.2rem;
 }
 
 .form-group input {
   padding: 0.85rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #1e293b;
+  color: #f1f5f9;
   outline: none;
   transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .form-group input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .form-group input:focus {
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .form-group input:hover {
-  border-color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .input-with-icon {
@@ -298,7 +306,7 @@
 
 .error {
   font-size: 0.8rem;
-  color: #ef4444;
+  color: #fca5a5;
   margin-left: 0.2rem;
   display: flex;
   align-items: center;
@@ -312,23 +320,61 @@
   margin-left: 0;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* CODIGO INPUT */
 .codigo-input {
   text-align: center;
   font-size: 1.5rem !important;
   letter-spacing: 0.5rem;
   font-weight: 700 !important;
   padding: 1rem !important;
+}
+
+/* CODIGO FEEDBACK */
+.codigo-feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  animation: slideIn 0.3s ease;
+}
+
+.codigo-feedback.sucesso {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.codigo-feedback svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* REENVIAR CÓDIGO */
+.btn-reenviar {
+  background: none;
+  border: none;
+  color: #60a5fa;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  align-self: center;
+}
+
+.btn-reenviar:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93bbfd;
+  text-decoration: underline;
+}
+
+.btn-reenviar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* PASSWORD */
@@ -361,13 +407,13 @@
 }
 
 .eye-icon:hover {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.15);
 }
 
 .eye-icon svg {
   width: 20px;
   height: 20px;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 /* PASSWORD STRENGTH */
@@ -381,7 +427,7 @@
 .strength-bar {
   flex: 1;
   height: 6px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -428,107 +474,6 @@
 
 .strength-text.forte {
   color: #10b981;
-}
-
-/* MÉTODO DE RECUPERAÇÃO */
-.metodo-opcoes {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.metodo-card {
-  padding: 1.5rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  background: white;
-  text-align: center;
-}
-
-.metodo-card:hover {
-  border-color: #3b82f6;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
-}
-
-.metodo-card.selected {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
-}
-
-.metodo-icon {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 1rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.metodo-card.selected .metodo-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.metodo-icon svg {
-  width: 28px;
-  height: 28px;
-  color: #3b82f6;
-  transition: all 0.3s ease;
-}
-
-.metodo-card.selected .metodo-icon svg {
-  color: white;
-}
-
-.metodo-card h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 0.5rem 0;
-}
-
-.metodo-card p {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin: 0;
-  font-weight: 500;
-}
-
-.check-icon {
-  position: absolute;
-  top: 0.8rem;
-  right: 0.8rem;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: scaleIn 0.3s ease;
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0);
-  }
-  to {
-    transform: scale(1);
-  }
-}
-
-.check-icon svg {
-  width: 16px;
-  height: 16px;
-  color: white;
 }
 
 /* FORM ACTIONS */
@@ -581,17 +526,17 @@
 }
 
 .btn-secondary {
-  background: white;
-  color: #64748b;
-  border: 2px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  border-color: #cbd5e1;
-  color: #475569;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .btn-secondary:active:not(:disabled) {
@@ -863,10 +808,6 @@
   .card-content {
     padding: 1.5rem 1.2rem;
   }
-
-  .metodo-opcoes {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 600px) {
@@ -918,7 +859,7 @@
     letter-spacing: 0.3rem;
   }
 
-    .modal-container {
+  .modal-container {
     max-width: 95%;
   }
 
@@ -976,25 +917,7 @@
     font-size: 0.7rem;
   }
 
-  .metodo-icon {
-    width: 50px;
-    height: 50px;
-  }
-
-  .metodo-icon svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .metodo-card h3 {
-    font-size: 0.95rem;
-  }
-
-  .metodo-card p {
-    font-size: 0.8rem;
-  }
-
-    .modal-container {
+  .modal-container {
     max-width: 100%;
     margin: 0 0.5rem;
   }
@@ -1054,7 +977,7 @@
     padding: 1rem 0.8rem;
   }
 
-    .modal-header h2 {
+  .modal-header h2 {
     font-size: 1.1rem;
   }
 
