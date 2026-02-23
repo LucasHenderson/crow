@@ -16,7 +16,7 @@
   </div>
 
   <div class="cadastro-grid">
-    
+
     <!-- Info Card -->
     <div class="info-card">
       <div class="card-header">
@@ -84,7 +84,17 @@
       </div>
 
       <form class="form-content" (ngSubmit)="cadastrar()" #f="ngForm">
-        
+
+        <!-- Erro geral do formulário -->
+        <div class="erro-formulario" *ngIf="erroCadastro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{{ erroCadastro }}</span>
+        </div>
+
         <!-- Dados Pessoais -->
         <div class="section-header">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -97,13 +107,13 @@
         <div class="form-grid">
           <div class="form-group full-width">
             <label for="nome">Nome completo *</label>
-            <input 
-              id="nome" 
-              name="nome" 
-              type="text" 
-              [(ngModel)]="novoUsuario.nome" 
+            <input
+              id="nome"
+              name="nome"
+              type="text"
+              [(ngModel)]="novoUsuario.nome"
               placeholder="Digite seu nome completo (mínimo 8 caracteres)"
-              required 
+              required
               minlength="8" />
           </div>
 
@@ -188,24 +198,6 @@
               <span>{{ mensagemEmail }}</span>
             </div>
           </div>
-
-          <div class="form-group full-width telefone-field">
-            <label for="telefone">Telefone</label>
-            <div class="input-with-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-              </svg>
-              <input 
-                id="telefone" 
-                name="telefone" 
-                type="tel" 
-                [(ngModel)]="novoUsuario.telefone"
-                (keydown)="permitirApenasNumeros($event)"
-                (input)="aplicarMascaraTelefone($event)"
-                placeholder="(00) 00000-0000"
-                maxlength="15" />
-            </div>
-          </div>
         </div>
 
         <div class="divider"></div>
@@ -223,16 +215,16 @@
           <div class="form-group full-width">
             <label for="senha">Senha *</label>
             <div class="password-wrapper">
-              <input 
-                id="senha" 
+              <input
+                id="senha"
                 name="senha"
                 [type]="camposVisiveis.senha ? 'text' : 'password'"
-                [(ngModel)]="novoUsuario.senha" 
+                [(ngModel)]="novoUsuario.senha"
                 placeholder="Mínimo 6 caracteres"
                 required />
-              <button 
-                type="button" 
-                class="eye-icon" 
+              <button
+                type="button"
+                class="eye-icon"
                 (click)="togglePassword('senha')"
                 [attr.aria-label]="camposVisiveis.senha ? 'Ocultar senha' : 'Mostrar senha'">
                 <svg *ngIf="!camposVisiveis.senha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -245,7 +237,7 @@
                 </svg>
               </button>
             </div>
-            
+
             <!-- Indicador de Força da Senha -->
             <div class="password-strength" *ngIf="novoUsuario.senha">
               <div class="strength-bar">
@@ -258,16 +250,16 @@
           <div class="form-group full-width">
             <label for="confirmarSenha">Confirmar senha *</label>
             <div class="password-wrapper">
-              <input 
-                id="confirmarSenha" 
+              <input
+                id="confirmarSenha"
                 name="confirmarSenha"
                 [type]="camposVisiveis.confirmarSenha ? 'text' : 'password'"
-                [(ngModel)]="novoUsuario.confirmarSenha" 
+                [(ngModel)]="novoUsuario.confirmarSenha"
                 placeholder="Digite a senha novamente"
                 required />
-              <button 
-                type="button" 
-                class="eye-icon" 
+              <button
+                type="button"
+                class="eye-icon"
                 (click)="togglePassword('confirmarSenha')"
                 [attr.aria-label]="camposVisiveis.confirmarSenha ? 'Ocultar senha' : 'Mostrar senha'">
                 <svg *ngIf="!camposVisiveis.confirmarSenha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -288,14 +280,14 @@
         <!-- Termos e Condições -->
         <div class="checkbox-group">
           <label class="checkbox-container">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               name="aceitouTermos"
               [(ngModel)]="novoUsuario.aceitouTermos"
               required />
             <span class="checkmark"></span>
             <span class="checkbox-label">
-              Eu aceito os <a href="/termos" target="_blank">Termos de Uso</a> e a 
+              Eu aceito os <a href="/termos" target="_blank">Termos de Uso</a> e a
               <a href="/privacidade" target="_blank">Política de Privacidade</a>
             </span>
           </label>

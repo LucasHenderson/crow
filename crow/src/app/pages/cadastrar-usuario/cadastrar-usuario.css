@@ -15,6 +15,9 @@
   left: 0;
   right: 0;
   bottom: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -48,13 +51,13 @@
 .page-title {
   font-size: 2rem;
   font-weight: 700;
-  color: white;
+  color: #f1f5f9;
   margin: 0;
   letter-spacing: 0.02em;
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(148, 163, 184, 0.9);
   font-size: 0.95rem;
   margin: 0;
   font-weight: 500;
@@ -72,10 +75,10 @@
 
 /* INFO CARD */
 .info-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.15);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   height: fit-content;
@@ -85,6 +88,7 @@
 .info-card:hover {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
   transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.25);
 }
 
 .card-header {
@@ -146,23 +150,23 @@
 .benefit-text h4 {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #e2e8f0;
   margin: 0 0 0.3rem 0;
 }
 
 .benefit-text p {
   font-size: 0.85rem;
-  color: #64748b;
+  color: #94a3b8;
   margin: 0;
   line-height: 1.5;
 }
 
 /* FORM CARD */
 .form-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.15);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   transition: all 0.3s ease;
@@ -170,6 +174,7 @@
 
 .form-card:hover {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(59, 130, 246, 0.25);
 }
 
 .form-content {
@@ -195,9 +200,29 @@
   grid-column: 1 / -1;
 }
 
-/* Campo de email com maior comprimento */
 .form-group.email-field input {
   min-width: 350px;
+}
+
+/* ERRO FORMULÁRIO (inline) */
+.erro-formulario {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: #fca5a5;
+  font-size: 0.875rem;
+  animation: slideIn 0.3s ease;
+}
+
+.erro-formulario svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke: #fca5a5;
 }
 
 /* EMAIL VERIFICATION */
@@ -259,7 +284,7 @@
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #cbd5e1;
   margin-bottom: 0.5rem;
 }
 
@@ -382,43 +407,44 @@
   }
 }
 
-/* Campo de telefone com o mesmo tamanho do email */
-.form-group.telefone-field input {
-  min-width: 350px;
-}
-
+/* FORM LABELS & INPUTS - DARK THEME */
 .form-group label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #cbd5e1;
   margin-left: 0.2rem;
 }
 
 .form-group input {
   padding: 0.85rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #1e293b;
+  color: #f1f5f9;
   outline: none;
   transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .form-group input::placeholder {
-  color: #94a3b8;
+  color: rgba(148, 163, 184, 0.6);
 }
 
 .form-group input:focus {
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .form-group input:hover {
-  border-color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.form-group input[readonly] {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .input-with-icon {
@@ -468,7 +494,7 @@
 }
 
 .eye-icon:hover {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.15);
 }
 
 .eye-icon svg {
@@ -488,7 +514,7 @@
 .strength-bar {
   flex: 1;
   height: 6px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -539,7 +565,7 @@
 
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   border: none;
   margin: 0.5rem 0;
 }
@@ -560,7 +586,7 @@
 .section-header h3 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #e2e8f0;
   margin: 0;
   letter-spacing: 0.01em;
 }
@@ -594,8 +620,8 @@
   top: 2px;
   height: 20px;
   width: 20px;
-  background-color: white;
-  border: 2px solid #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 4px;
   transition: all 0.2s ease;
 }
@@ -628,19 +654,19 @@
 
 .checkbox-label {
   font-size: 0.9rem;
-  color: #475569;
+  color: #94a3b8;
   line-height: 1.5;
 }
 
 .checkbox-label a {
-  color: #3b82f6;
+  color: #60a5fa;
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .checkbox-label a:hover {
-  color: #2563eb;
+  color: #93bbfd;
   text-decoration: underline;
 }
 
@@ -686,8 +712,8 @@
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
-  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.3) 0%, rgba(100, 116, 139, 0.3) 100%);
+  box-shadow: none;
 }
 
 .btn-cadastrar svg {
@@ -699,7 +725,7 @@
   text-align: center;
   padding: 0.5rem;
   font-size: 0.9rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .login-link span {
@@ -707,7 +733,7 @@
 }
 
 .login-link a {
-  color: #3b82f6;
+  color: #60a5fa;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -715,7 +741,7 @@
 }
 
 .login-link a:hover {
-  color: #2563eb;
+  color: #93bbfd;
   text-decoration: underline;
 }
 
@@ -823,7 +849,7 @@
     padding: 0.9rem 1.5rem;
     font-size: 0.95rem;
   }
-  
+
   .form-group.email-field input {
     min-width: 100%;
   }
@@ -875,9 +901,8 @@
   .benefits-content {
     gap: 1rem;
   }
-  
-  .form-group.email-field input,
-  .form-group.telefone-field input {
+
+  .form-group.email-field input {
     min-width: 100%;
   }
 }
@@ -916,8 +941,7 @@
     font-size: 0.9rem;
   }
 
-  .form-group.email-field input,
-  .form-group.telefone-field input {
+  .form-group.email-field input {
     min-width: 100%;
   }
 
