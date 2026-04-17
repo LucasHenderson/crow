@@ -1,6 +1,7 @@
 package com.crow.api.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService {
@@ -52,6 +54,7 @@ public class EmailVerificationService {
             mailSender.send(mensagem);
         } catch (Exception e) {
             codigos.remove(email.toLowerCase());
+            log.error("Falha ao enviar email de verificação para {}", email, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Erro ao enviar email. Verifique se o endereço é válido.");
         }

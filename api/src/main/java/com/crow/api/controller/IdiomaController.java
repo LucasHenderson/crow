@@ -68,8 +68,11 @@ public class IdiomaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        idiomaService.excluir(id);
+    public ResponseEntity<Void> excluir(
+            @PathVariable Long id,
+            Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        idiomaService.excluir(id, userId);
         return ResponseEntity.noContent().build();
     }
 

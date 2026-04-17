@@ -8,8 +8,10 @@ import com.crow.api.repository.IdiomaRepository;
 import com.crow.api.repository.IdiomaUsuarioRepository;
 import com.crow.api.repository.ModuloRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -26,27 +28,42 @@ public class IdiomaService {
         return idiomaRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Idioma buscarPorId(Long id) {
-        return idiomaRepository.findById(id)
+        Idioma idioma = idiomaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
+        Hibernate.initialize(idioma.getCriador());
+        return idioma;
     }
 
     public List<Idioma> buscarPorCriador(Long criadorId) {
         return idiomaRepository.findByCriadorId(criadorId);
     }
 
+    @Transactional(readOnly = true)
     public List<Idioma> buscarPublicos() {
-        return idiomaRepository.findByVisibilidade(Idioma.Visibilidade.PUBLICO);
+        List<Idioma> idiomas = idiomaRepository.findByVisibilidade(Idioma.Visibilidade.PUBLICO);
+        idiomas.forEach(i -> Hibernate.initialize(i.getCriador()));
+        return idiomas;
     }
 
+    @Transactional(readOnly = true)
     public List<Idioma> buscar(String termo) {
         if (termo == null || termo.isBlank()) {
             return buscarPublicos();
         }
-        return idiomaRepository.findByNomeContainingIgnoreCaseOrIdiomaContainingIgnoreCase(termo, termo);
+        List<Idioma> idiomas = idiomaRepository.findByNomeContainingIgnoreCaseOrIdiomaContainingIgnoreCase(termo, termo);
+        idiomas.forEach(i -> Hibernate.initialize(i.getCriador()));
+        return idiomas;
     }
 
+    @Transactional
     public Idioma criar(IdiomaRequest dto, Usuario criador) {
+        int count = idiomaUsuarioRepository.countByUsuarioId(criador.getId());
+        if (count >= 4) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Limite máximo de 4 idiomas atingido");
+        }
+
         Idioma idioma = Idioma.builder()
                 .nome(dto.nome())
                 .idioma(dto.idioma())
@@ -61,11 +78,21 @@ public class IdiomaService {
                         : Idioma.Visibilidade.PUBLICO)
                 .build();
 
-        return idiomaRepository.save(idioma);
+        Idioma salvo = idiomaRepository.save(idioma);
+
+        IdiomaUsuario vinculo = IdiomaUsuario.builder()
+                .usuario(criador)
+                .idioma(salvo)
+                .build();
+        idiomaUsuarioRepository.save(vinculo);
+
+        return salvo;
     }
 
+    @Transactional
     public Idioma editar(Long id, IdiomaRequest dto) {
-        Idioma idioma = buscarPorId(id);
+        Idioma idioma = idiomaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
 
         if (dto.nome() != null) idioma.setNome(dto.nome());
         if (dto.idioma() != null) idioma.setIdioma(dto.idioma());
@@ -79,11 +106,29 @@ public class IdiomaService {
         }
 
         idioma.setModulos(moduloRepository.countByIdiomaId(id));
-        return idiomaRepository.save(idioma);
+        Idioma salvo = idiomaRepository.save(idioma);
+        Hibernate.initialize(salvo.getCriador());
+        return salvo;
     }
 
-    public void excluir(Long id) {
+    @Transactional
+    public void excluir(Long id, Long usuarioId) {
         Idioma idioma = buscarPorId(id);
+        boolean ehCriador = idioma.getCriador() != null
+                && idioma.getCriador().getId().equals(usuarioId);
+
+        if (ehCriador) {
+            idiomaUsuarioRepository.deleteByIdiomaId(id);
+            idiomaRepository.delete(idioma);
+        } else {
+            idiomaUsuarioRepository.deleteByUsuarioIdAndIdiomaId(usuarioId, id);
+        }
+    }
+
+    @Transactional
+    public void excluirComoAdmin(Long id) {
+        Idioma idioma = buscarPorId(id);
+        idiomaUsuarioRepository.deleteByIdiomaId(id);
         idiomaRepository.delete(idioma);
     }
 
@@ -105,8 +150,9 @@ public class IdiomaService {
         idiomaUsuarioRepository.save(iu);
     }
 
+    @Transactional(readOnly = true)
     public List<Idioma> getIdiomasDoUsuario(Long usuarioId) {
-        List<IdiomaUsuario> relacoes = idiomaUsuarioRepository.findByUsuarioId(usuarioId);
+        List<IdiomaUsuario> relacoes = idiomaUsuarioRepository.findByUsuarioIdFetchIdioma(usuarioId);
         return relacoes.stream()
                 .map(IdiomaUsuario::getIdioma)
                 .toList();

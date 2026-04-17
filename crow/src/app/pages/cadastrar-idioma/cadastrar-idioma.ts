@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
-import { ChangeDetectorRef } from '@angular/core';
 import { IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
 import { IdiomaService } from '../../services/idioma.service';
 import { ModuloService } from '../../services/modulo.service';
 import { FraseService } from '../../services/frase.service';
+import { UploadService } from '../../services/upload.service';
+import { forkJoin, Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-cadastrar-idioma',
@@ -36,13 +38,19 @@ export class CadastrarIdioma {
 
   // ETAPA 2: Módulo
   iconeModuloSelecionado: SafeHtml | null = null;
+  iconeModuloSvg: string | null = null;
   nomeModulo = '';
+
+  // Estado de submissão
+  salvando = false;
+  erroSalvar = '';
 
   // ETAPA 3: Frase
   modoFrase: 'traducao' | 'pares' | 'quiz' | null = null;
 
   // Tradução Direta
   imagemPreview: string | null = null;
+  imagemFile: File | null = null;
   traducaoCompleta = '';
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
   observacoes = '';
@@ -58,6 +66,7 @@ export class CadastrarIdioma {
   // Quiz
   tipoMidiaQuiz: 'imagem' | 'video' | null = null;
   imagemQuiz: string | null = null;
+  imagemQuizFile: File | null = null;
   videoQuiz = '';
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
@@ -69,14 +78,15 @@ export class CadastrarIdioma {
   proficiencias = PROFICIENCIAS;
 
   iconesModulo: SafeHtml[] = [];
+  iconesModuloSvg: string[] = [];
 
   constructor(
     private router: Router,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef,
     private idiomaService: IdiomaService,
     private moduloService: ModuloService,
-    private fraseService: FraseService
+    private fraseService: FraseService,
+    private uploadService: UploadService
   ) {
     this.carregarIcones();
   }
@@ -106,11 +116,27 @@ export class CadastrarIdioma {
       '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
       '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
       '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
-      '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
-      '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'
+      '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>'
     ];
 
+    this.iconesModuloSvg = iconesSVG;
     this.iconesModulo = iconesSVG.map(svg => this.sanitizer.bypassSecurityTrustHtml(svg));
+  }
+
+  selecionarIconeModulo(icone: SafeHtml, index: number): void {
+    this.iconeModuloSelecionado = icone;
+    this.iconeModuloSvg = this.iconesModuloSvg[index];
+  }
+
+  private mapProficiencia(nivel: string): string {
+    const mapa: { [k: string]: string } = {
+      'Iniciante': 'INICIANTE',
+      'Básico': 'BASICO',
+      'Intermediário': 'INTERMEDIARIO',
+      'Avançado': 'AVANCADO',
+      'Fluente': 'FLUENTE'
+    };
+    return mapa[nivel] || nivel.toUpperCase();
   }
 
   @HostListener('document:click', ['$event'])
@@ -218,17 +244,22 @@ export class CadastrarIdioma {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.imagemPreview = reader.result as string;
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.imagemPreview);
+    this.imagemFile = file;
+    this.imagemPreview = URL.createObjectURL(file);
   }
 
   removerImagem(event: Event): void {
     event.stopPropagation();
+    this.revogarBlob(this.imagemPreview);
     this.imagemPreview = null;
+    this.imagemFile = null;
+  }
+
+  private revogarBlob(url: string | null | undefined): void {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
   }
 
   // SELECIONAR PARES
@@ -248,19 +279,16 @@ export class CadastrarIdioma {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-
-    reader.onload = (e: any) => {
-      this.pares[index].imagem = e.target.result;
-      this.cdr.detectChanges();
-    };
-
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.pares[index].imagem);
+    this.pares[index].imagemFile = file;
+    this.pares[index].imagem = URL.createObjectURL(file);
   }
 
   removerImagemPar(event: Event, index: number): void {
     event.stopPropagation();
+    this.revogarBlob(this.pares[index].imagem);
     this.pares[index].imagem = undefined;
+    this.pares[index].imagemFile = undefined;
   }
 
   // QUIZ
@@ -294,19 +322,16 @@ export class CadastrarIdioma {
     if (!input.files?.length) return;
 
     const file = input.files[0];
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      this.imagemQuiz = reader.result as string;
-      this.cdr.detectChanges();
-    };
-
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.imagemQuiz);
+    this.imagemQuizFile = file;
+    this.imagemQuiz = URL.createObjectURL(file);
   }
 
   removerImagemQuiz(event: Event): void {
     event.stopPropagation();
+    this.revogarBlob(this.imagemQuiz);
     this.imagemQuiz = null;
+    this.imagemQuizFile = null;
   }
 
   onVideoQuizChange(url: string): void {
@@ -355,64 +380,126 @@ export class CadastrarIdioma {
   }
 
   finalizar(): void {
+    if (this.salvando) return;
+    this.salvando = true;
+    this.erroSalvar = '';
+
+    this.uploadImagensPendentes().subscribe({
+      next: () => this.criarIdiomaModuloFrase(),
+      error: (err) => this.tratarErro(err, 'Erro ao enviar imagens.')
+    });
+  }
+
+  private uploadImagensPendentes(): Observable<any> {
+    const uploads: Observable<any>[] = [];
+
+    if (this.modoFrase === 'traducao' && this.imagemFile) {
+      uploads.push(
+        this.uploadService.uploadImagem(this.imagemFile).pipe(
+          tap(res => { this.imagemPreview = res.path; this.imagemFile = null; })
+        )
+      );
+    }
+
+    if (this.modoFrase === 'pares') {
+      this.pares.forEach((par, i) => {
+        if (par.imagemFile) {
+          uploads.push(
+            this.uploadService.uploadImagem(par.imagemFile).pipe(
+              tap(res => {
+                this.pares[i].imagem = res.path;
+                this.pares[i].imagemFile = undefined;
+              })
+            )
+          );
+        }
+      });
+    }
+
+    if (this.modoFrase === 'quiz' && this.tipoMidiaQuiz === 'imagem' && this.imagemQuizFile) {
+      uploads.push(
+        this.uploadService.uploadImagem(this.imagemQuizFile).pipe(
+          tap(res => { this.imagemQuiz = res.path; this.imagemQuizFile = null; })
+        )
+      );
+    }
+
+    return uploads.length ? forkJoin(uploads) : of(null);
+  }
+
+  private criarIdiomaModuloFrase(): void {
     const dadosIdioma = {
       nome: this.nomeIdioma,
       idioma: this.idiomaSelecionado?.nome,
       bandeira: this.idiomaSelecionado?.bandeira,
       descricao: this.descricaoIdioma,
-      proficiencia: this.proficiencia,
-      visibilidade: this.visibilidade
+      proficiencia: this.mapProficiencia(this.proficiencia),
+      visibilidade: this.visibilidade.toUpperCase()
     };
 
     this.idiomaService.criarIdioma(dadosIdioma).subscribe({
       next: (idiomaCriado: any) => {
-        const dadosModulo = { nome: this.nomeModulo, icone: '' };
+        const dadosModulo = { nome: this.nomeModulo, icone: this.iconeModuloSvg || '' };
         this.moduloService.criarModulo(idiomaCriado.id, dadosModulo).subscribe({
           next: (moduloCriado: any) => {
-            const dadosFrase = { modo: this.modoFrase, ...this.getDadosFrase() };
-            this.fraseService.criarFrase(moduloCriado.id, dadosFrase).subscribe({
-              next: () => {
-                this.router.navigate(['/home']);
-              },
-              error: () => {
-                this.router.navigate(['/home']);
-              }
+            this.fraseService.criarFrase(moduloCriado.id, this.getDadosFrase()).subscribe({
+              next: () => this.irParaHomeComSucesso(idiomaCriado.nome),
+              error: (err) => this.tratarErro(err, 'Erro ao cadastrar frase.')
             });
           },
-          error: () => {
-            this.router.navigate(['/home']);
-          }
+          error: (err) => this.tratarErro(err, 'Erro ao cadastrar módulo.')
         });
       },
-      error: (err) => {
-        alert(err.error?.message || 'Erro ao criar idioma.');
-      }
+      error: (err) => this.tratarErro(err, 'Erro ao cadastrar idioma.')
     });
   }
 
+  private irParaHomeComSucesso(nomeIdioma: string): void {
+    this.salvando = false;
+    this.router.navigate(['/home'], {
+      state: { mensagemSucesso: `Idioma "${nomeIdioma}" cadastrado com sucesso!` }
+    });
+  }
+
+  private tratarErro(err: any, fallback: string): void {
+    this.salvando = false;
+    this.erroSalvar = err?.error?.message || fallback;
+  }
+
   getDadosFrase(): any {
+    const base: any = { modo: (this.modoFrase || '').toUpperCase() };
+
     if (this.modoFrase === 'traducao') {
       return {
+        ...base,
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
-        palavras: this.palavrasTraducao,
+        palavrasJson: JSON.stringify(this.palavrasTraducao),
         observacoes: this.observacoes,
-        links: this.links.filter(l => l.trim())
+        linksJson: JSON.stringify(this.links.filter(l => l.trim()))
       };
     }
     if (this.modoFrase === 'pares') {
-      return { pares: this.pares };
+      const paresLimpos = this.pares.map(p => ({
+        imagem: p.imagem,
+        palavra: p.palavra,
+        traducao: p.traducao
+      }));
+      return {
+        ...base,
+        paresJson: JSON.stringify(paresLimpos)
+      };
     }
     if (this.modoFrase === 'quiz') {
       return {
-        tipoMidia: this.tipoMidiaQuiz,
-        imagem: this.imagemQuiz,
-        video: this.videoQuiz,
+        ...base,
+        imagemQuiz: this.imagemQuiz,
+        videoQuiz: this.videoQuiz,
         pergunta: this.perguntaQuiz,
-        alternativas: this.alternativas,
+        alternativasJson: JSON.stringify(this.alternativas),
         respostaCorreta: this.respostaCorreta
       };
     }
-    return null;
+    return base;
   }
 }
