@@ -71,6 +71,11 @@ public class UsuarioService {
         return atualizarPerfil(id, dto);
     }
 
+    public boolean emailCadastrado(String email) {
+        if (email == null || email.isBlank()) return false;
+        return usuarioRepository.existsByEmail(email);
+    }
+
     public void redefinirSenha(String email, String novaSenha) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));

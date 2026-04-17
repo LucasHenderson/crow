@@ -8,6 +8,7 @@ export interface PalavraTrad {
 
 export interface Par {
   imagem?: string;
+  imagemFile?: File;
   palavra: string;
   traducao: string;
 }

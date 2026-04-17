@@ -57,12 +57,34 @@ export class RecuperarSenha {
   proximaEtapa(): void {
     if (this.etapaAtual === 1) {
       if (!this.validarEmail()) return;
-      this.enviarCodigoVerificacao();
+      this.verificarEmailCadastrado();
     }
     else if (this.etapaAtual === 2) {
       if (!this.validarCodigo()) return;
       this.verificarCodigoBackend();
     }
+  }
+
+  private verificarEmailCadastrado(): void {
+    this.carregando = true;
+    this.emailErro = '';
+
+    this.authService.emailExiste(this.email).subscribe({
+      next: (res) => {
+        if (!res.existe) {
+          this.carregando = false;
+          this.emailErro = 'Este email não está cadastrado.';
+          this.forcarAtualizacao();
+          return;
+        }
+        this.enviarCodigoVerificacao();
+      },
+      error: () => {
+        this.carregando = false;
+        this.emailErro = 'Erro ao verificar email. Tente novamente.';
+        this.forcarAtualizacao();
+      }
+    });
   }
 
   private forcarAtualizacao(): void {

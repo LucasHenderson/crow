@@ -41,6 +41,10 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/enviar-codigo`, { email });
   }
 
+  emailExiste(email: string): Observable<{ existe: boolean }> {
+    return this.http.post<{ existe: boolean }>(`${this.apiUrl}/auth/email-existe`, { email });
+  }
+
   verificarCodigo(email: string, codigo: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/verificar-codigo`, { email, codigo });
   }

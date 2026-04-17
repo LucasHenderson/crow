@@ -37,6 +37,11 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("mensagem", "Código enviado para " + request.email()));
     }
 
+    @PostMapping("/email-existe")
+    public ResponseEntity<Map<String, Boolean>> emailExiste(@Valid @RequestBody EnviarCodigoRequest request) {
+        return ResponseEntity.ok(Map.of("existe", usuarioService.emailCadastrado(request.email())));
+    }
+
     @PostMapping("/verificar-codigo")
     public ResponseEntity<Map<String, Boolean>> verificarCodigo(@Valid @RequestBody VerificarCodigoRequest request) {
         boolean valido = emailVerificationService.verificarCodigo(request.email(), request.codigo());

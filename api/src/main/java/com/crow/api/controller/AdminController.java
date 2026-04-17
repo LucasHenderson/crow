@@ -118,7 +118,7 @@ public class AdminController {
                 "Excluiu idioma " + idioma.getNome(),
                 "ID: " + id);
 
-        idiomaService.excluir(id);
+        idiomaService.excluirComoAdmin(id);
         return ResponseEntity.noContent().build();
     }
 

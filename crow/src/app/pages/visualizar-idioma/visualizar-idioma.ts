@@ -114,6 +114,7 @@ export class VisualizarIdioma implements OnInit {
 
   carregarDadosIdioma(id: string): void {
     this.carregando = true;
+    this.cdr.markForCheck();
     this.idiomaService.getIdiomaPorId(id).subscribe({
       next: (idioma) => {
         this.idiomaNome = idioma.nome;
@@ -125,10 +126,12 @@ export class VisualizarIdioma implements OnInit {
         this.totalAvaliacoes = idioma.totalAvaliacoes;
         const user = this.authService.getCurrentUser();
         this.isProprietario = user?.id === idioma.criadorId;
+        this.cdr.detectChanges();
         this.carregarModulos(id);
       },
       error: () => {
         this.carregando = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -145,9 +148,11 @@ export class VisualizarIdioma implements OnInit {
         }));
         this.nextId = this.modulos.length + 1;
         this.carregando = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.carregando = false;
+        this.cdr.detectChanges();
       }
     });
   }

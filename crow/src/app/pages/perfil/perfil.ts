@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -20,10 +20,11 @@ type CamposSenha = {
   styleUrl: './perfil.css',
 })
 export class Perfil implements OnInit {
-  profileMenuOpen = false;
   showSuccessAlert = false;
   successMessage = '';
+  erroMensagem = '';
   carregando = true;
+  salvando = false;
 
   user: Usuario = {
     id: 0,
@@ -46,10 +47,21 @@ export class Perfil implements OnInit {
     confirmarSenha: false,
   };
 
+  // Verificação do novo email
+  emailVerificado = false;
+  codigoEnviado = false;
+  codigoDigitado = '';
+  enviandoCodigo = false;
+  verificandoCodigo = false;
+  mensagemEmail = '';
+  erroEmail = false;
+  private emailVerificadoValor = '';
+
   constructor(
     private router: Router,
     private authService: AuthService,
-    private usuarioService: UsuarioService
+    private usuarioService: UsuarioService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -58,186 +70,251 @@ export class Perfil implements OnInit {
 
   private carregarDadosUsuario(): void {
     this.carregando = true;
+    this.cdr.detectChanges();
     this.authService.getUsuarioLogado().subscribe({
       next: (user) => {
         this.user = user;
         this.userOriginal = { ...user };
         this.carregando = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.carregando = false;
-        this.showError('Erro ao carregar dados do perfil.');
+        this.erroMensagem = 'Erro ao carregar dados do perfil.';
+        this.cdr.detectChanges();
       }
     });
   }
 
-  /**
-   * Alterna a visibilidade dos menus de perfil
-   */
-  toggleProfileMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.profileMenuOpen = !this.profileMenuOpen;
-  }
-
-  /**
-   * Fecha o menu de perfil ao clicar fora
-   */
-  @HostListener('document:click')
-  closeProfileMenu(): void {
-    this.profileMenuOpen = false;
-  }
-
-  /**
-   * Alterna a visibilidade dos campos de senha
-   */
   togglePassword(field: keyof CamposSenha): void {
     this.camposVisiveis[field] = !this.camposVisiveis[field];
   }
 
-  /**
-   * Permite apenas números no campo de telefone
-   */
-  permitirApenasNumeros(event: KeyboardEvent): boolean {
+  // --- Email Verification ---
+
+  emailFoiAlterado(): boolean {
+    return this.user.email.trim().toLowerCase() !== (this.userOriginal.email || '').trim().toLowerCase();
+  }
+
+  onEmailChange(): void {
+    if (this.emailVerificado && this.user.email !== this.emailVerificadoValor) {
+      this.emailVerificado = false;
+      this.codigoEnviado = false;
+      this.codigoDigitado = '';
+      this.mensagemEmail = '';
+      this.erroEmail = false;
+      this.emailVerificadoValor = '';
+    }
+  }
+
+  podeEnviarCodigo(): boolean {
+    return (
+      this.emailFoiAlterado() &&
+      this.validarEmail(this.user.email) &&
+      !this.enviandoCodigo &&
+      !this.emailVerificado
+    );
+  }
+
+  enviarCodigo(): void {
+    if (!this.validarEmail(this.user.email)) {
+      this.mensagemEmail = 'Informe um email válido.';
+      this.erroEmail = true;
+      return;
+    }
+
+    this.enviandoCodigo = true;
+    this.mensagemEmail = '';
+    this.erroEmail = false;
+
+    this.authService.enviarCodigoVerificacao(this.user.email).subscribe({
+      next: () => {
+        this.enviandoCodigo = false;
+        this.codigoEnviado = true;
+        this.mensagemEmail = 'Código enviado! Verifique sua caixa de entrada.';
+        this.erroEmail = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.enviandoCodigo = false;
+        this.mensagemEmail = err.error?.message || 'Erro ao enviar código. Tente novamente.';
+        this.erroEmail = true;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  verificarCodigo(): void {
+    if (!this.codigoDigitado || this.codigoDigitado.length !== 6) {
+      this.mensagemEmail = 'Digite o código de 6 dígitos.';
+      this.erroEmail = true;
+      return;
+    }
+
+    this.verificandoCodigo = true;
+    this.mensagemEmail = '';
+    this.erroEmail = false;
+
+    this.authService.verificarCodigo(this.user.email, this.codigoDigitado).subscribe({
+      next: (res) => {
+        this.verificandoCodigo = false;
+        if (res.valido) {
+          this.emailVerificado = true;
+          this.emailVerificadoValor = this.user.email;
+          this.mensagemEmail = 'Email verificado com sucesso!';
+          this.erroEmail = false;
+        } else {
+          this.mensagemEmail = 'Código inválido ou expirado. Tente novamente.';
+          this.erroEmail = true;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.verificandoCodigo = false;
+        this.mensagemEmail = 'Erro ao verificar código. Tente novamente.';
+        this.erroEmail = true;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  permitirApenasNumerosCodigo(event: KeyboardEvent): boolean {
     const tecla = event.key;
-    
-    // Permite teclas de controle (Backspace, Delete, Tab, Arrow keys, etc)
-    if (
-      tecla === 'Backspace' || 
-      tecla === 'Delete' || 
-      tecla === 'Tab' || 
-      tecla === 'ArrowLeft' || 
-      tecla === 'ArrowRight' ||
-      tecla === 'Home' ||
-      tecla === 'End'
-    ) {
+    if (['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(tecla)) {
       return true;
     }
-    
-    // Bloqueia se não for número
     if (!/^\d$/.test(tecla)) {
       event.preventDefault();
       return false;
     }
-    
     return true;
   }
 
-  /**
-   * Verifica se houve alguma alteração nos dados
-   */
+  // --- Alterações gerais ---
+
   houveAlteracao(): boolean {
-    // Verifica se dados do perfil foram alterados
-    const dadosAlterados = 
+    const dadosAlterados =
       this.user.nome !== this.userOriginal.nome ||
-      this.user.email !== this.userOriginal.email ||
-      this.user.telefone !== this.userOriginal.telefone;
-    
-    // Verifica se há tentativa de alteração de senha
+      this.emailFoiAlterado();
     const senhaAlterada = !!(this.senhaAtual || this.novaSenha || this.confirmarSenha);
-    
     return dadosAlterados || senhaAlterada;
   }
 
-  /**
-   * Aplica máscara ao campo de telefone
-   */
-  aplicarMascaraTelefone(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    
-    if (valor.length > 11) {
-      valor = valor.substring(0, 11);
-    }
-    
-    if (valor.length > 6) {
-      valor = valor.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
-    } else if (valor.length > 2) {
-      valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-    } else if (valor.length > 0) {
-      valor = valor.replace(/^(\d*)/, '($1');
-    }
-    
-    this.user.telefone = valor;
-  }
-
-  /**
-   * Valida e salva as alterações do perfil
-   */
-  salvar(): void {
-    if (this.senhaAtual || this.novaSenha || this.confirmarSenha) {
-      if (!this.validarAlteracaoSenha()) {
-        return;
-      }
-
-      this.usuarioService.alterarSenha(this.senhaAtual, this.novaSenha).subscribe({
-        next: () => {
-          this.showSuccess('Senha alterada com sucesso!');
-          this.limparCamposSenha();
-        },
-        error: (err) => {
-          this.showError(err.error?.message || 'Erro ao alterar senha.');
-        }
-      });
-    }
-
-    if (this.user.nome !== this.userOriginal.nome ||
-        this.user.email !== this.userOriginal.email ||
-        this.user.telefone !== this.userOriginal.telefone) {
-
-      this.usuarioService.atualizarPerfil({
-        nome: this.user.nome,
-        email: this.user.email,
-        telefone: this.user.telefone
-      }).subscribe({
-        next: (updated) => {
-          this.user = updated;
-          this.userOriginal = { ...updated };
-          this.showSuccess('Dados do perfil atualizados com sucesso!');
-        },
-        error: (err) => {
-          this.showError(err.error?.message || 'Erro ao atualizar perfil.');
-        }
-      });
-    }
-  }
-
-  /**
-   * Valida a alteração de senha
-   */
-  private validarAlteracaoSenha(): boolean {
-    // As validações de senha agora são feitas visualmente pelos spans
-    // Mas mantemos validações críticas aqui
-    
-    if (!this.senhaAtual) {
-      return false;
-    }
-
-    if (!this.novaSenha || this.novaSenha.length < 6) {
-      return false;
-    }
-
-    if (this.novaSenha !== this.confirmarSenha) {
-      return false;
-    }
-
-    if (this.senhaAtual === this.novaSenha) {
-      this.showError('A nova senha deve ser diferente da senha atual.');
-      return false;
-    }
-
+  podeSalvar(): boolean {
+    if (!this.houveAlteracao() || this.salvando) return false;
+    if (this.emailFoiAlterado() && !this.emailVerificado) return false;
     return true;
   }
 
-  /**
-   * Valida o formato do email
-   */
+  salvar(): void {
+    this.erroMensagem = '';
+
+    if (!this.user.nome || this.user.nome.trim().length < 8) {
+      this.erroMensagem = 'Nome deve ter no mínimo 8 caracteres.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (!this.validarEmail(this.user.email)) {
+      this.erroMensagem = 'Informe um email válido.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (this.emailFoiAlterado() && !this.emailVerificado) {
+      this.erroMensagem = 'Verifique o novo email antes de salvar.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const alterarSenha = !!(this.senhaAtual || this.novaSenha || this.confirmarSenha);
+    const alterarDados =
+      this.user.nome !== this.userOriginal.nome ||
+      this.emailFoiAlterado();
+
+    if (alterarSenha && !this.validarAlteracaoSenha()) {
+      return;
+    }
+
+    this.salvando = true;
+
+    if (alterarSenha) {
+      this.usuarioService.alterarSenha(this.senhaAtual, this.novaSenha).subscribe({
+        next: () => {
+          this.limparCamposSenha();
+          if (!alterarDados) {
+            this.salvando = false;
+            this.showSuccess('Senha alterada com sucesso!');
+            this.carregarDadosUsuario();
+          } else {
+            this.atualizarDadosPerfil(true);
+          }
+        },
+        error: (err) => {
+          this.salvando = false;
+          this.erroMensagem = err.error?.message || 'Erro ao alterar senha.';
+          this.cdr.detectChanges();
+        }
+      });
+    } else if (alterarDados) {
+      this.atualizarDadosPerfil(false);
+    } else {
+      this.salvando = false;
+    }
+  }
+
+  private atualizarDadosPerfil(senhaTambem: boolean): void {
+    this.usuarioService.atualizarPerfil({
+      nome: this.user.nome,
+      email: this.user.email
+    }).subscribe({
+      next: () => {
+        this.salvando = false;
+        this.emailVerificado = false;
+        this.codigoEnviado = false;
+        this.codigoDigitado = '';
+        this.mensagemEmail = '';
+        this.showSuccess(senhaTambem ? 'Dados e senha atualizados com sucesso!' : 'Dados do perfil atualizados com sucesso!');
+        this.carregarDadosUsuario();
+      },
+      error: (err) => {
+        this.salvando = false;
+        this.erroMensagem = err.error?.message || 'Erro ao atualizar perfil.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private validarAlteracaoSenha(): boolean {
+    if (!this.senhaAtual) {
+      this.erroMensagem = 'Informe a senha atual.';
+      this.cdr.detectChanges();
+      return false;
+    }
+    if (!this.novaSenha || this.novaSenha.length < 6) {
+      this.erroMensagem = 'Nova senha deve ter no mínimo 6 caracteres.';
+      this.cdr.detectChanges();
+      return false;
+    }
+    if (this.novaSenha !== this.confirmarSenha) {
+      this.erroMensagem = 'As senhas não coincidem.';
+      this.cdr.detectChanges();
+      return false;
+    }
+    if (this.senhaAtual === this.novaSenha) {
+      this.erroMensagem = 'A nova senha deve ser diferente da senha atual.';
+      this.cdr.detectChanges();
+      return false;
+    }
+    return true;
+  }
+
   private validarEmail(email: string): boolean {
+    if (!email) return false;
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   }
 
-  /**
-   * Limpa os campos de senha
-   */
   limparCamposSenha(): void {
     this.senhaAtual = '';
     this.novaSenha = '';
@@ -249,58 +326,32 @@ export class Perfil implements OnInit {
     };
   }
 
-  /**
-   * Exibe mensagem de sucesso
-   */
   showSuccess(message: string): void {
+    this.erroMensagem = '';
     this.successMessage = message;
     this.showSuccessAlert = true;
-    
-    // Auto-ocultar após 4 segundos
+    this.cdr.detectChanges();
+
     setTimeout(() => {
       this.showSuccessAlert = false;
+      this.cdr.detectChanges();
     }, 4000);
   }
 
-  /**
-   * Exibe mensagem de erro (mantido para casos críticos)
-   */
-  showError(message: string): void {
-    // Usado apenas para erros críticos que não são cobertos pelos spans
-    // Você pode implementar um toast ou notification service aqui
-    alert(message);
-  }
-
-  /**
-   * Retorna a força da senha (0 a 4)
-   */
   getForcaSenha(): number {
     const senha = this.novaSenha;
-    
     if (!senha) return 0;
-    
     let forca = 0;
-    
-    // Comprimento
     if (senha.length >= 6) forca++;
     if (senha.length >= 10) forca++;
-    
-    // Complexidade
     if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
     if (/[0-9]/.test(senha)) forca++;
     if (/[^a-zA-Z0-9]/.test(senha)) forca++;
-    
     return Math.min(forca, 4);
   }
 
-  /**
-   * Retorna o texto da força da senha
-   */
   getTextoForcaSenha(): string {
-    const forca = this.getForcaSenha();
-    
-    switch(forca) {
-      case 0: return '';
+    switch (this.getForcaSenha()) {
       case 1: return 'Fraca';
       case 2: return 'Média';
       case 3: return 'Boa';
@@ -309,13 +360,8 @@ export class Perfil implements OnInit {
     }
   }
 
-  /**
-   * Retorna a classe CSS da força da senha
-   */
   getClasseForcaSenha(): string {
-    const forca = this.getForcaSenha();
-    
-    switch(forca) {
+    switch (this.getForcaSenha()) {
       case 1: return 'fraca';
       case 2: return 'media';
       case 3: return 'boa';
@@ -324,25 +370,12 @@ export class Perfil implements OnInit {
     }
   }
 
-  /**
-   * Obtém as iniciais do nome do usuário para o avatar
-   */
   getInitials(): string {
     if (!this.user.nome) return 'U';
-    
     const names = this.user.nome.trim().split(' ');
-    
     if (names.length >= 2) {
       return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
     }
-    
     return this.user.nome.charAt(0).toUpperCase();
-  }
-
-  /**
-   * Navega para a página inicial
-   */
-  voltarHome(): void {
-    this.router.navigate(['/home']);
   }
 }
