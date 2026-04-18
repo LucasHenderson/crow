@@ -4,7 +4,9 @@
     <!-- HEADER DO MÓDULO -->
     <div class="modulo-header">
       <div class="modulo-info">
-        <div class="modulo-icone" [innerHTML]="moduloIcone"></div>
+        <div class="modulo-icone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [innerHTML]="moduloIcone"></svg>
+        </div>
         <h1>{{ moduloNome }}</h1>
       </div>
       <button class="btn-voltar-lista" (click)="voltarParaLista()">
@@ -512,8 +514,15 @@
             <line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
           <h3>Atenção!</h3>
-          <p>Você está prestes a excluir a <strong>Frase #{{ numeroFraseExclusao }}</strong> do tipo <strong>{{ fraseEmExclusao?.modoNome }}</strong>.</p>
-          <p class="texto-alerta">Esta ação é <strong>irreversível</strong> e todos os dados associados a esta frase serão permanentemente removidos.</p>
+          <ng-container *ngIf="totalFrases <= 1; else avisoNormal">
+            <p>Esta é a <strong>única frase</strong> do módulo <strong>{{ moduloNome }}</strong>.</p>
+            <p>Ao confirmar, a frase <strong>e o módulo</strong> serão excluídos, e você será redirecionado para a página do idioma correspondente.</p>
+            <p class="texto-alerta">Esta ação é <strong>irreversível</strong> e todos os dados associados a esta frase e ao módulo serão permanentemente removidos.</p>
+          </ng-container>
+          <ng-template #avisoNormal>
+            <p>Você está prestes a excluir a <strong>Frase #{{ numeroFraseExclusao }}</strong> do tipo <strong>{{ fraseEmExclusao?.modoNome }}</strong>.</p>
+            <p class="texto-alerta">Esta ação é <strong>irreversível</strong> e todos os dados associados a esta frase serão permanentemente removidos.</p>
+          </ng-template>
         </div>
       </div>
 

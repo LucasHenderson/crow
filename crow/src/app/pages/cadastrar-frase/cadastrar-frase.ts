@@ -6,6 +6,9 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { PalavraTrad, Par } from '../../models/frase.model';
 import { FraseService } from '../../services/frase.service';
+import { UploadService } from '../../services/upload.service';
+import { forkJoin, Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-cadastrar-frase',
@@ -24,6 +27,7 @@ export class CadastrarFrase {
 
   // Tradução Direta
   imagemPreview: string | null = null;
+  imagemFile: File | null = null;
   traducaoCompleta = '';
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
   observacoes = '';
@@ -39,6 +43,7 @@ export class CadastrarFrase {
   // Quiz
   tipoMidiaQuiz: 'imagem' | 'video' | null = null;
   imagemQuiz: string | null = null;
+  imagemQuizFile: File | null = null;
   videoQuiz = '';
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
@@ -46,15 +51,20 @@ export class CadastrarFrase {
   respostaCorreta: number = 0;
 
   moduloId = '';
+  idIdioma = '';
+  salvando = false;
+  erroSalvar = '';
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
-    private fraseService: FraseService
+    private fraseService: FraseService,
+    private uploadService: UploadService
   ) {
     this.moduloId = this.route.snapshot.queryParamMap.get('moduloId') || '';
+    this.idIdioma = this.route.snapshot.queryParamMap.get('idIdioma') || '';
   }
 
   getLetraAlternativa(index: number): string {
@@ -104,17 +114,22 @@ export class CadastrarFrase {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.imagemPreview = reader.result as string;
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.imagemPreview);
+    this.imagemFile = file;
+    this.imagemPreview = URL.createObjectURL(file);
   }
 
   removerImagem(event: Event): void {
     event.stopPropagation();
+    this.revogarBlob(this.imagemPreview);
     this.imagemPreview = null;
+    this.imagemFile = null;
+  }
+
+  private revogarBlob(url: string | null | undefined): void {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
   }
 
   // SELECIONAR PARES
@@ -134,19 +149,16 @@ export class CadastrarFrase {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-
-    reader.onload = (e: any) => {
-      this.pares[index].imagem = e.target.result;
-      this.cdr.detectChanges();
-    };
-
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.pares[index].imagem);
+    this.pares[index].imagemFile = file;
+    this.pares[index].imagem = URL.createObjectURL(file);
   }
 
   removerImagemPar(event: Event, index: number): void {
     event.stopPropagation();
+    this.revogarBlob(this.pares[index].imagem);
     this.pares[index].imagem = undefined;
+    this.pares[index].imagemFile = undefined;
   }
 
   // QUIZ
@@ -180,19 +192,16 @@ export class CadastrarFrase {
     if (!input.files?.length) return;
 
     const file = input.files[0];
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      this.imagemQuiz = reader.result as string;
-      this.cdr.detectChanges();
-    };
-
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.imagemQuiz);
+    this.imagemQuizFile = file;
+    this.imagemQuiz = URL.createObjectURL(file);
   }
 
   removerImagemQuiz(event: Event): void {
     event.stopPropagation();
+    this.revogarBlob(this.imagemQuiz);
     this.imagemQuiz = null;
+    this.imagemQuizFile = null;
   }
 
   onVideoQuizChange(url: string): void {
@@ -241,25 +250,83 @@ export class CadastrarFrase {
   }
 
   voltar(): void {
-   this.router.navigate(['/visualizar-modulo']);
+    if (this.moduloId) {
+      this.router.navigate(['/visualizar-modulo'], {
+        queryParams: { id: this.moduloId, idIdioma: this.idIdioma }
+      });
+    } else {
+      this.router.navigate(['/visualizar-modulo']);
+    }
   }
 
   finalizar(): void {
+    if (this.salvando) return;
     if (!this.moduloId) {
-      alert('ID do módulo não encontrado.');
+      this.erroSalvar = 'ID do módulo não encontrado.';
       return;
     }
 
+    this.salvando = true;
+    this.erroSalvar = '';
+
+    this.uploadImagensPendentes().subscribe({
+      next: () => this.enviarFrase(),
+      error: (err) => this.tratarErro(err, 'Erro ao enviar imagens.')
+    });
+  }
+
+  private uploadImagensPendentes(): Observable<any> {
+    const uploads: Observable<any>[] = [];
+
+    if (this.modoFrase === 'traducao' && this.imagemFile) {
+      uploads.push(
+        this.uploadService.uploadImagem(this.imagemFile).pipe(
+          tap(res => { this.imagemPreview = res.path; this.imagemFile = null; })
+        )
+      );
+    }
+
+    if (this.modoFrase === 'pares') {
+      this.pares.forEach((par, i) => {
+        if (par.imagemFile) {
+          uploads.push(
+            this.uploadService.uploadImagem(par.imagemFile).pipe(
+              tap(res => {
+                this.pares[i].imagem = res.path;
+                this.pares[i].imagemFile = undefined;
+              })
+            )
+          );
+        }
+      });
+    }
+
+    if (this.modoFrase === 'quiz' && this.tipoMidiaQuiz === 'imagem' && this.imagemQuizFile) {
+      uploads.push(
+        this.uploadService.uploadImagem(this.imagemQuizFile).pipe(
+          tap(res => { this.imagemQuiz = res.path; this.imagemQuizFile = null; })
+        )
+      );
+    }
+
+    return uploads.length ? forkJoin(uploads) : of(null);
+  }
+
+  private enviarFrase(): void {
     const dados = { modo: this.modoFrase, ...this.getDadosFrase() };
 
     this.fraseService.criarFrase(this.moduloId, dados).subscribe({
       next: () => {
+        this.salvando = false;
         this.voltar();
       },
-      error: (err) => {
-        alert(err.error?.message || 'Erro ao cadastrar frase.');
-      }
+      error: (err) => this.tratarErro(err, 'Erro ao cadastrar frase.')
     });
+  }
+
+  private tratarErro(err: any, fallback: string): void {
+    this.salvando = false;
+    this.erroSalvar = err?.error?.message || fallback;
   }
 
   getDadosFrase(): any {
@@ -267,21 +334,25 @@ export class CadastrarFrase {
       return {
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
-        palavras: this.palavrasTraducao,
+        palavrasJson: JSON.stringify(this.palavrasTraducao),
         observacoes: this.observacoes,
-        links: this.links.filter(l => l.trim())
+        linksJson: JSON.stringify(this.links.filter(l => l.trim()))
       };
     }
     if (this.modoFrase === 'pares') {
-      return { pares: this.pares };
+      const paresLimpos = this.pares.map(p => ({
+        imagem: p.imagem,
+        palavra: p.palavra,
+        traducao: p.traducao
+      }));
+      return { paresJson: JSON.stringify(paresLimpos) };
     }
     if (this.modoFrase === 'quiz') {
       return {
-        tipoMidia: this.tipoMidiaQuiz,
-        imagem: this.imagemQuiz,
-        video: this.videoQuiz,
+        imagemQuiz: this.tipoMidiaQuiz === 'imagem' ? this.imagemQuiz : null,
+        videoQuiz: this.tipoMidiaQuiz === 'video' ? this.videoQuiz : null,
         pergunta: this.perguntaQuiz,
-        alternativas: this.alternativas,
+        alternativasJson: JSON.stringify(this.alternativas),
         respostaCorreta: this.respostaCorreta
       };
     }

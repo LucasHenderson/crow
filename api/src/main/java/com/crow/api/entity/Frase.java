@@ -37,7 +37,7 @@ public class Frase {
     @Column(columnDefinition = "TEXT")
     private String paresJson;
 
-    @Column
+    @Column(length = 500)
     private String pergunta;
 
     @Column(columnDefinition = "TEXT")

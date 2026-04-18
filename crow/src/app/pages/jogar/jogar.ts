@@ -101,11 +101,12 @@ export class Jogar implements OnInit, OnDestroy {
     this.carregando = true;
     this.fraseService.getFrasesParaJogo(this.modulosSelecionados).subscribe({
       next: (frases) => {
-        this.frases = frases.map(f => ({
+        const preparadas = frases.map(f => ({
           ...f,
           respostaCorretaIndex: f.respostaCorreta,
           respostaCorretaTexto: f.alternativas ? f.alternativas[f.respostaCorreta || 0] : ''
         }));
+        this.frases = preparadas.sort(() => Math.random() - 0.5);
         this.totalEtapas = this.frases.length;
         this.carregando = false;
       },
