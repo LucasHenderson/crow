@@ -81,6 +81,6 @@ public class FraseService {
             todasFrases.addAll(fraseRepository.findByModuloId(moduloId));
         }
         Collections.shuffle(todasFrases);
-        return todasFrases.stream().limit(15).toList();
+        return todasFrases.stream().limit(10).toList();
     }
 }

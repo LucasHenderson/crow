@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -62,6 +62,7 @@ export class Jogar implements OnInit, OnDestroy {
   progressOffset: number = this.circumference;
 
   modulosSelecionados: string[] = [];
+  idIdioma: string = '';
 
   // Timer
   tempoInicio: number = 0;
@@ -75,7 +76,8 @@ export class Jogar implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
-    private fraseService: FraseService
+    private fraseService: FraseService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -84,11 +86,13 @@ export class Jogar implements OnInit, OnDestroy {
       if (params['modulos']) {
         this.modulosSelecionados = JSON.parse(params['modulos']);
       }
+      if (params['idIdioma']) {
+        this.idIdioma = params['idIdioma'];
+      }
     });
     
-    // Carrega e sorteia as frases
+    // Carrega e sorteia as frases (o jogo inicia quando elas chegam)
     this.carregarFrases();
-    this.iniciarJogo();
   }
 
   ngOnDestroy(): void {
@@ -96,24 +100,80 @@ export class Jogar implements OnInit, OnDestroy {
   }
 
   carregarFrases(): void {
-    if (this.modulosSelecionados.length === 0) return;
+    if (this.modulosSelecionados.length === 0) {
+      this.carregando = false;
+      return;
+    }
 
     this.carregando = true;
+    this.cdr.markForCheck();
     this.fraseService.getFrasesParaJogo(this.modulosSelecionados).subscribe({
       next: (frases) => {
-        const preparadas = frases.map(f => ({
-          ...f,
-          respostaCorretaIndex: f.respostaCorreta,
-          respostaCorretaTexto: f.alternativas ? f.alternativas[f.respostaCorreta || 0] : ''
-        }));
-        this.frases = preparadas.sort(() => Math.random() - 0.5);
+        const preparadas = frases.map(f => this.prepararFraseBackend(f));
+        this.frases = preparadas.sort(() => Math.random() - 0.5).slice(0, 10);
         this.totalEtapas = this.frases.length;
         this.carregando = false;
+
+        if (this.frases.length > 0) {
+          this.tempoInicio = Date.now();
+          this.carregarFrase(0);
+        }
+        this.cdr.detectChanges();
       },
       error: () => {
         this.carregando = false;
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  private prepararFraseBackend(f: any): Frase {
+    const modo = (f.modo || '').toLowerCase();
+    const palavras = this.parseJson<PalavraTrad[]>(f.palavrasJson) || f.palavras;
+    const links = this.parseJson<string[]>(f.linksJson) || f.links;
+    const pares = this.parseJson<Par[]>(f.paresJson) || f.pares;
+    const alternativas = this.parseJson<string[]>(f.alternativasJson) || f.alternativas;
+    const videoQuiz = f.videoQuiz
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(this.toEmbedUrl(f.videoQuiz))
+      : undefined;
+
+    return {
+      ...f,
+      modo,
+      palavras,
+      links,
+      pares,
+      alternativas,
+      videoQuiz,
+      respostaCorretaIndex: f.respostaCorreta ?? 0,
+      respostaCorretaTexto: alternativas ? alternativas[f.respostaCorreta ?? 0] : ''
+    };
+  }
+
+  private parseJson<T>(value: any): T | undefined {
+    if (!value || typeof value !== 'string') return undefined;
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private toEmbedUrl(url: string): string {
+    if (!url) return '';
+    if (url.includes('youtube.com/embed/')) return url;
+    if (url.includes('youtube.com/watch')) {
+      const m = url.match(/[?&]v=([^&]+)/);
+      if (m?.[1]) return `https://www.youtube.com/embed/${m[1]}`;
+    }
+    if (url.includes('youtu.be/')) {
+      const m = url.match(/youtu\.be\/([^?]+)/);
+      if (m?.[1]) {
+        const params = url.includes('?') ? url.substring(url.indexOf('?')) : '';
+        return `https://www.youtube.com/embed/${m[1]}${params}`;
+      }
+    }
+    return url;
   }
 
   sortearFrases(frases: Frase[], quantidade: number): Frase[] {
@@ -122,9 +182,7 @@ export class Jogar implements OnInit, OnDestroy {
   }
 
   iniciarJogo(): void {
-    // Marca o tempo de início
     this.tempoInicio = Date.now();
-    
     if (this.frases.length > 0) {
       this.carregarFrase(0);
     }
@@ -408,13 +466,18 @@ export class Jogar implements OnInit, OnDestroy {
     this.tempoFim = 0;
     this.tempoTotalSegundos = 0;
     this.tempoFormatado = '';
-    
+
     this.carregarFrases();
-    this.iniciarJogo();
   }
 
   voltarAoIdioma(): void {
-    this.router.navigate(['/visualizar-idioma']);
+    if (this.idIdioma) {
+      this.router.navigate(['/visualizar-idioma'], {
+        queryParams: { id: this.idIdioma }
+      });
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   toggleInfo(): void {
