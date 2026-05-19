@@ -1,14 +1,14 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
 import { IdiomaService } from '../../services/idioma.service';
 
 @Component({
   selector: 'app-buscar-idioma',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './buscar-idioma.html',
   styleUrl: './buscar-idioma.css',
 })
@@ -32,7 +32,8 @@ export class BuscarIdioma implements OnInit {
 
   constructor(
     private router: Router,
-    private idiomaService: IdiomaService
+    private idiomaService: IdiomaService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -45,9 +46,14 @@ export class BuscarIdioma implements OnInit {
       next: (idiomas) => {
         this.idiomas = idiomas;
         this.carregando = false;
+        // App em modo zoneless: a atualização assíncrona não dispara
+        // change detection sozinha — força a renderização da lista.
+        this.cdr.detectChanges();
       },
       error: () => {
+        this.idiomas = [];
         this.carregando = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -257,10 +263,12 @@ export class BuscarIdioma implements OnInit {
   }
 
   /**
-   * Seleciona um idioma para visualização detalhada
+   * Abre a página de visualização do idioma selecionado, passando o ID
+   * para que os dados, módulos e proprietário sejam carregados corretamente.
    */
   selecionarIdioma(idioma: Idioma): void {
-    console.log('Idioma selecionado:', idioma);
-    // this.router.navigate(['/idioma', idioma.id]);
+    this.router.navigate(['/visualizar-idioma'], {
+      queryParams: { id: idioma.id }
+    });
   }
 }

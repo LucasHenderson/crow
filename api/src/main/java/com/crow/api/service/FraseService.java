@@ -7,6 +7,7 @@ import com.crow.api.repository.FraseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -29,7 +30,9 @@ public class FraseService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Frase não encontrada"));
     }
 
-    public Frase criar(Long moduloId, FraseRequest dto) {
+    @Transactional
+    public Frase criar(Long moduloId, FraseRequest dto, Long usuarioId) {
+        moduloService.validarProprietarioDoModulo(moduloId, usuarioId);
         Modulo modulo = moduloService.buscarPorId(moduloId);
 
         Frase frase = Frase.builder()
@@ -48,11 +51,15 @@ public class FraseService {
                 .modulo(modulo)
                 .build();
 
-        return fraseRepository.save(frase);
+        frase = fraseRepository.save(frase);
+        moduloService.registrarAtualizacao(modulo);
+        return frase;
     }
 
-    public Frase editar(Long id, FraseRequest dto) {
+    @Transactional
+    public Frase editar(Long id, FraseRequest dto, Long usuarioId) {
         Frase frase = buscarPorId(id);
+        moduloService.validarProprietarioDoModulo(frase.getModulo().getId(), usuarioId);
 
         if (dto.modo() != null) frase.setModo(Frase.ModoFrase.valueOf(dto.modo().toUpperCase()));
         if (dto.traducaoCompleta() != null) frase.setTraducaoCompleta(dto.traducaoCompleta());
@@ -67,12 +74,18 @@ public class FraseService {
         if (dto.imagemQuiz() != null) frase.setImagemQuiz(dto.imagemQuiz());
         if (dto.videoQuiz() != null) frase.setVideoQuiz(dto.videoQuiz());
 
-        return fraseRepository.save(frase);
+        Frase salva = fraseRepository.save(frase);
+        moduloService.registrarAtualizacao(frase.getModulo());
+        return salva;
     }
 
-    public void excluir(Long id) {
+    @Transactional
+    public void excluir(Long id, Long usuarioId) {
         Frase frase = buscarPorId(id);
+        Modulo modulo = frase.getModulo();
+        moduloService.validarProprietarioDoModulo(modulo.getId(), usuarioId);
         fraseRepository.delete(frase);
+        moduloService.registrarAtualizacao(modulo);
     }
 
     public List<Frase> getFrasesParaJogo(List<Long> moduloIds) {

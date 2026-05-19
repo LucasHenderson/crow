@@ -180,7 +180,7 @@
         <p class="descricao">Frases: {{ mod.frases }}/50</p>
       </div>
 
-      <div class="acoes-modulo">
+      <div class="acoes-modulo" *ngIf="isProprietario">
         <button
           class="mini-btn editar-mini"
           title="Editar módulo"
@@ -216,8 +216,9 @@
       <line x1="15" y1="9" x2="9" y2="15"></line>
     </svg>
     <h3>Nenhum módulo cadastrado</h3>
-    <p>Adicione módulos para começar a aprender {{ idiomaNome }}</p>
-    <button class="btn-adicionar-primeiro" (click)="onAdicionarModulo()">
+    <p *ngIf="isProprietario">Adicione módulos para começar a aprender {{ idiomaNome }}</p>
+    <p *ngIf="!isProprietario">Este idioma ainda não possui módulos disponíveis.</p>
+    <button class="btn-adicionar-primeiro" *ngIf="isProprietario" (click)="onAdicionarModulo()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="8" x2="12" y2="16"></line>
@@ -476,7 +477,7 @@
       
       <div class="modal-header">
         <h2>Editar Módulo</h2>
-        <button class="btn-fechar-modal" (click)="fecharModalEditarModulo()">
+        <button class="btn-fechar-modal" (click)="fecharModalEditarModulo()" [disabled]="salvandoEdicao">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -490,10 +491,10 @@
         <div class="campo">
           <label>Selecione um Ícone *</label>
           <div class="icones-grid">
-            <div class="icone-option" 
-                 [class.selected]="iconeModuloEdicao === icone" 
-                 *ngFor="let icone of iconesModulo" 
-                 (click)="iconeModuloEdicao = icone">
+            <div class="icone-option"
+                 [class.selected]="iconeModuloEdicaoSvg === iconesModuloSvg[i]"
+                 *ngFor="let icone of iconesModulo; let i = index"
+                 (click)="selecionarIconeEdicao(i)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [innerHTML]="icone"></svg>
             </div>
           </div>
@@ -510,23 +511,25 @@
           />
           <p class="contador-caracteres">{{ nomeModuloEdicao.length }}/80 caracteres</p>
         </div>
+
+        <div class="erro-inline" *ngIf="erroEdicao">{{ erroEdicao }}</div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn-cancelar-modal" (click)="fecharModalEditarModulo()">
+        <button class="btn-cancelar-modal" (click)="fecharModalEditarModulo()" [disabled]="salvandoEdicao">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
           Cancelar
         </button>
-        <button class="btn-enviar-modal" 
-                (click)="confirmarEdicaoModulo()" 
-                [disabled]="!podeConfirmarEdicao">
+        <button class="btn-enviar-modal"
+                (click)="confirmarEdicaoModulo()"
+                [disabled]="!podeConfirmarEdicao || salvandoEdicao">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          Confirmar Edição
+          {{ salvandoEdicao ? 'Salvando...' : 'Confirmar Edição' }}
         </button>
       </div>
 

@@ -35,8 +35,18 @@ public class Modulo {
     @Column(name = "criado_em")
     private LocalDateTime criadoEm;
 
+    @Column(name = "atualizado_em")
+    private LocalDateTime atualizadoEm;
+
     @PrePersist
     void prePersist() {
-        this.criadoEm = LocalDateTime.now();
+        LocalDateTime agora = LocalDateTime.now();
+        this.criadoEm = agora;
+        this.atualizadoEm = agora;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.atualizadoEm = LocalDateTime.now();
     }
 }

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.format.DateTimeFormatter;
@@ -34,8 +35,10 @@ public class ModuloController {
     @PostMapping
     public ResponseEntity<ModuloResponse> criar(
             @PathVariable Long idiomaId,
+            Authentication authentication,
             @Valid @RequestBody ModuloRequest request) {
-        Modulo modulo = moduloService.criar(idiomaId, request);
+        Long userId = Long.valueOf(authentication.getName());
+        Modulo modulo = moduloService.criar(idiomaId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(modulo));
     }
 
@@ -43,15 +46,19 @@ public class ModuloController {
     public ResponseEntity<ModuloResponse> editar(
             @PathVariable Long idiomaId,
             @PathVariable Long id,
+            Authentication authentication,
             @Valid @RequestBody ModuloRequest request) {
-        return ResponseEntity.ok(toResponse(moduloService.editar(id, request)));
+        Long userId = Long.valueOf(authentication.getName());
+        return ResponseEntity.ok(toResponse(moduloService.editar(id, request, userId)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(
             @PathVariable Long idiomaId,
-            @PathVariable Long id) {
-        moduloService.excluir(id);
+            @PathVariable Long id,
+            Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        moduloService.excluir(id, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -64,6 +71,9 @@ public class ModuloController {
                 fraseRepository.countByModuloId(modulo.getId()),
                 modulo.getCriadoEm() != null
                         ? modulo.getCriadoEm().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        : null,
+                modulo.getAtualizadoEm() != null
+                        ? modulo.getAtualizadoEm().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                         : null
         );
     }

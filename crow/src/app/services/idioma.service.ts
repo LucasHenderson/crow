@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { IdiomaAdm, IdiomaBusca } from '../models/idioma.model';
+import { IdiomaAdm, IdiomaBusca, Proficiencia } from '../models/idioma.model';
 
 @Injectable({ providedIn: 'root' })
 export class IdiomaService {
@@ -16,7 +17,28 @@ export class IdiomaService {
 
   buscarIdiomas(q?: string): Observable<IdiomaBusca[]> {
     const params = q ? `?q=${encodeURIComponent(q)}` : '';
-    return this.http.get<IdiomaBusca[]>(`${this.apiUrl}/idiomas${params}`);
+    return this.http.get<any[]>(`${this.apiUrl}/idiomas${params}`).pipe(
+      map(lista => lista.map(i => this.toIdiomaBusca(i)))
+    );
+  }
+
+  /**
+   * Normaliza a resposta do backend (IdiomaResponse) para o modelo de busca.
+   * Converte `criadoEm` (string ISO) em Date — necessário para a ordenação —
+   * e garante um valor de proficiência válido.
+   */
+  private toIdiomaBusca(i: any): IdiomaBusca {
+    return {
+      id: i.id,
+      codigo: i.codigo,
+      nome: i.nome,
+      idioma: i.idioma,
+      bandeira: i.bandeira,
+      modulos: i.modulos ?? 0,
+      avaliacao: i.avaliacao ?? 0,
+      criadoEm: i.criadoEm ? new Date(i.criadoEm) : new Date(),
+      proficiencia: (i.proficiencia || 'iniciante') as Proficiencia
+    };
   }
 
   getIdiomaPorId(id: number | string): Observable<IdiomaAdm> {
@@ -35,8 +57,8 @@ export class IdiomaService {
     return this.http.delete<void>(`${this.apiUrl}/idiomas/${id}`);
   }
 
-  importarIdioma(idiomaId: number | string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/idiomas/${idiomaId}/importar`, {});
+  importarIdioma(idiomaId: number | string): Observable<IdiomaAdm> {
+    return this.http.post<IdiomaAdm>(`${this.apiUrl}/idiomas/${idiomaId}/importar`, {});
   }
 
   avaliarIdioma(idiomaId: number | string, nota: number): Observable<{ novaMedia: number; totalAvaliacoes: number }> {

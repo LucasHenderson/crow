@@ -4,10 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, forkJoin, Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Frase, PalavraTrad, Par } from '../../models/frase.model';
 import { FraseService } from '../../services/frase.service';
 import { ModuloService } from '../../services/modulo.service';
+import { UploadService } from '../../services/upload.service';
+import { IdiomaService } from '../../services/idioma.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-visualizar-modulo',
@@ -23,6 +27,8 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   moduloNome: string = '';
   moduloIcone: SafeHtml = '';
   dataAtualizacao: string = '';
+  /** Indica se o usuário logado é o dono do idioma (pode editar frases). */
+  isProprietario = false;
   private navSub?: Subscription;
 
   private readonly iconesModo: Record<string, string> = {
@@ -76,8 +82,12 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   fraseEmEdicao: Frase | null = null;
   indiceEdicao = -1;
 
+  // Controle de salvamento da edição
+  salvandoEdicao = false;
+
   // Campos de edição - Tradução Direta
   imagemPreviewEdicao: string | null = null;
+  imagemFileEdicao: File | null = null;
   traducaoCompletaEdicao = '';
   palavrasTraducaoEdicao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
   observacoesEdicao = '';
@@ -93,6 +103,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   // Campos de edição - Quiz
   tipoMidiaQuizEdicao: 'imagem' | 'video' | null = null;
   imagemQuizEdicao: string | null = null;
+  imagemQuizFileEdicao: File | null = null;
   videoQuizEdicao = '';
   videoQuizEmbedEdicao: SafeResourceUrl | null = null;
   perguntaQuizEdicao = '';
@@ -113,7 +124,10 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private fraseService: FraseService,
-    private moduloService: ModuloService
+    private moduloService: ModuloService,
+    private uploadService: UploadService,
+    private idiomaService: IdiomaService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -133,8 +147,30 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     const qp = this.route.snapshot.queryParamMap;
     this.moduloId = qp.get('id') || this.route.snapshot.paramMap.get('id') || '';
     this.idIdioma = qp.get('idIdioma') || '';
+    this.verificarProprietario();
     this.carregarModulo();
     this.carregarFrases();
+  }
+
+  /**
+   * Determina se o usuário logado é o proprietário do idioma. Apenas o dono
+   * pode criar, editar ou excluir frases — visitantes têm acesso somente leitura.
+   */
+  private verificarProprietario(): void {
+    this.isProprietario = false;
+    if (!this.idIdioma) return;
+
+    this.idiomaService.getIdiomaPorId(this.idIdioma).subscribe({
+      next: (idioma) => {
+        const user = this.authService.getCurrentUser();
+        this.isProprietario = !!user && user.id === idioma.criadorId;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isProprietario = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   @HostListener('document:click', ['$event'])
@@ -154,11 +190,14 @@ export class VisualizarModulo implements OnInit, OnDestroy {
         const m = modulos.find((mod: any) => String(mod.id) === String(this.moduloId));
         if (m) {
           this.moduloNome = m.nome || '';
-          const idNumerico = Number(m.id);
-          const iconRaw = this.rawIcons[(idNumerico - 1) % this.rawIcons.length];
+          const total = this.rawIcons.length;
+          const idNumerico = Number(m.id) || 1;
+          const fallback = this.rawIcons[(((idNumerico - 1) % total) + total) % total];
+          const iconRaw = (m.icone && m.icone.trim()) ? m.icone : fallback;
           this.moduloIcone = this.sanitizer.bypassSecurityTrustHtml(iconRaw);
-          this.dataAtualizacao = m.criadoEm
-            ? this.formatarData(new Date(m.criadoEm))
+          const dataReferencia = m.atualizadoEm || m.criadoEm;
+          this.dataAtualizacao = dataReferencia
+            ? this.formatarData(new Date(dataReferencia))
             : this.formatarData(new Date());
           this.cdr.detectChanges();
         }
@@ -212,7 +251,8 @@ export class VisualizarModulo implements OnInit, OnDestroy {
       links,
       pares,
       alternativas,
-      videoQuiz
+      videoQuiz,
+      videoQuizUrl: typeof f.videoQuiz === 'string' ? f.videoQuiz : undefined
     };
   }
 
@@ -357,8 +397,8 @@ export class VisualizarModulo implements OnInit, OnDestroy {
         this.imagemQuizEdicao = frase.imagemQuiz;
       } else if (frase.videoQuiz) {
         this.tipoMidiaQuizEdicao = 'video';
-        this.videoQuizEdicao = typeof frase.videoQuiz === 'string' ? frase.videoQuiz : '';
-        this.videoQuizEmbedEdicao = frase.videoQuiz;
+        this.videoQuizEdicao = frase.videoQuizUrl || '';
+        this.onVideoQuizChangeEdicao(this.videoQuizEdicao);
       }
       this.perguntaQuizEdicao = frase.pergunta || '';
       this.alternativasEdicao = frase.alternativas ? [...frase.alternativas] : ['', ''];
@@ -369,36 +409,148 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   }
 
   salvarEdicao(): void {
+    if (this.salvandoEdicao) return;
+
     if (!this.podeFinalizarEdicao()) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-    
-    if (this.indiceEdicao >= 0 && this.fraseEmEdicao) {
-      const fraseAtualizada = { ...this.fraseEmEdicao };
-      
-      if (fraseAtualizada.modo === 'traducao') {
-        fraseAtualizada.traducaoCompleta = this.traducaoCompletaEdicao;
-        fraseAtualizada.palavras = JSON.parse(JSON.stringify(this.palavrasTraducaoEdicao));
-        fraseAtualizada.imagem = this.imagemPreviewEdicao || undefined;
-        fraseAtualizada.observacoes = this.observacoesEdicao;
-        fraseAtualizada.links = this.linksEdicao.filter(l => l.trim());
-      } else if (fraseAtualizada.modo === 'pares') {
-        fraseAtualizada.pares = JSON.parse(JSON.stringify(this.paresEdicao));
-      } else if (fraseAtualizada.modo === 'quiz') {
-        fraseAtualizada.imagemQuiz = this.tipoMidiaQuizEdicao === 'imagem' ? this.imagemQuizEdicao || undefined : undefined;
-        fraseAtualizada.videoQuiz = this.tipoMidiaQuizEdicao === 'video' ? this.videoQuizEmbedEdicao || undefined : undefined;
-        fraseAtualizada.pergunta = this.perguntaQuizEdicao;
-        fraseAtualizada.alternativas = [...this.alternativasEdicao];
-        fraseAtualizada.respostaCorreta = this.respostaCorretaEdicao !== null ? this.respostaCorretaEdicao : undefined;
+
+    if (this.indiceEdicao < 0 || !this.fraseEmEdicao || !this.fraseEmEdicao.id) {
+      alert('Não foi possível identificar a frase a ser editada.');
+      return;
+    }
+
+    this.salvandoEdicao = true;
+
+    // Primeiro envia as imagens pendentes, depois persiste a frase no backend.
+    this.uploadImagensPendentesEdicao().subscribe({
+      next: () => this.enviarEdicao(),
+      error: () => {
+        this.salvandoEdicao = false;
+        this.cdr.detectChanges();
+        alert('Erro ao enviar imagens. Tente novamente.');
       }
-      
-      this.frases[this.indiceEdicao] = fraseAtualizada;
-      this.atualizarFrasesPaginadas();
-      
-      console.log('Frase editada com sucesso:', fraseAtualizada);
-      this.fecharModalEdicao();
-      this.exibirMensagemSucesso(`Frase "${fraseAtualizada.modoNome}" editada com sucesso!`);
+    });
+  }
+
+  /**
+   * Faz upload das imagens recém-selecionadas (Files) e substitui os previews
+   * (blob:) pelos caminhos definitivos retornados pelo backend.
+   */
+  private uploadImagensPendentesEdicao(): Observable<any> {
+    const modo = this.fraseEmEdicao?.modo;
+    const uploads: Observable<any>[] = [];
+
+    if (modo === 'traducao' && this.imagemFileEdicao) {
+      uploads.push(
+        this.uploadService.uploadImagem(this.imagemFileEdicao).pipe(
+          tap(res => {
+            this.imagemPreviewEdicao = res.path;
+            this.imagemFileEdicao = null;
+          })
+        )
+      );
+    }
+
+    if (modo === 'pares') {
+      this.paresEdicao.forEach((par, i) => {
+        if (par.imagemFile) {
+          uploads.push(
+            this.uploadService.uploadImagem(par.imagemFile).pipe(
+              tap(res => {
+                this.paresEdicao[i].imagem = res.path;
+                this.paresEdicao[i].imagemFile = undefined;
+              })
+            )
+          );
+        }
+      });
+    }
+
+    if (modo === 'quiz' && this.tipoMidiaQuizEdicao === 'imagem' && this.imagemQuizFileEdicao) {
+      uploads.push(
+        this.uploadService.uploadImagem(this.imagemQuizFileEdicao).pipe(
+          tap(res => {
+            this.imagemQuizEdicao = res.path;
+            this.imagemQuizFileEdicao = null;
+          })
+        )
+      );
+    }
+
+    return uploads.length ? forkJoin(uploads) : of(null);
+  }
+
+  /** Monta o payload no formato esperado pelo backend (FraseRequest). */
+  private getDadosEdicao(): any {
+    const modo = this.fraseEmEdicao?.modo;
+
+    if (modo === 'traducao') {
+      return {
+        modo,
+        imagem: this.imagemPreviewEdicao || '',
+        traducaoCompleta: this.traducaoCompletaEdicao,
+        palavrasJson: JSON.stringify(
+          this.palavrasTraducaoEdicao.map(p => ({ palavra: p.palavra, traducao: p.traducao }))
+        ),
+        observacoes: this.observacoesEdicao || '',
+        linksJson: JSON.stringify(this.linksEdicao.filter(l => l.trim()))
+      };
+    }
+
+    if (modo === 'pares') {
+      const paresLimpos = this.paresEdicao.map(p => ({
+        imagem: p.imagem || '',
+        palavra: p.palavra,
+        traducao: p.traducao
+      }));
+      return { modo, paresJson: JSON.stringify(paresLimpos) };
+    }
+
+    if (modo === 'quiz') {
+      return {
+        modo,
+        imagemQuiz: this.tipoMidiaQuizEdicao === 'imagem' ? (this.imagemQuizEdicao || '') : '',
+        videoQuiz: this.tipoMidiaQuizEdicao === 'video' ? (this.videoQuizEdicao || '') : '',
+        pergunta: this.perguntaQuizEdicao,
+        alternativasJson: JSON.stringify(this.alternativasEdicao),
+        respostaCorreta: this.respostaCorretaEdicao
+      };
+    }
+
+    return { modo };
+  }
+
+  /** Persiste a edição via PUT e sincroniza o estado local com a resposta do backend. */
+  private enviarEdicao(): void {
+    const frase = this.fraseEmEdicao!;
+    const dados = this.getDadosEdicao();
+
+    this.fraseService.editarFrase(this.moduloId, frase.id!, dados).subscribe({
+      next: (resp) => {
+        const fraseAtualizada = this.enriquecerFrase(resp);
+        if (this.indiceEdicao >= 0) {
+          this.frases[this.indiceEdicao] = fraseAtualizada;
+        }
+        this.atualizarFrasesPaginadas();
+        this.carregarModulo();
+        this.salvandoEdicao = false;
+        const nome = fraseAtualizada.modoNome;
+        this.fecharModalEdicao();
+        this.exibirMensagemSucesso(`Frase "${nome}" editada com sucesso!`);
+      },
+      error: () => {
+        this.salvandoEdicao = false;
+        this.cdr.detectChanges();
+        alert('Erro ao salvar as alterações. Tente novamente.');
+      }
+    });
+  }
+
+  private revogarBlob(url: string | null | undefined): void {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
     }
   }
 
@@ -406,27 +558,33 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     this.mostrarModalEdicao = false;
     this.fraseEmEdicao = null;
     this.indiceEdicao = -1;
+    this.salvandoEdicao = false;
     this.limparCamposEdicao();
   }
 
   limparCamposEdicao(): void {
     // Tradução Direta
+    this.revogarBlob(this.imagemPreviewEdicao);
     this.imagemPreviewEdicao = null;
+    this.imagemFileEdicao = null;
     this.traducaoCompletaEdicao = '';
     this.palavrasTraducaoEdicao = [{ palavra: '', traducao: '' }];
     this.observacoesEdicao = '';
     this.linksEdicao = [''];
-    
+
     // Selecionar Pares
+    this.paresEdicao.forEach(p => this.revogarBlob(p.imagem));
     this.paresEdicao = [
       { palavra: '', traducao: '' },
       { palavra: '', traducao: '' },
       { palavra: '', traducao: '' }
     ];
-    
+
     // Quiz
     this.tipoMidiaQuizEdicao = null;
+    this.revogarBlob(this.imagemQuizEdicao);
     this.imagemQuizEdicao = null;
+    this.imagemQuizFileEdicao = null;
     this.videoQuizEdicao = '';
     this.videoQuizEmbedEdicao = null;
     this.perguntaQuizEdicao = '';
@@ -477,17 +635,17 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.imagemPreviewEdicao = reader.result as string;
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.imagemPreviewEdicao);
+    this.imagemFileEdicao = file;
+    this.imagemPreviewEdicao = URL.createObjectURL(file);
+    this.cdr.detectChanges();
   }
 
   removerImagemEdicao(event: Event): void {
     event.stopPropagation();
+    this.revogarBlob(this.imagemPreviewEdicao);
     this.imagemPreviewEdicao = null;
+    this.imagemFileEdicao = null;
   }
 
   // Funções auxiliares para edição - Selecionar Pares
@@ -507,17 +665,17 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.paresEdicao[index].imagem = e.target.result;
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.paresEdicao[index].imagem);
+    this.paresEdicao[index].imagemFile = file;
+    this.paresEdicao[index].imagem = URL.createObjectURL(file);
+    this.cdr.detectChanges();
   }
 
   removerImagemParEdicao(event: Event, index: number): void {
     event.stopPropagation();
+    this.revogarBlob(this.paresEdicao[index].imagem);
     this.paresEdicao[index].imagem = undefined;
+    this.paresEdicao[index].imagemFile = undefined;
   }
 
   // Funções auxiliares para edição - Quiz
@@ -547,19 +705,17 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     if (!input.files?.length) return;
 
     const file = input.files[0];
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      this.imagemQuizEdicao = reader.result as string;
-      this.cdr.detectChanges();
-    };
-
-    reader.readAsDataURL(file);
+    this.revogarBlob(this.imagemQuizEdicao);
+    this.imagemQuizFileEdicao = file;
+    this.imagemQuizEdicao = URL.createObjectURL(file);
+    this.cdr.detectChanges();
   }
 
   removerImagemQuizEdicao(event: Event): void {
     event.stopPropagation();
+    this.revogarBlob(this.imagemQuizEdicao);
     this.imagemQuizEdicao = null;
+    this.imagemQuizFileEdicao = null;
   }
 
   onVideoQuizChangeEdicao(url: string): void {
@@ -635,6 +791,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
             this.paginaAtual--;
           }
           this.atualizarFrasesPaginadas();
+          this.carregarModulo();
           this.fecharModalExclusao();
           this.exibirMensagemSucesso(`Frase "${modoNome}" excluída com sucesso!`);
         },

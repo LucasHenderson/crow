@@ -29,10 +29,11 @@ public class IdiomaController {
     private final DenunciaService denunciaService;
 
     @GetMapping
-    public ResponseEntity<List<IdiomaResponse>> listarPublicos(@RequestParam(required = false) String q) {
-        List<Idioma> idiomas = (q != null && !q.isBlank())
-                ? idiomaService.buscar(q)
-                : idiomaService.buscarPublicos();
+    public ResponseEntity<List<IdiomaResponse>> listarPublicos(
+            Authentication authentication,
+            @RequestParam(required = false) String q) {
+        Long userId = Long.valueOf(authentication.getName());
+        List<Idioma> idiomas = idiomaService.buscar(q, userId);
         return ResponseEntity.ok(idiomas.stream().map(this::toResponse).toList());
     }
 
@@ -63,8 +64,10 @@ public class IdiomaController {
     @PutMapping("/{id}")
     public ResponseEntity<IdiomaResponse> editar(
             @PathVariable Long id,
+            Authentication authentication,
             @Valid @RequestBody IdiomaRequest request) {
-        return ResponseEntity.ok(toResponse(idiomaService.editar(id, request)));
+        Long userId = Long.valueOf(authentication.getName());
+        return ResponseEntity.ok(toResponse(idiomaService.editar(id, request, userId)));
     }
 
     @DeleteMapping("/{id}")
@@ -77,13 +80,13 @@ public class IdiomaController {
     }
 
     @PostMapping("/{id}/importar")
-    public ResponseEntity<Void> importar(
+    public ResponseEntity<IdiomaResponse> importar(
             @PathVariable Long id,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
         Usuario usuario = usuarioService.buscarPorId(userId);
-        idiomaService.importar(userId, id, usuario);
-        return ResponseEntity.ok().build();
+        Idioma copia = idiomaService.importar(userId, id, usuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(copia));
     }
 
     @PostMapping("/{id}/avaliar")
