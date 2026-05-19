@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -32,8 +33,10 @@ public class FraseController {
     @PostMapping
     public ResponseEntity<FraseResponse> criar(
             @PathVariable Long moduloId,
+            Authentication authentication,
             @Valid @RequestBody FraseRequest request) {
-        Frase frase = fraseService.criar(moduloId, request);
+        Long userId = Long.valueOf(authentication.getName());
+        Frase frase = fraseService.criar(moduloId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(frase));
     }
 
@@ -41,15 +44,19 @@ public class FraseController {
     public ResponseEntity<FraseResponse> editar(
             @PathVariable Long moduloId,
             @PathVariable Long id,
+            Authentication authentication,
             @Valid @RequestBody FraseRequest request) {
-        return ResponseEntity.ok(toResponse(fraseService.editar(id, request)));
+        Long userId = Long.valueOf(authentication.getName());
+        return ResponseEntity.ok(toResponse(fraseService.editar(id, request, userId)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(
             @PathVariable Long moduloId,
-            @PathVariable Long id) {
-        fraseService.excluir(id);
+            @PathVariable Long id,
+            Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        fraseService.excluir(id, userId);
         return ResponseEntity.noContent().build();
     }
 

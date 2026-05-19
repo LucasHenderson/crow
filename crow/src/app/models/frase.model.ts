@@ -32,6 +32,7 @@ export interface Frase {
   // Quiz
   imagemQuiz?: string;
   videoQuiz?: SafeResourceUrl;
+  videoQuizUrl?: string;
   pergunta?: string;
   alternativas?: string[];
   alternativasEmbaralhadas?: string[];

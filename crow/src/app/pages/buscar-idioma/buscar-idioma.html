@@ -121,10 +121,9 @@
   <!-- LISTA -->
   <div class="lista" *ngIf="paginados.length > 0">
 
-    <div 
-      routerLink="/visualizar-idioma"
-      class="item" 
-      *ngFor="let idioma of paginados; let i = index" 
+    <div
+      class="item"
+      *ngFor="let idioma of paginados; let i = index"
       (click)="selecionarIdioma(idioma)"
       [class.nivel-iniciante]="idioma.proficiencia === 'iniciante'"
       [class.nivel-basico]="idioma.proficiencia === 'basico'"

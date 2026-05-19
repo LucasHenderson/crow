@@ -100,7 +100,9 @@ export class VisualizarIdioma implements OnInit {
   moduloEmEdicao: Modulo | null = null;
   moduloEmExclusao: Modulo | null = null;
   nomeModuloEdicao = '';
-  iconeModuloEdicao: SafeHtml | null = null;
+  iconeModuloEdicaoSvg: string | null = null;
+  salvandoEdicao = false;
+  erroEdicao = '';
   
   iconesModulo: SafeHtml[] = [];
   iconesModuloSvg: string[] = [];
@@ -184,13 +186,17 @@ export class VisualizarIdioma implements OnInit {
   carregarModulos(idiomaId: string): void {
     this.moduloService.getModulosPorIdioma(idiomaId).subscribe({
       next: (modulos) => {
-        this.modulos = modulos.map((m: any) => ({
-          id: m.id,
-          nome: m.nome,
-          icone: this.makeIconSvg(this.rawIcons[(m.id - 1) % this.rawIcons.length]),
-          selecionado: false,
-          frases: m.frases || 0
-        }));
+        this.modulos = modulos.map((m: any) => {
+          const iconeSvg = this.resolverIconeSvg(m.icone, m.id);
+          return {
+            id: m.id,
+            nome: m.nome,
+            iconeSvg,
+            icone: this.makeIconSvg(iconeSvg),
+            selecionado: false,
+            frases: m.frases || 0
+          };
+        });
         this.nextId = this.modulos.length + 1;
         this.carregando = false;
         this.cdr.detectChanges();
@@ -211,6 +217,20 @@ export class VisualizarIdioma implements OnInit {
     return this.sanitizer.bypassSecurityTrustHtml(raw);
   }
 
+  /**
+   * Retorna o SVG bruto do ícone do módulo. Usa o valor persistido no backend
+   * e, apenas para módulos legados sem ícone salvo, recorre a um padrão estável
+   * derivado do id (nunca aleatório).
+   */
+  private resolverIconeSvg(iconeBackend: string | null | undefined, id: number): string {
+    if (iconeBackend && iconeBackend.trim()) {
+      return iconeBackend;
+    }
+    const total = this.rawIcons.length;
+    const indice = ((((id || 1) - 1) % total) + total) % total;
+    return this.rawIcons[indice];
+  }
+
   addModule(nome?: string): void {
     if (this.modulos.length >= 20) {
       alert('Limite de 20 módulos atingido.');
@@ -221,6 +241,7 @@ export class VisualizarIdioma implements OnInit {
     const modulo: Modulo = {
       id: this.nextId++,
       nome: nome || `Módulo ${this.nextId - 1}`,
+      iconeSvg: iconRaw,
       icone: this.makeIconSvg(iconRaw),
       selecionado: false,
       frases: Math.floor(Math.random() * 50) + 1
@@ -426,10 +447,12 @@ export class VisualizarIdioma implements OnInit {
       next: (moduloCriado: any) => {
         this.fraseService.criarFrase(moduloCriado.id, this.getDadosFraseAdicao()).subscribe({
           next: () => {
+            const iconeSvg = this.resolverIconeSvg(moduloCriado.icone, moduloCriado.id);
             const novoModulo: Modulo = {
               id: moduloCriado.id,
               nome: moduloCriado.nome || nome,
-              icone: this.sanitizer.bypassSecurityTrustHtml(this.iconeModuloAdicaoSvg || ''),
+              iconeSvg,
+              icone: this.makeIconSvg(iconeSvg),
               selecionado: false,
               frases: 1
             };
@@ -754,34 +777,34 @@ export class VisualizarIdioma implements OnInit {
   // ===== MODAL DE IMPORTAÇÃO =====
   
   importarIdioma(): void {
-    this.carregarIdiomasUsuario();
-    
-    if (this.idiomasUsuario.length >= 4) {
-      this.etapaImportacao = 'exclusao';
-    } else {
-      this.etapaImportacao = 'confirmacao';
-    }
-    
-    this.mostrarModalImportacao = true;
+    // Carrega os idiomas do usuário ANTES de abrir o modal, garantindo que a
+    // decisão entre "confirmação" e "exclusão" use a contagem real (corrige
+    // o problema de o modal abrir sempre na etapa de confirmação).
+    this.idiomaService.getIdiomasUsuario().subscribe({
+      next: (idiomas) => {
+        this.idiomasUsuario = idiomas.map((i: any) => ({
+          id: i.id,
+          nome: i.nome,
+          bandeira: i.bandeira,
+          selecionado: false
+        }));
+        this.etapaImportacao = this.idiomasUsuario.length >= 4 ? 'exclusao' : 'confirmacao';
+        this.mostrarModalImportacao = true;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.idiomasUsuario = [];
+        this.etapaImportacao = 'confirmacao';
+        this.mostrarModalImportacao = true;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   fecharModalImportacao(): void {
     this.mostrarModalImportacao = false;
     this.etapaImportacao = 'confirmacao';
     this.limparSelecaoIdiomas();
-  }
-
-  carregarIdiomasUsuario(): void {
-    this.idiomaService.getIdiomasUsuario().subscribe({
-      next: (idiomas) => {
-        this.idiomasUsuario = idiomas.map((i: any) => ({
-          nome: i.nome,
-          bandeira: i.bandeira,
-          selecionado: false
-        }));
-      },
-      error: () => {}
-    });
   }
 
   limparSelecaoIdiomas(): void {
@@ -815,15 +838,30 @@ export class VisualizarIdioma implements OnInit {
 
   excluirEImportar(): void {
     if (!this.podeExcluirEImportar) return;
-    
-    const nomesExcluidos = this.idiomasSelecionadosParaExclusao.map(i => i.nome).join(', ');
-    console.log('Excluindo idiomas:', nomesExcluidos);
-    console.log('Importando idioma:', this.idiomaNome);
-    
-    this.idiomasUsuario = this.idiomasUsuario.filter(i => !i.selecionado);
-    
-    this.fecharModalImportacao();
-    this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
+
+    // Exclui de fato os idiomas selecionados no backend e, só após a confirmação,
+    // realiza a importação — garantindo persistência e respeito ao limite de 4.
+    const exclusoes = this.idiomasSelecionadosParaExclusao.map(i =>
+      this.idiomaService.excluirIdioma(i.id));
+
+    forkJoin(exclusoes).subscribe({
+      next: () => {
+        this.idiomaService.importarIdioma(this.idIdioma).subscribe({
+          next: () => {
+            this.fecharModalImportacao();
+            this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
+          },
+          error: (err) => {
+            this.fecharModalImportacao();
+            this.exibirMensagemSucesso(err.error?.message || 'Erro ao importar idioma.');
+          }
+        });
+      },
+      error: () => {
+        this.fecharModalImportacao();
+        this.exibirMensagemSucesso('Erro ao excluir os idiomas selecionados.');
+      }
+    });
   }
 
   // ===== MODAL DE EDITAR MÓDULO =====
@@ -831,37 +869,61 @@ export class VisualizarIdioma implements OnInit {
   editarModulo(mod: Modulo): void {
     this.moduloEmEdicao = mod;
     this.nomeModuloEdicao = mod.nome;
-    this.iconeModuloEdicao = mod.icone;
+    // Pré-seleciona o ícone atualmente em uso pelo módulo.
+    this.iconeModuloEdicaoSvg = mod.iconeSvg;
+    this.salvandoEdicao = false;
+    this.erroEdicao = '';
     this.mostrarModalEditarModulo = true;
   }
 
   fecharModalEditarModulo(): void {
+    if (this.salvandoEdicao) return;
     this.mostrarModalEditarModulo = false;
     this.moduloEmEdicao = null;
     this.nomeModuloEdicao = '';
-    this.iconeModuloEdicao = null;
+    this.iconeModuloEdicaoSvg = null;
+    this.erroEdicao = '';
+  }
+
+  selecionarIconeEdicao(index: number): void {
+    this.iconeModuloEdicaoSvg = this.iconesModuloSvg[index];
   }
 
   get podeConfirmarEdicao(): boolean {
     const nomeValido = this.nomeModuloEdicao.trim().length > 0;
     const nomeDiferente = this.nomeModuloEdicao.trim() !== this.moduloEmEdicao?.nome;
-    const iconeDiferente = this.iconeModuloEdicao !== this.moduloEmEdicao?.icone;
-    
-    return nomeValido && (nomeDiferente || iconeDiferente);
+    const iconeDiferente = !!this.iconeModuloEdicaoSvg
+      && this.iconeModuloEdicaoSvg !== this.moduloEmEdicao?.iconeSvg;
+
+    return nomeValido && !!this.iconeModuloEdicaoSvg && (nomeDiferente || iconeDiferente);
   }
 
   confirmarEdicaoModulo(): void {
+    if (this.salvandoEdicao) return;
     if (!this.podeConfirmarEdicao || !this.moduloEmEdicao) return;
-    
-    this.moduloEmEdicao.nome = this.nomeModuloEdicao.trim().substring(0, 80);
-    if (this.iconeModuloEdicao) {
-      this.moduloEmEdicao.icone = this.iconeModuloEdicao;
-    }
-    
-    console.log(`Módulo editado:`, this.moduloEmEdicao);
-    
-    this.fecharModalEditarModulo();
-    this.exibirMensagemSucesso(`Módulo "${this.moduloEmEdicao.nome}" editado com sucesso!`);
+
+    const modulo = this.moduloEmEdicao;
+    const nome = this.nomeModuloEdicao.trim().substring(0, 80);
+    const iconeSvg = this.iconeModuloEdicaoSvg || modulo.iconeSvg;
+
+    this.salvandoEdicao = true;
+    this.erroEdicao = '';
+
+    this.moduloService.editarModulo(this.idIdioma, modulo.id, { nome, icone: iconeSvg }).subscribe({
+      next: (atualizado: any) => {
+        modulo.nome = atualizado?.nome || nome;
+        modulo.iconeSvg = this.resolverIconeSvg(atualizado?.icone ?? iconeSvg, modulo.id);
+        modulo.icone = this.makeIconSvg(modulo.iconeSvg);
+        this.salvandoEdicao = false;
+        this.fecharModalEditarModulo();
+        this.exibirMensagemSucesso(`Módulo "${modulo.nome}" editado com sucesso!`);
+      },
+      error: (err) => {
+        this.salvandoEdicao = false;
+        this.erroEdicao = err?.error?.message || 'Erro ao editar módulo.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   // ===== MODAL DE EXCLUIR MÓDULO =====

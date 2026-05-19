@@ -6,5 +6,6 @@ public record ModuloResponse(
     String nome,
     String icone,
     int frases,
-    String criadoEm
+    String criadoEm,
+    String atualizadoEm
 ) {}

@@ -44,6 +44,7 @@ export interface IdiomaOpcao {
 }
 
 export interface IdiomaUsuario {
+  id: number;
   nome: string;
   bandeira: string;
   selecionado: boolean;

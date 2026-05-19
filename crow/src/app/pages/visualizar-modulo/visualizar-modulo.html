@@ -39,7 +39,7 @@
     <div class="frases-section">
       <div class="frases-header">
         <h2>Frases do Módulo</h2>
-        <button class="btn-adicionar" (click)="adicionarFrase()">
+        <button class="btn-adicionar" *ngIf="isProprietario" (click)="adicionarFrase()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
@@ -176,7 +176,7 @@
           </div>
 
           <!-- FOOTER DA FRASE -->
-          <div class="frase-footer">
+          <div class="frase-footer" *ngIf="isProprietario">
             <button class="btn-editar" (click)="editarFrase(frase, i)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 20h9"/>
@@ -481,11 +481,11 @@
           </svg>
           Cancelar
         </button>
-        <button class="btn-salvar-modal" (click)="salvarEdicao()" [disabled]="!podeFinalizarEdicao()">
+        <button class="btn-salvar-modal" (click)="salvarEdicao()" [disabled]="!podeFinalizarEdicao() || salvandoEdicao">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
-          Salvar
+          {{ salvandoEdicao ? 'Salvando...' : 'Salvar' }}
         </button>
       </div>
 
