@@ -76,7 +76,7 @@
 
 /* USUARIO CARD */
 .usuario-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   border: 2px solid rgba(59, 130, 246, 0.3);
@@ -108,7 +108,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
 }
 
 .card-header svg {
@@ -140,7 +140,7 @@
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: #fff;
   display: flex;
   justify-content: center;
@@ -244,7 +244,7 @@
 
 /* IDIOMAS SECTION */
 .idiomas-section {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
@@ -260,7 +260,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
   border-radius: 16px 16px 0 0;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }

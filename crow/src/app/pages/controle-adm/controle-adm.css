@@ -218,7 +218,7 @@
 }
 
 .denuncia-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   border-radius: 14px;
   border: 2px solid rgba(59, 130, 246, 0.3);
   padding: 1.5rem;
@@ -334,7 +334,7 @@
 }
 
 .usuario-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   border-radius: 14px;
   border: 2px solid rgba(59, 130, 246, 0.3);
   padding: 1.5rem;
@@ -357,7 +357,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -509,7 +509,7 @@
 }
 
 .idioma-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   border-radius: 14px;
   border: 2px solid rgba(59, 130, 246, 0.3);
   overflow: hidden;
@@ -663,7 +663,7 @@
 }
 
 .modal-container {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+  background: var(--bg-elevated);
   border-radius: 16px;
   max-width: 600px;
   width: 100%;
@@ -691,7 +691,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
   border-radius: 16px 16px 0 0;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
@@ -1276,7 +1276,7 @@
 }
 
 .filter-icon.log-usuario {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
@@ -1382,7 +1382,7 @@
 }
 
 .log-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   border-radius: 14px;
   border: 2px solid rgba(59, 130, 246, 0.3);
   padding: 1.5rem;
@@ -1409,7 +1409,7 @@
 }
 
 .log-card.log-usuario::before {
-  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
 }
 
 .log-card.log-idioma::before {
@@ -1829,7 +1829,7 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+  background: var(--bg-elevated);
   border-radius: 12px;
   z-index: 100;
   max-height: min(280px, 50vh);

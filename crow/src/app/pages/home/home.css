@@ -64,7 +64,7 @@
   position: absolute;
   inset: -4px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), #8b5cf6);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   opacity: 0;
   transition: opacity 0.4s;
   z-index: -1;
@@ -448,7 +448,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
   border-radius: 16px 16px 0 0;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
@@ -668,7 +668,7 @@ textarea {
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+  background: var(--bg-elevated);
   border-radius: 12px;
   z-index: 100;
   max-height: min(280px, 50vh);
