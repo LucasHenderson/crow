@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-topbar',
@@ -19,8 +20,14 @@ export class Topbar implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public themeService: ThemeService
   ) {}
+
+  /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
+  alternarTema(): void {
+    this.themeService.toggle();
+  }
 
   ngOnInit(): void {
     this.sub = this.authService.currentUser$.subscribe(user => {

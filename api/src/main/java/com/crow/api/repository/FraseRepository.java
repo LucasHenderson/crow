@@ -7,5 +7,13 @@ import java.util.List;
 
 public interface FraseRepository extends JpaRepository<Frase, Long> {
     List<Frase> findByModuloId(Long moduloId);
+
+    /**
+     * Frases de um módulo na ordem de cadastro (id crescente). Garante uma
+     * ordem estável e determinística — usada na listagem, na importação e no
+     * modo de jogo "Ordem de Cadastro".
+     */
+    List<Frase> findByModuloIdOrderByIdAsc(Long moduloId);
+
     int countByModuloId(Long moduloId);
 }

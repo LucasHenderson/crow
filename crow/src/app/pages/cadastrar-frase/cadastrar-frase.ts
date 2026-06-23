@@ -30,6 +30,8 @@ export class CadastrarFrase {
   imagemFile: File | null = null;
   traducaoCompleta = '';
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
+  /** Respostas/ordens alternativas aceitas como corretas (Fase 5). */
+  traducoesAlternativas: string[] = [];
   observacoes = '';
   links: string[] = [''];
 
@@ -108,6 +110,16 @@ export class CadastrarFrase {
 
   removerLink(index: number): void {
     this.links.splice(index, 1);
+  }
+
+  adicionarTraducaoAlt(): void {
+    if (this.traducoesAlternativas.length < 5) {
+      this.traducoesAlternativas.push('');
+    }
+  }
+
+  removerTraducaoAlt(index: number): void {
+    this.traducoesAlternativas.splice(index, 1);
   }
 
   onImagemSelecionada(event: any): void {
@@ -334,6 +346,7 @@ export class CadastrarFrase {
       return {
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
+        traducoesAlternativasJson: JSON.stringify(this.traducoesAlternativas.map(t => t.trim()).filter(t => t)),
         palavrasJson: JSON.stringify(this.palavrasTraducao),
         observacoes: this.observacoes,
         linksJson: JSON.stringify(this.links.filter(l => l.trim()))

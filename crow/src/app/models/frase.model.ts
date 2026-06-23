@@ -21,6 +21,10 @@ export interface Frase {
 
   // Tradução Direta
   traducaoCompleta?: string;
+  /** Traduções/ordens alternativas aceitas como corretas (texto). */
+  traducoesAlternativas?: string[];
+  /** JSON serializado das traduções alternativas (contrato com o backend). */
+  traducoesAlternativasJson?: string;
   palavras?: PalavraTrad[];
   imagem?: string;
   observacoes?: string;
