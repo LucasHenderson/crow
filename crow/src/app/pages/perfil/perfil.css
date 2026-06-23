@@ -90,7 +90,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1.75rem 2rem;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   backdrop-filter: blur(10px);
   border-radius: 18px;
   border: 2px solid rgba(59, 130, 246, 0.3);
@@ -106,7 +106,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
 }
 
 .avatar-wrapper {
@@ -118,7 +118,7 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: #fff;
   display: flex;
   justify-content: center;
@@ -194,7 +194,7 @@
 
 /* FORM CARD */
 .form-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: var(--bg-elevated);
   backdrop-filter: blur(10px);
   border-radius: 18px;
   border: 2px solid rgba(59, 130, 246, 0.3);
