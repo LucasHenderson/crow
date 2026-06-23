@@ -1,6 +1,6 @@
 .jogar {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 50%, var(--bg-card) 100%);
   padding: 2rem;
   color: white;
   position: relative;
@@ -640,7 +640,7 @@
 
 .btn-verificar {
   padding: 1rem 3rem;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-success), #059669);
   border: none;
   border-radius: 12px;
   color: white;
@@ -1038,7 +1038,7 @@
 }
 
 .btn-jogar-novamente {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-success), #059669);
   color: white;
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }

@@ -1,6 +1,6 @@
 .cadastro {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 50%, var(--bg-card) 100%);
   padding: 2.5rem 2rem;
   color: white;
   position: relative;
@@ -62,14 +62,14 @@
 }
 
 .progress-step.active .step-circle {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   color: white;
   border-color: rgba(59, 130, 246, 0.5);
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4), 0 0 30px rgba(59, 130, 246, 0.2);
 }
 
 .progress-step.completed .step-circle {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-success), #059669);
   color: white;
   border-color: rgba(16, 185, 129, 0.5);
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
@@ -143,7 +143,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
   border-radius: 12px 12px 0 0;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
@@ -182,7 +182,7 @@ input:hover, textarea:hover {
 }
 
 input:focus, textarea:focus {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.3);
   outline: none;
   background: linear-gradient(135deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);
@@ -223,14 +223,14 @@ textarea {
 }
 
 .icone-option:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
   transform: scale(1.05);
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .icone-option.selected {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.2) 100%);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 15px rgba(59, 130, 246, 0.4);
 }
@@ -242,7 +242,7 @@ textarea {
 }
 
 .icone-option.selected svg {
-  color: #60a5fa;
+  color: var(--color-primary-light);
 }
 
 /* MODO DE FRASE */
@@ -265,14 +265,14 @@ textarea {
 }
 
 .modo-card:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
 }
 
 .modo-card.selected {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.2) 100%);
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4), 0 0 30px rgba(59, 130, 246, 0.2);
 }
@@ -285,7 +285,7 @@ textarea {
 }
 
 .modo-card.selected svg {
-  color: #60a5fa;
+  color: var(--color-primary-light);
 }
 
 .modo-card h3 {
@@ -331,7 +331,7 @@ textarea {
 }
 
 .btn-add {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-success), #059669);
   color: white;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
@@ -343,7 +343,7 @@ textarea {
 }
 
 .btn-remove {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, var(--color-danger), #dc2626);
   color: white;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
@@ -378,7 +378,7 @@ textarea {
 }
 
 .upload-area:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
@@ -463,7 +463,7 @@ textarea {
 }
 
 .upload-area-small:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
@@ -530,12 +530,12 @@ textarea {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #3b82f6;
+  accent-color: var(--color-primary);
   flex-shrink: 0;
 }
 
 .radio-option.selected {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.2) 100%);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.3);
 }
@@ -620,7 +620,7 @@ textarea {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #10b981;
+  accent-color: var(--color-success);
   flex-shrink: 0;
 }
 
@@ -634,7 +634,7 @@ textarea {
 }
 
 .checkbox-resposta-correta input[type="radio"]:checked + label {
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .btn-alternativa-remove {
@@ -674,12 +674,12 @@ textarea {
 .btn-voltar {
   background: rgba(59, 130, 246, 0.15);
   border: 2px solid rgba(59, 130, 246, 0.4);
-  color: #60a5fa;
+  color: var(--color-primary-light);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-voltar:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.2));
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
@@ -693,22 +693,22 @@ textarea {
 }
 
 .cancelar:hover {
-  border-color: #ef4444;
+  border-color: var(--color-danger);
   color: white;
-  background: #ef4444;
+  background: var(--color-danger);
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3);
 }
 
 .avancar, .finalizar {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: white;
   border: none;
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .avancar:hover, .finalizar:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, #1d4ed8 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }

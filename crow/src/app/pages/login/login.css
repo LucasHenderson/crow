@@ -4,7 +4,7 @@
   justify-content: center;
   align-items: center;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 50%, var(--bg-card) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -33,7 +33,7 @@
   left: 0px;
   right: 0px;
   height: 8px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
   border-radius: 10px 10px 0 0;
 }
 
@@ -58,7 +58,7 @@
 .logo h1 {
   font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, var(--color-primary), #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -96,7 +96,7 @@
 
 .input-group input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   background: rgba(255, 255, 255, 0.08);
 }
@@ -132,7 +132,7 @@
 
 .eye-icon:hover {
   background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
+  color: var(--color-primary-light);
 }
 
 .eye-icon svg {
@@ -149,7 +149,7 @@
 .link-btn {
   background: none;
   border: none;
-  color: #60a5fa;
+  color: var(--color-primary-light);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -171,7 +171,7 @@ button[type="submit"] {
   padding: 1rem;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: #ffffff;
   font-weight: 700;
   font-size: 1rem;
@@ -182,7 +182,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, #1d4ed8 100%);
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
   transform: translateY(-2px);
 }
@@ -242,7 +242,7 @@ button[type="submit"]:disabled {
 .btn-cadastrar:hover {
   background: rgba(59, 130, 246, 0.1);
   border-color: rgba(59, 130, 246, 0.3);
-  color: #60a5fa;
+  color: var(--color-primary-light);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
 }

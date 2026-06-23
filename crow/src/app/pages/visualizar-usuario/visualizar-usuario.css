@@ -1,6 +1,6 @@
 .visualizar-usuario {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 50%, var(--bg-card) 100%);
   padding: 2.5rem 2rem;
   color: white;
   position: relative;
@@ -108,13 +108,13 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
 }
 
 .card-header svg {
   width: 24px;
   height: 24px;
-  color: #60a5fa;
+  color: var(--color-primary-light);
   flex-shrink: 0;
   filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
 }
@@ -140,7 +140,7 @@
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%);
   color: #fff;
   display: flex;
   justify-content: center;
@@ -201,7 +201,7 @@
 .info-item svg {
   width: 20px;
   height: 20px;
-  color: #60a5fa;
+  color: var(--color-primary-light);
   flex-shrink: 0;
 }
 
@@ -260,7 +260,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
   border-radius: 16px 16px 0 0;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
@@ -283,7 +283,7 @@
 .header-left svg {
   width: 28px;
   height: 28px;
-  color: #60a5fa;
+  color: var(--color-primary-light);
   filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
 }
 
@@ -302,7 +302,7 @@
 }
 
 .count-badge {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   color: white;
   padding: 0.4rem 0.9rem;
   border-radius: 20px;
@@ -322,7 +322,7 @@
 .idioma-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
   backdrop-filter: blur(10px);
-  color: #1e293b;
+  color: var(--bg-elevated);
   border-radius: 14px;
   padding: 1.3rem;
   display: flex;
@@ -346,11 +346,11 @@
 }
 
 .idioma-card.nivel-iniciante::before {
-  background: linear-gradient(180deg, #10b981, #059669);
+  background: linear-gradient(180deg, var(--color-success), #059669);
 }
 
 .idioma-card.nivel-basico::before {
-  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
 }
 
 .idioma-card.nivel-intermediario::before {
@@ -362,7 +362,7 @@
 }
 
 .idioma-card.nivel-fluente::before {
-  background: linear-gradient(180deg, #ef4444, #dc2626);
+  background: linear-gradient(180deg, var(--color-danger), #dc2626);
 }
 
 .idioma-card:hover {
@@ -402,7 +402,7 @@
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.1em;
-  color: #1e293b;
+  color: var(--bg-elevated);
   text-align: center;
   padding: 0.3rem 0.7rem;
   background: rgba(59, 130, 246, 0.1);
@@ -471,17 +471,17 @@
 }
 
 .proficiencia-badge.iniciante::before {
-  background: #10b981;
+  background: var(--color-success);
 }
 
 .proficiencia-badge.basico {
   background: rgba(59, 130, 246, 0.15);
-  color: #2563eb;
+  color: var(--color-primary-hover);
   border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .proficiencia-badge.basico::before {
-  background: #3b82f6;
+  background: var(--color-primary);
 }
 
 .proficiencia-badge.intermediario {
@@ -511,7 +511,7 @@
 }
 
 .proficiencia-badge.fluente::before {
-  background: #ef4444;
+  background: var(--color-danger);
 }
 
 .avaliacao {

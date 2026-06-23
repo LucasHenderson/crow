@@ -19,7 +19,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
 }
 
 /* LOGO */
@@ -152,7 +152,7 @@
 }
 
 .user-btn.active .user-avatar svg {
-  stroke: #60a5fa;
+  stroke: var(--color-primary-light);
 }
 
 /* DROPDOWN MENU */
@@ -161,7 +161,7 @@
   z-index: 1001;
   right: 0;
   top: calc(100% + 12px);
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -191,14 +191,14 @@
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-bottom: 8px solid #1e293b;
+  border-bottom: 8px solid var(--bg-elevated);
 }
 
 .dropdown button {
   padding: 0.9rem 1.2rem;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   width: 100%;
   text-align: left;
   cursor: pointer;
@@ -225,7 +225,7 @@
 
 .dropdown button:hover {
   background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
+  color: var(--color-primary-light);
   padding-left: 1.5rem;
 }
 
@@ -357,7 +357,7 @@
   border-radius: 50%;
   border: 1px solid var(--border-color, rgba(148, 163, 184, 0.22));
   background: transparent;
-  color: var(--color-text, #e5e7eb);
+  color: var(--color-text, var(--color-text));
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
