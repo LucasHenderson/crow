@@ -1,15 +1,15 @@
 .topbar {
-  height: 70px;
-  background: #1D3E67;
+  height: var(--header-h, 70px);
+  background: var(--topbar-bg, #15263f);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 0 1.75rem;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .topbar::before {
@@ -18,8 +18,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 60%, transparent), transparent);
 }
 
 /* LOGO */
