@@ -26,9 +26,9 @@ export class FraseService {
     return this.http.delete<void>(`${this.apiUrl}/modulos/${moduloId}/frases/${id}`);
   }
 
-  getFrasesParaJogo(moduloIds: string[]): Observable<Frase[]> {
+  getFrasesParaJogo(moduloIds: string[], ordem: 'aleatoria' | 'cadastro' = 'aleatoria'): Observable<Frase[]> {
     return this.http.get<Frase[]>(`${this.apiUrl}/modulos/0/frases/jogar`, {
-      params: { modulos: moduloIds.join(',') }
+      params: { modulos: moduloIds.join(','), ordem }
     });
   }
 }

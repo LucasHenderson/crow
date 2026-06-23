@@ -90,6 +90,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   imagemFileEdicao: File | null = null;
   traducaoCompletaEdicao = '';
   palavrasTraducaoEdicao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
+  traducoesAlternativasEdicao: string[] = [];
   observacoesEdicao = '';
   linksEdicao: string[] = [''];
 
@@ -234,6 +235,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     const modo = (f.modo || '').toLowerCase();
 
     const palavras = this.parseJson<PalavraTrad[]>(f.palavrasJson) || f.palavras;
+    const traducoesAlternativas = this.parseJson<string[]>(f.traducoesAlternativasJson) || f.traducoesAlternativas;
     const links = this.parseJson<string[]>(f.linksJson) || f.links;
     const pares = this.parseJson<Par[]>(f.paresJson) || f.pares;
     const alternativas = this.parseJson<string[]>(f.alternativasJson) || f.alternativas;
@@ -248,6 +250,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
       modoNome: modoNomes[modo] || modo,
       modoIcone: this.sanitizer.bypassSecurityTrustHtml(this.iconesModo[modo] || ''),
       palavras,
+      traducoesAlternativas,
       links,
       pares,
       alternativas,
@@ -382,6 +385,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     if (frase.modo === 'traducao') {
       this.traducaoCompletaEdicao = frase.traducaoCompleta || '';
       this.palavrasTraducaoEdicao = frase.palavras ? JSON.parse(JSON.stringify(frase.palavras)) : [{ palavra: '', traducao: '' }];
+      this.traducoesAlternativasEdicao = frase.traducoesAlternativas ? [...frase.traducoesAlternativas] : [];
       this.imagemPreviewEdicao = frase.imagem || null;
       this.observacoesEdicao = frase.observacoes || '';
       this.linksEdicao = frase.links && frase.links.length > 0 ? [...frase.links] : [''];
@@ -491,6 +495,9 @@ export class VisualizarModulo implements OnInit, OnDestroy {
         modo,
         imagem: this.imagemPreviewEdicao || '',
         traducaoCompleta: this.traducaoCompletaEdicao,
+        traducoesAlternativasJson: JSON.stringify(
+          this.traducoesAlternativasEdicao.map(t => t.trim()).filter(t => t)
+        ),
         palavrasJson: JSON.stringify(
           this.palavrasTraducaoEdicao.map(p => ({ palavra: p.palavra, traducao: p.traducao }))
         ),
@@ -569,6 +576,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     this.imagemFileEdicao = null;
     this.traducaoCompletaEdicao = '';
     this.palavrasTraducaoEdicao = [{ palavra: '', traducao: '' }];
+    this.traducoesAlternativasEdicao = [];
     this.observacoesEdicao = '';
     this.linksEdicao = [''];
 
@@ -629,6 +637,16 @@ export class VisualizarModulo implements OnInit, OnDestroy {
 
   removerLinkEdicao(index: number): void {
     this.linksEdicao.splice(index, 1);
+  }
+
+  adicionarTraducaoAltEdicao(): void {
+    if (this.traducoesAlternativasEdicao.length < 5) {
+      this.traducoesAlternativasEdicao.push('');
+    }
+  }
+
+  removerTraducaoAltEdicao(index: number): void {
+    this.traducoesAlternativasEdicao.splice(index, 1);
   }
 
   onImagemSelecionadaEdicao(event: any): void {

@@ -303,6 +303,31 @@
             </svg>
           </button>
 
+          <div class="campo campo-ordens-aceitas">
+            <label>Outras respostas aceitas (opcional)</label>
+            <p class="ajuda-campo">Cadastre outras ordens/traduções que também devem ser aceitas como corretas. Maiúsculas, acentos e pontuação são ignorados na correção.</p>
+            <div *ngFor="let alt of traducoesAlternativasEdicao; let i = index; trackBy: trackByIndex">
+              <div class="linha-dinamica">
+                <div class="campo">
+                  <label>Resposta aceita {{ i + 1 }}</label>
+                  <input type="text" [(ngModel)]="traducoesAlternativasEdicao[i]" placeholder="Ex: Good morning! How are you?" />
+                </div>
+                <button class="btn-icone btn-remove" (click)="removerTraducaoAltEdicao(i)" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <button class="btn-icone btn-add" (click)="adicionarTraducaoAltEdicao()" type="button" *ngIf="traducoesAlternativasEdicao.length < 5">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+          </div>
+
           <div class="campo">
             <label>Observações Gerais (opcional)</label>
             <textarea [(ngModel)]="observacoesEdicao" placeholder="Adicione contexto ou dicas"></textarea>

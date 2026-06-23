@@ -2583,3 +2583,73 @@
   resize: vertical;
   font-family: inherit;
 }
+/* ========== MODAL DE ORDEM DE EXECUÇÃO (Fase 6) ========== */
+.modal-ordem {
+  max-width: 520px;
+  width: 100%;
+}
+
+.opcoes-ordem {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.opcao-ordem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(30, 41, 59, 0.45);
+  color: var(--color-text, #e5e7eb);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s ease, background .2s ease, transform .15s ease;
+}
+
+.opcao-ordem:hover {
+  border-color: var(--color-primary, #3b82f6);
+  background: rgba(59, 130, 246, 0.12);
+  transform: translateY(-2px);
+}
+
+.opcao-ordem.preferida {
+  border-color: var(--color-primary, #3b82f6);
+  box-shadow: 0 0 0 1px var(--color-primary, #3b82f6) inset;
+}
+
+.opcao-ordem-ico {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-primary, #3b82f6);
+}
+
+.opcao-ordem-ico svg {
+  width: 24px;
+  height: 24px;
+}
+
+.opcao-ordem-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opcao-ordem-texto strong {
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.opcao-ordem-texto small {
+  font-size: .85rem;
+  color: var(--color-muted, #9ca3af);
+}

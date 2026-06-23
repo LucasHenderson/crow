@@ -22,7 +22,7 @@ public class FraseService {
     private final ModuloService moduloService;
 
     public List<Frase> buscarPorModulo(Long moduloId) {
-        return fraseRepository.findByModuloId(moduloId);
+        return fraseRepository.findByModuloIdOrderByIdAsc(moduloId);
     }
 
     public Frase buscarPorId(Long id) {
@@ -38,6 +38,7 @@ public class FraseService {
         Frase frase = Frase.builder()
                 .modo(Frase.ModoFrase.valueOf(dto.modo().toUpperCase()))
                 .traducaoCompleta(dto.traducaoCompleta())
+                .traducoesAlternativasJson(dto.traducoesAlternativasJson())
                 .palavrasJson(dto.palavrasJson())
                 .imagem(dto.imagem())
                 .observacoes(dto.observacoes())
@@ -63,6 +64,7 @@ public class FraseService {
 
         if (dto.modo() != null) frase.setModo(Frase.ModoFrase.valueOf(dto.modo().toUpperCase()));
         if (dto.traducaoCompleta() != null) frase.setTraducaoCompleta(dto.traducaoCompleta());
+        if (dto.traducoesAlternativasJson() != null) frase.setTraducoesAlternativasJson(dto.traducoesAlternativasJson());
         if (dto.palavrasJson() != null) frase.setPalavrasJson(dto.palavrasJson());
         if (dto.imagem() != null) frase.setImagem(dto.imagem());
         if (dto.observacoes() != null) frase.setObservacoes(dto.observacoes());
@@ -88,12 +90,30 @@ public class FraseService {
         moduloService.registrarAtualizacao(modulo);
     }
 
-    public List<Frase> getFrasesParaJogo(List<Long> moduloIds) {
+    /** Quantidade máxima de frases sorteadas no modo aleatório. */
+    private static final int LIMITE_JOGO_ALEATORIO = 10;
+
+    /**
+     * Monta a lista de frases para uma sessão de jogo respeitando o modo de ordem:
+     * <ul>
+     *   <li><b>cadastro</b>: todas as frases na ordem definida pelo criador
+     *       (módulos na ordem selecionada, frases por id crescente), sem sorteio;</li>
+     *   <li><b>aleatoria</b> (padrão): embaralha e limita a {@value #LIMITE_JOGO_ALEATORIO}.</li>
+     * </ul>
+     */
+    public List<Frase> getFrasesParaJogo(List<Long> moduloIds, String ordem) {
+        boolean ordemCadastro = "cadastro".equalsIgnoreCase(ordem);
+
         List<Frase> todasFrases = new ArrayList<>();
         for (Long moduloId : moduloIds) {
-            todasFrases.addAll(fraseRepository.findByModuloId(moduloId));
+            todasFrases.addAll(fraseRepository.findByModuloIdOrderByIdAsc(moduloId));
         }
+
+        if (ordemCadastro) {
+            return todasFrases;
+        }
+
         Collections.shuffle(todasFrases);
-        return todasFrases.stream().limit(10).toList();
+        return todasFrases.stream().limit(LIMITE_JOGO_ALEATORIO).toList();
     }
 }

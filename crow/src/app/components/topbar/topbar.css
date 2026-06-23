@@ -348,3 +348,26 @@
     font-size: 0.88rem;
   }
 }
+/* ========== TOGGLE DE TEMA (Fase 9) ========== */
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.22));
+  background: transparent;
+  color: var(--color-text, #e5e7eb);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(148, 163, 184, 0.15);
+  transform: translateY(-1px);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}

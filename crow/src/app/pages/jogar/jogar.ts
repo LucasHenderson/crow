@@ -63,6 +63,7 @@ export class Jogar implements OnInit, OnDestroy {
 
   modulosSelecionados: string[] = [];
   idIdioma: string = '';
+  ordem: 'aleatoria' | 'cadastro' = 'aleatoria';
 
   // Timer
   tempoInicio: number = 0;
@@ -89,6 +90,7 @@ export class Jogar implements OnInit, OnDestroy {
       if (params['idIdioma']) {
         this.idIdioma = params['idIdioma'];
       }
+      this.ordem = params['ordem'] === 'cadastro' ? 'cadastro' : 'aleatoria';
     });
     
     // Carrega e sorteia as frases (o jogo inicia quando elas chegam)
@@ -107,10 +109,11 @@ export class Jogar implements OnInit, OnDestroy {
 
     this.carregando = true;
     this.cdr.markForCheck();
-    this.fraseService.getFrasesParaJogo(this.modulosSelecionados).subscribe({
+    this.fraseService.getFrasesParaJogo(this.modulosSelecionados, this.ordem).subscribe({
       next: (frases) => {
-        const preparadas = frases.map(f => this.prepararFraseBackend(f));
-        this.frases = preparadas.sort(() => Math.random() - 0.5).slice(0, 10);
+        // O backend já entrega na ordem correta (embaralhada e limitada no modo
+        // aleatório; na ordem de cadastro no modo "cadastro"). Apenas preparamos.
+        this.frases = frases.map(f => this.prepararFraseBackend(f));
         this.totalEtapas = this.frases.length;
         this.carregando = false;
 
@@ -130,6 +133,7 @@ export class Jogar implements OnInit, OnDestroy {
   private prepararFraseBackend(f: any): Frase {
     const modo = (f.modo || '').toLowerCase();
     const palavras = this.parseJson<PalavraTrad[]>(f.palavrasJson) || f.palavras;
+    const traducoesAlternativas = this.parseJson<string[]>(f.traducoesAlternativasJson) || f.traducoesAlternativas;
     const links = this.parseJson<string[]>(f.linksJson) || f.links;
     const pares = this.parseJson<Par[]>(f.paresJson) || f.pares;
     const alternativas = this.parseJson<string[]>(f.alternativasJson) || f.alternativas;
@@ -141,6 +145,7 @@ export class Jogar implements OnInit, OnDestroy {
       ...f,
       modo,
       palavras,
+      traducoesAlternativas,
       links,
       pares,
       alternativas,
@@ -328,12 +333,36 @@ export class Jogar implements OnInit, OnDestroy {
     this.mostrarResultado = true;
   }
 
+  /**
+   * Normaliza um texto para comparação tolerante: minúsculas, sem acentos,
+   * sem pontuação e com espaços colapsados. Garante que diferenças de
+   * capitalização/acentuação não invalidem uma resposta correta.
+   */
+  private normalizarResposta(texto: string): string {
+    return (texto || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   verificarTraducao(): void {
-    const ordemCorreta = this.fraseAtual!.palavras!.map(p => p.traducao);
-    const ordemUsuario = this.palavrasSelecionadas.map(p => p!.traducao);
-    
-    this.respostaCorreta = JSON.stringify(ordemCorreta) === JSON.stringify(ordemUsuario);
-    
+    const ordemPrincipal = this.fraseAtual!.palavras!.map(p => p.traducao).join(' ');
+    const ordemUsuario = this.palavrasSelecionadas.map(p => p!.traducao).join(' ');
+
+    // Conjunto de respostas aceitas: a ordem principal (derivada das palavras)
+    // somada a todas as ordens/traduções alternativas cadastradas pelo criador.
+    const aceitas = new Set<string>();
+    aceitas.add(this.normalizarResposta(ordemPrincipal));
+    (this.fraseAtual!.traducoesAlternativas || []).forEach(alt => {
+      const norm = this.normalizarResposta(alt);
+      if (norm) aceitas.add(norm);
+    });
+
+    this.respostaCorreta = aceitas.has(this.normalizarResposta(ordemUsuario));
+
     if (this.respostaCorreta) {
       this.acertos++;
       this.historicoRespostas.push({
@@ -343,7 +372,7 @@ export class Jogar implements OnInit, OnDestroy {
     } else {
       this.erros++;
       this.mensagemErro = 'A ordem das palavras está incorreta.';
-      this.respostaCorretaTexto = ordemCorreta.join(' → ');
+      this.respostaCorretaTexto = this.fraseAtual!.palavras!.map(p => p.traducao).join(' → ');
       this.historicoRespostas.push({
         correto: false,
         texto: `Tradução: ${this.fraseAtual!.traducaoCompleta} (Ordem incorreta)`

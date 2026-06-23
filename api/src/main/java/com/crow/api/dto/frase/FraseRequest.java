@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 public record FraseRequest(
     @NotBlank String modo,
     String traducaoCompleta,
+    String traducoesAlternativasJson,
     String palavrasJson,
     String imagem,
     String observacoes,

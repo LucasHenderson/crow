@@ -5,6 +5,7 @@ public record FraseResponse(
     String codigo,
     String modo,
     String traducaoCompleta,
+    String traducoesAlternativasJson,
     String palavrasJson,
     String imagem,
     String observacoes,

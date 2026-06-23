@@ -63,13 +63,14 @@ public class FraseController {
     @GetMapping("/jogar")
     public ResponseEntity<List<FraseResponse>> jogar(
             @PathVariable Long moduloId,
-            @RequestParam String modulos) {
+            @RequestParam String modulos,
+            @RequestParam(defaultValue = "aleatoria") String ordem) {
         List<Long> moduloIds = Arrays.stream(modulos.split(","))
                 .map(String::trim)
                 .map(Long::parseLong)
                 .toList();
         return ResponseEntity.ok(
-                fraseService.getFrasesParaJogo(moduloIds).stream()
+                fraseService.getFrasesParaJogo(moduloIds, ordem).stream()
                         .map(this::toResponse)
                         .toList()
         );
@@ -81,6 +82,7 @@ public class FraseController {
                 "FRS-" + frase.getId(),
                 frase.getModo() != null ? frase.getModo().name().toLowerCase() : null,
                 frase.getTraducaoCompleta(),
+                frase.getTraducoesAlternativasJson(),
                 frase.getPalavrasJson(),
                 frase.getImagem(),
                 frase.getObservacoes(),

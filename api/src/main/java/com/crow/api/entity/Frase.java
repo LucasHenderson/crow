@@ -22,6 +22,14 @@ public class Frase {
     @Column(name = "traducao_completa", length = 1000)
     private String traducaoCompleta;
 
+    /**
+     * Ordens/traduções alternativas aceitas como corretas no modo TRADUCAO,
+     * além da ordem principal derivada de {@code palavrasJson}. Armazenado como
+     * um array JSON de strings (cada string é uma tradução completa válida).
+     */
+    @Column(name = "traducoes_alternativas_json", columnDefinition = "TEXT")
+    private String traducoesAlternativasJson;
+
     @Column(columnDefinition = "TEXT")
     private String palavrasJson;
 

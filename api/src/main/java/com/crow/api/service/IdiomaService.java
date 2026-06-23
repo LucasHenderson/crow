@@ -239,10 +239,11 @@ public class IdiomaService {
                     .idioma(copia)
                     .build());
 
-            for (Frase fraseOriginal : fraseRepository.findByModuloId(moduloOriginal.getId())) {
+            for (Frase fraseOriginal : fraseRepository.findByModuloIdOrderByIdAsc(moduloOriginal.getId())) {
                 fraseRepository.save(Frase.builder()
                         .modo(fraseOriginal.getModo())
                         .traducaoCompleta(fraseOriginal.getTraducaoCompleta())
+                        .traducoesAlternativasJson(fraseOriginal.getTraducoesAlternativasJson())
                         .palavrasJson(fraseOriginal.getPalavrasJson())
                         .imagem(fraseOriginal.getImagem())
                         .observacoes(fraseOriginal.getObservacoes())

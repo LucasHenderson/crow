@@ -41,6 +41,9 @@ export class VisualizarIdioma implements OnInit {
   mostrarModalExcluirModulo = false;
   mostrarModalAdicionarModulo = false;
   mostrarModalAlertaMinimoModulos = false;
+  mostrarModalOrdem = false;
+  /** Última ordem escolhida na sessão (pré-seleciona no modal). */
+  ordemPreferida: 'aleatoria' | 'cadastro' = 'aleatoria';
   mostrarMensagemSucesso = false;
   mensagemSucesso = '';
 
@@ -60,6 +63,7 @@ export class VisualizarIdioma implements OnInit {
   imagemFile: File | null = null;
   traducaoCompleta = '';
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
+  traducoesAlternativas: string[] = [];
   observacoes = '';
   links: string[] = [''];
 
@@ -99,6 +103,8 @@ export class VisualizarIdioma implements OnInit {
   // Dados de edição/exclusão de módulo
   moduloEmEdicao: Modulo | null = null;
   moduloEmExclusao: Modulo | null = null;
+  salvandoExclusao = false;
+  erroExclusao = '';
   nomeModuloEdicao = '';
   iconeModuloEdicaoSvg: string | null = null;
   salvandoEdicao = false;
@@ -157,6 +163,12 @@ export class VisualizarIdioma implements OnInit {
       this.idIdioma = id;
       this.carregarDadosIdioma(id);
     }
+    try {
+      const salva = sessionStorage.getItem('crow:ordem-jogo');
+      if (salva === 'cadastro' || salva === 'aleatoria') {
+        this.ordemPreferida = salva;
+      }
+    } catch { /* sessionStorage indisponível */ }
   }
 
   carregarDadosIdioma(id: string): void {
@@ -231,25 +243,6 @@ export class VisualizarIdioma implements OnInit {
     return this.rawIcons[indice];
   }
 
-  addModule(nome?: string): void {
-    if (this.modulos.length >= 20) {
-      alert('Limite de 20 módulos atingido.');
-      return;
-    }
-    
-    const iconRaw = this.rawIcons[(this.nextId - 1) % this.rawIcons.length];
-    const modulo: Modulo = {
-      id: this.nextId++,
-      nome: nome || `Módulo ${this.nextId - 1}`,
-      iconeSvg: iconRaw,
-      icone: this.makeIconSvg(iconRaw),
-      selecionado: false,
-      frases: Math.floor(Math.random() * 50) + 1
-    };
-    
-    this.modulos.push(modulo);
-  }
-
   toggleModulo(mod: Modulo, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -284,14 +277,39 @@ export class VisualizarIdioma implements OnInit {
 
   iniciar(): void {
     if (!this.podeIniciar) return;
+    // Abre o modal para o usuário escolher a ordem de execução (Aleatória ou
+    // Ordem de Cadastro). A navegação acontece após a escolha.
+    this.mostrarModalOrdem = true;
+  }
+
+  fecharModalOrdem(): void {
+    this.mostrarModalOrdem = false;
+  }
+
+  /**
+   * Confirma o modo de ordem escolhido, persiste a opção durante a sessão e
+   * inicia o jogo. No modo aleatório os módulos vão embaralhados; na ordem de
+   * cadastro vão na sequência exibida (o backend ordena as frases por cadastro).
+   */
+  iniciarComOrdem(ordem: 'aleatoria' | 'cadastro'): void {
+    if (!this.podeIniciar) return;
 
     const ids = this.modulosSelecionados.map(m => String(m.id));
-    const idsAleatorios = [...ids].sort(() => Math.random() - 0.5);
+    const idsOrdenados = ordem === 'aleatoria'
+      ? [...ids].sort(() => Math.random() - 0.5)
+      : ids;
 
+    // Persiste a escolha durante a sessão (sobrevive a recargas da aba).
+    try {
+      sessionStorage.setItem('crow:ordem-jogo', ordem);
+    } catch { /* sessionStorage indisponível — segue sem persistir */ }
+
+    this.mostrarModalOrdem = false;
     this.router.navigate(['/jogar'], {
       queryParams: {
-        modulos: JSON.stringify(idsAleatorios),
-        idIdioma: this.idIdioma
+        modulos: JSON.stringify(idsOrdenados),
+        idIdioma: this.idIdioma,
+        ordem
       }
     });
   }
@@ -320,6 +338,7 @@ export class VisualizarIdioma implements OnInit {
     this.imagemFile = null;
     this.traducaoCompleta = '';
     this.palavrasTraducao = [{ palavra: '', traducao: '' }];
+    this.traducoesAlternativas = [];
     this.observacoes = '';
     this.links = [''];
 
@@ -483,6 +502,7 @@ export class VisualizarIdioma implements OnInit {
         ...base,
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
+        traducoesAlternativasJson: JSON.stringify(this.traducoesAlternativas.map(t => t.trim()).filter(t => t)),
         palavrasJson: JSON.stringify(this.palavrasTraducao),
         observacoes: this.observacoes,
         linksJson: JSON.stringify(this.links.filter(l => l.trim()))
@@ -540,6 +560,14 @@ export class VisualizarIdioma implements OnInit {
 
   removerLink(index: number): void {
     this.links.splice(index, 1);
+  }
+
+  adicionarTraducaoAlt(): void {
+    if (this.traducoesAlternativas.length < 5) this.traducoesAlternativas.push('');
+  }
+
+  removerTraducaoAlt(index: number): void {
+    this.traducoesAlternativas.splice(index, 1);
   }
 
   onImagemSelecionada(event: any): void {
@@ -939,20 +967,36 @@ export class VisualizarIdioma implements OnInit {
   }
 
   fecharModalExcluirModulo(): void {
+    if (this.salvandoExclusao) return;
     this.mostrarModalExcluirModulo = false;
     this.moduloEmExclusao = null;
+    this.erroExclusao = '';
   }
 
   confirmarExclusaoModulo(): void {
-    if (!this.moduloEmExclusao) return;
-    
-    const nomeModulo = this.moduloEmExclusao.nome;
-    this.modulos = this.modulos.filter(m => m.id !== this.moduloEmExclusao!.id);
-    
-    console.log(`Módulo "${nomeModulo}" excluído`);
-    
-    this.fecharModalExcluirModulo();
-    this.exibirMensagemSucesso(`Módulo "${nomeModulo}" excluído com sucesso!`);
+    if (!this.moduloEmExclusao || this.salvandoExclusao) return;
+
+    const modulo = this.moduloEmExclusao;
+    const nomeModulo = modulo.nome;
+    this.salvandoExclusao = true;
+    this.erroExclusao = '';
+
+    // Persiste a exclusão no backend ANTES de remover da lista local.
+    this.moduloService.excluirModulo(this.idIdioma, modulo.id).subscribe({
+      next: () => {
+        this.modulos = this.modulos.filter(m => m.id !== modulo.id);
+        this.nextId = this.modulos.length + 1;
+        this.limparSelecao();
+        this.salvandoExclusao = false;
+        this.fecharModalExcluirModulo();
+        this.exibirMensagemSucesso(`Módulo "${nomeModulo}" excluído com sucesso!`);
+      },
+      error: (err) => {
+        this.salvandoExclusao = false;
+        this.erroExclusao = err?.error?.message || 'Erro ao excluir o módulo. Tente novamente.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   // ===== MENSAGEM DE SUCESSO =====
@@ -977,7 +1021,9 @@ export class VisualizarIdioma implements OnInit {
   }
 
   navegarParaUsuario(): void {
-    console.log('Navegando para perfil do usuário:', this.idUsuarioCriador);
-    this.router.navigate(['/visualizar-usuario']);
+    if (!this.idUsuarioCriador) return;
+    this.router.navigate(['/visualizar-usuario'], {
+      queryParams: { id: this.idUsuarioCriador }
+    });
   }
 }
