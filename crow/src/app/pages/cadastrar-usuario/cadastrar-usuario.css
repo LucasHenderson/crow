@@ -41,7 +41,7 @@
 .header-icon {
   width: 36px;
   height: 36px;
-  color: #3b82f6;
+  color: var(--color-primary);
   filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
 }
 
@@ -93,7 +93,7 @@
   align-items: center;
   gap: 0.8rem;
   padding: 1.2rem 1.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
   position: relative;
 }
@@ -105,7 +105,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-primary), #8b5cf6, #ec4899);
 }
 
 .card-header svg {
@@ -139,7 +139,7 @@
 .benefit-item > svg {
   width: 24px;
   height: 24px;
-  color: #10b981;
+  color: var(--color-success);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -240,7 +240,7 @@
   padding: 0 1rem;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   color: white;
   font-size: 0.82rem;
   font-weight: 600;
@@ -250,7 +250,7 @@
 }
 
 .btn-verificar-email:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--color-primary-hover), #1d4ed8);
   transform: translateY(-1px);
 }
 
@@ -308,7 +308,7 @@
 
 .codigo-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
@@ -322,7 +322,7 @@
   padding: 0.65rem 1.2rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   color: white;
   font-size: 0.82rem;
   font-weight: 600;
@@ -332,7 +332,7 @@
 }
 
 .btn-confirmar-codigo:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--color-primary-hover), #1d4ed8);
 }
 
 .btn-confirmar-codigo:disabled {
@@ -346,7 +346,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: #60a5fa;
+  color: var(--color-primary-light);
   font-size: 0.78rem;
   cursor: pointer;
   text-decoration: underline;
@@ -430,7 +430,7 @@
 }
 
 .form-group input:focus {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   background: rgba(255, 255, 255, 0.08);
 }
@@ -523,7 +523,7 @@
 }
 
 .strength-fill.fraca {
-  background: #ef4444;
+  background: var(--color-danger);
 }
 
 .strength-fill.media {
@@ -531,11 +531,11 @@
 }
 
 .strength-fill.boa {
-  background: #3b82f6;
+  background: var(--color-primary);
 }
 
 .strength-fill.forte {
-  background: #10b981;
+  background: var(--color-success);
 }
 
 .strength-text {
@@ -545,7 +545,7 @@
 }
 
 .strength-text.fraca {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .strength-text.media {
@@ -553,11 +553,11 @@
 }
 
 .strength-text.boa {
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 .strength-text.forte {
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .divider {
@@ -577,7 +577,7 @@
 .section-header svg {
   width: 24px;
   height: 24px;
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 .section-header h3 {
@@ -624,12 +624,12 @@
 }
 
 .checkbox-container:hover input ~ .checkmark {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
 }
 
 .checkbox-container input:checked ~ .checkmark {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .checkmark:after {
@@ -656,7 +656,7 @@
 }
 
 .checkbox-label a {
-  color: #60a5fa;
+  color: var(--color-primary-light);
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -680,7 +680,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: #fff;
   border: none;
   padding: 1rem 2rem;
@@ -695,7 +695,7 @@
 }
 
 .btn-cadastrar:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, #1d4ed8 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
 }
@@ -730,7 +730,7 @@
 }
 
 .login-link a {
-  color: #60a5fa;
+  color: var(--color-primary-light);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
