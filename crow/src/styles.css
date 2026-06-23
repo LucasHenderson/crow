@@ -147,6 +147,28 @@ body {
 }
 
 /* ====================================
+   REDE DE SEGURANÇA DO TEMA CLARO (Fase 1)
+   Garante texto legível em superfícies que invertem para claro (modais e
+   wrappers tokenizados). Escopado a [data-theme="light"]: NÃO afeta o escuro.
+   Cobre apenas elementos que são sempre texto primário/secundário — botões,
+   badges e mensagens coloridas mantêm suas cores próprias.
+   ==================================== */
+:root[data-theme="light"] .modal-header h2,
+:root[data-theme="light"] .modal-header h3,
+:root[data-theme="light"] .modal-body h3,
+:root[data-theme="light"] .campo label,
+:root[data-theme="light"] .campo > label {
+  color: var(--color-text) !important;
+}
+
+:root[data-theme="light"] .instrucao-modal,
+:root[data-theme="light"] .modal-descricao,
+:root[data-theme="light"] .modal-subtitulo,
+:root[data-theme="light"] .subtitulo {
+  color: var(--color-muted) !important;
+}
+
+/* ====================================
    ANIMAÇÕES SUAVES (reutilizáveis, Fase 7)
    ==================================== */
 @keyframes crow-fade-in {
