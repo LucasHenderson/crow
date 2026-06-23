@@ -3,7 +3,7 @@
   <h1>IDIOMAS</h1>
 
   <!-- SEM IDIOMAS -->
-  <div class="empty-state" *ngIf="idiomas.length === 0">
+  <div class="empty-state anim-scale-in" *ngIf="idiomas.length === 0">
     <button class="add-circle" (click)="adicionarIdioma()">
       <div class="mais">+</div>
     </button>
@@ -11,7 +11,7 @@
   </div>
 
   <!-- COM IDIOMAS -->
-  <div class="grid" *ngIf="idiomas.length > 0">
+  <div class="grid stagger" *ngIf="idiomas.length > 0">
 
     <div class="card-wrapper" *ngFor="let idioma of idiomas; let i = index">
 
