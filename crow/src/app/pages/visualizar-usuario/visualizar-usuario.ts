@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
 import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
 import { UsuarioVisualizar as Usuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
@@ -8,7 +8,7 @@ import { UsuarioService } from '../../services/usuario.service';
 @Component({
   selector: 'app-visualizar-usuario',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './visualizar-usuario.html',
   styleUrl: './visualizar-usuario.css'
 })
@@ -28,7 +28,9 @@ export class VisualizarUsuario implements OnInit {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private usuarioService: UsuarioService
+    private usuarioService: UsuarioService,
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -43,11 +45,25 @@ export class VisualizarUsuario implements OnInit {
     this.usuarioService.getUsuarioPorId(id).subscribe({
       next: (data: any) => {
         this.usuario = data;
-        this.idiomas = data.idiomas || [];
         this.carregando = false;
+        // App em modo zoneless: a atualização assíncrona não dispara
+        // change detection sozinha — força a renderização dos dados.
+        this.cdr.detectChanges();
       },
       error: () => {
         this.carregando = false;
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.usuarioService.getIdiomasPublicosDoUsuario(id).subscribe({
+      next: (idiomas) => {
+        this.idiomas = idiomas;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.idiomas = [];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -56,12 +72,8 @@ export class VisualizarUsuario implements OnInit {
    * Copia o ID do usuário para a área de transferência
    */
   copiarId(): void {
-    navigator.clipboard.writeText(this.usuario.codigo).then(() => {
-      console.log('ID copiado:', this.usuario.codigo);
-      // Aqui você pode adicionar um toast/notificação de sucesso
-      // this.showToast('ID copiado para a área de transferência!');
-    }).catch(err => {
-      console.error('Erro ao copiar ID:', err);
+    navigator.clipboard.writeText(this.usuario.codigo).catch(() => {
+      // Clipboard indisponível (ex.: contexto não seguro) — ação é opcional.
     });
   }
 
@@ -84,14 +96,14 @@ export class VisualizarUsuario implements OnInit {
    * Retorna o nome formatado da proficiência
    */
   getNomeProficiencia(proficiencia: Proficiencia): string {
-    const nomes = {
+    const nomes: Record<string, string> = {
       'iniciante': 'Iniciante',
       'basico': 'Básico',
       'intermediario': 'Intermediário',
       'avancado': 'Avançado',
       'fluente': 'Fluente'
     };
-    return nomes[proficiencia];
+    return nomes[proficiencia] || '—';
   }
 
   /**
@@ -109,17 +121,24 @@ export class VisualizarUsuario implements OnInit {
   }
 
   /**
-   * Seleciona um idioma para visualização
+   * Abre a página de visualização do idioma selecionado.
    */
   selecionarIdioma(idioma: Idioma): void {
-    console.log('Idioma selecionado:', idioma);
-    this.router.navigate(['/visualizar-idioma']);
+    if (!idioma?.id) return;
+    this.router.navigate(['/visualizar-idioma'], {
+      queryParams: { id: idioma.id }
+    });
   }
 
   /**
-   * Volta para a listagem anterior
+   * Volta para a página de onde o usuário veio (respeita o histórico);
+   * sem histórico, cai na listagem de usuários.
    */
   voltar(): void {
-    this.router.navigate(['/buscar-usuario']);
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/buscar-usuario']);
+    }
   }
 }

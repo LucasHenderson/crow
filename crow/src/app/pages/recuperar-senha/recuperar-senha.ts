@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 type CamposSenha = {
   novaSenha: boolean;
@@ -51,8 +52,14 @@ export class RecuperarSenha {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public themeService: ThemeService
   ) {}
+
+  /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
+  alternarTema(): void {
+    this.themeService.toggle();
+  }
 
   proximaEtapa(): void {
     if (this.etapaAtual === 1) {

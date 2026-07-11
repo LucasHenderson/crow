@@ -2,6 +2,7 @@ package com.crow.api.controller;
 
 import com.crow.api.dto.denuncia.AlterarStatusDenunciaRequest;
 import com.crow.api.dto.denuncia.DenunciaResponse;
+import com.crow.api.dto.idioma.IdiomaRequest;
 import com.crow.api.dto.idioma.IdiomaResponse;
 import com.crow.api.dto.usuario.UsuarioResponse;
 import com.crow.api.dto.usuario.UsuarioUpdateRequest;
@@ -68,7 +69,7 @@ public class AdminController {
     @PutMapping("/usuarios/{id}")
     public ResponseEntity<UsuarioResponse> editarUsuario(
             @PathVariable Long id,
-            @RequestBody UsuarioUpdateRequest request,
+            @Valid @RequestBody UsuarioUpdateRequest request,
             Authentication authentication) {
         Usuario admin = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         Usuario atualizado = usuarioService.editarUsuarioAdmin(id, request);
@@ -102,9 +103,24 @@ public class AdminController {
     public ResponseEntity<List<IdiomaResponse>> listarIdiomas() {
         return ResponseEntity.ok(
                 idiomaService.buscarTodos().stream()
-                        .map(this::toIdiomaResponse)
+                        .map(IdiomaResponse::from)
                         .toList()
         );
+    }
+
+    @PutMapping("/idiomas/{id}")
+    public ResponseEntity<IdiomaResponse> editarIdioma(
+            @PathVariable Long id,
+            @Valid @RequestBody IdiomaRequest request,
+            Authentication authentication) {
+        Usuario admin = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
+        Idioma atualizado = idiomaService.editarComoAdmin(id, request);
+
+        logAdminService.registrar(admin, LogAdmin.TipoLog.IDIOMA,
+                "Editou idioma " + atualizado.getNome(),
+                "ID: " + id);
+
+        return ResponseEntity.ok(IdiomaResponse.from(atualizado));
     }
 
     @DeleteMapping("/idiomas/{id}")
@@ -162,28 +178,6 @@ public class AdminController {
                 d.getResponsavel() != null ? d.getResponsavel().getId() : null,
                 d.getResponsavel() != null ? "USR-" + d.getResponsavel().getId() : null,
                 d.getResponsavel() != null ? d.getResponsavel().getNome() : null
-        );
-    }
-
-    private IdiomaResponse toIdiomaResponse(Idioma idioma) {
-        return new IdiomaResponse(
-                idioma.getId(),
-                "IDM-" + idioma.getId(),
-                idioma.getNome(),
-                idioma.getIdioma(),
-                idioma.getBandeira(),
-                idioma.getDescricao(),
-                idioma.getCriador() != null ? idioma.getCriador().getId() : null,
-                idioma.getCriador() != null ? "USR-" + idioma.getCriador().getId() : null,
-                idioma.getCriador() != null ? idioma.getCriador().getNome() : null,
-                idioma.getModulos(),
-                idioma.getAvaliacao(),
-                idioma.getTotalAvaliacoes(),
-                idioma.getProficiencia() != null ? idioma.getProficiencia().name().toLowerCase() : null,
-                idioma.getVisibilidade() != null ? idioma.getVisibilidade().name().toLowerCase() : null,
-                idioma.getCriadoEm() != null
-                        ? idioma.getCriadoEm().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                        : null
         );
     }
 }

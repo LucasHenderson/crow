@@ -1,14 +1,14 @@
-import { Component, HostListener, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { UsuarioBusca as Usuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
 
 @Component({
   selector: 'app-buscar-usuario',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './buscar-usuario.html',
   styleUrl: './buscar-usuario.css',
 })
@@ -28,11 +28,22 @@ export class BuscarUsuario implements OnInit {
 
   constructor(
     private router: Router,
-    private usuarioService: UsuarioService
+    private usuarioService: UsuarioService,
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
     this.carregarUsuarios();
+  }
+
+  /** Volta para a página anterior (respeita o histórico) ou para a home. */
+  voltar(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   carregarUsuarios(): void {
@@ -41,9 +52,14 @@ export class BuscarUsuario implements OnInit {
       next: (usuarios) => {
         this.usuarios = usuarios;
         this.carregando = false;
+        // App em modo zoneless: a atualização assíncrona não dispara
+        // change detection sozinha — força a renderização da lista.
+        this.cdr.detectChanges();
       },
       error: () => {
+        this.usuarios = [];
         this.carregando = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -225,10 +241,12 @@ export class BuscarUsuario implements OnInit {
   }
 
   /**
-   * Seleciona um usuário para visualização detalhada
+   * Abre o perfil público do usuário selecionado, passando o ID para que os
+   * dados e idiomas sejam carregados corretamente.
    */
   selecionarUsuario(usuario: Usuario): void {
-    console.log('Usuário selecionado:', usuario);
-    this.router.navigate(['/visualizar-usuario']);
+    this.router.navigate(['/visualizar-usuario'], {
+      queryParams: { id: usuario.id }
+    });
   }
 }

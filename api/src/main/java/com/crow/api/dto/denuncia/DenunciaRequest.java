@@ -1,9 +1,7 @@
 package com.crow.api.dto.denuncia;
 
-import jakarta.validation.constraints.NotNull;
-
+/** O idioma denunciado vem do path (/idiomas/{id}/denunciar), não do corpo. */
 public record DenunciaRequest(
-    @NotNull Long idiomaId,
     String tiposJson,
     String descricao
 ) {}

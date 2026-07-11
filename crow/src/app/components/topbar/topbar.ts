@@ -54,15 +54,6 @@ export class Topbar implements OnInit, OnDestroy {
   }
 
   /**
-   * Toggle para sidebar mobile (implementar conforme necessidade)
-   */
-  toggleSidebar(): void {
-    console.log('Toggle sidebar');
-    // Emitir evento para componente pai ou serviço
-    // this.sidebarService.toggle();
-  }
-
-  /**
    * Fecha o menu ao clicar fora da área do usuário
    */
   @HostListener('document:click', ['$event'])
@@ -90,20 +81,9 @@ export class Topbar implements OnInit, OnDestroy {
   }
 
   /**
-   * Navega para configurações
-   */
-  configuracoes(): void {
-    console.log('Abrindo configurações...');
-    this.fecharMenu();
-    // Navegação já é tratada pelo routerLink
-  }
-
-  /**
-   * Navega para perfil
+   * Fecha o menu ao navegar para o perfil (a navegação é feita pelo routerLink)
    */
   perfil(): void {
-    console.log('Abrindo perfil...');
     this.fecharMenu();
-    // Navegação já é tratada pelo routerLink
   }
 }

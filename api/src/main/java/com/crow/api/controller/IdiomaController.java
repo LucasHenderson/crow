@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -34,12 +33,16 @@ public class IdiomaController {
             @RequestParam(required = false) String q) {
         Long userId = Long.valueOf(authentication.getName());
         List<Idioma> idiomas = idiomaService.buscar(q, userId);
-        return ResponseEntity.ok(idiomas.stream().map(this::toResponse).toList());
+        return ResponseEntity.ok(idiomas.stream().map(IdiomaResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IdiomaResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(idiomaService.buscarPorId(id)));
+    public ResponseEntity<IdiomaResponse> buscarPorId(
+            @PathVariable Long id,
+            Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        idiomaService.validarAcessoLeitura(id, userId);
+        return ResponseEntity.ok(IdiomaResponse.from(idiomaService.buscarPorId(id)));
     }
 
     @GetMapping("/meus")
@@ -47,7 +50,7 @@ public class IdiomaController {
         Long userId = Long.valueOf(authentication.getName());
         return ResponseEntity.ok(
                 idiomaService.getIdiomasDoUsuario(userId).stream()
-                        .map(this::toResponse)
+                        .map(IdiomaResponse::from)
                         .toList()
         );
     }
@@ -58,7 +61,7 @@ public class IdiomaController {
             @Valid @RequestBody IdiomaRequest request) {
         Usuario criador = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
         Idioma idioma = idiomaService.criar(request, criador);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(idioma));
+        return ResponseEntity.status(HttpStatus.CREATED).body(IdiomaResponse.from(idioma));
     }
 
     @PutMapping("/{id}")
@@ -67,7 +70,7 @@ public class IdiomaController {
             Authentication authentication,
             @Valid @RequestBody IdiomaRequest request) {
         Long userId = Long.valueOf(authentication.getName());
-        return ResponseEntity.ok(toResponse(idiomaService.editar(id, request, userId)));
+        return ResponseEntity.ok(IdiomaResponse.from(idiomaService.editar(id, request, userId)));
     }
 
     @DeleteMapping("/{id}")
@@ -86,7 +89,7 @@ public class IdiomaController {
         Long userId = Long.valueOf(authentication.getName());
         Usuario usuario = usuarioService.buscarPorId(userId);
         Idioma copia = idiomaService.importar(userId, id, usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(copia));
+        return ResponseEntity.status(HttpStatus.CREATED).body(IdiomaResponse.from(copia));
     }
 
     @PostMapping("/{id}/avaliar")
@@ -104,29 +107,7 @@ public class IdiomaController {
             Authentication authentication,
             @Valid @RequestBody DenunciaRequest request) {
         Usuario usuario = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
-        denunciaService.criar(request, usuario);
+        denunciaService.criar(id, request, usuario);
         return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    private IdiomaResponse toResponse(Idioma idioma) {
-        return new IdiomaResponse(
-                idioma.getId(),
-                "IDM-" + idioma.getId(),
-                idioma.getNome(),
-                idioma.getIdioma(),
-                idioma.getBandeira(),
-                idioma.getDescricao(),
-                idioma.getCriador() != null ? idioma.getCriador().getId() : null,
-                idioma.getCriador() != null ? "USR-" + idioma.getCriador().getId() : null,
-                idioma.getCriador() != null ? idioma.getCriador().getNome() : null,
-                idioma.getModulos(),
-                idioma.getAvaliacao(),
-                idioma.getTotalAvaliacoes(),
-                idioma.getProficiencia() != null ? idioma.getProficiencia().name().toLowerCase() : null,
-                idioma.getVisibilidade() != null ? idioma.getVisibilidade().name().toLowerCase() : null,
-                idioma.getCriadoEm() != null
-                        ? idioma.getCriadoEm().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                        : null
-        );
     }
 }

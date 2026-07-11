@@ -146,8 +146,8 @@
         <div class="denuncia-card" *ngFor="let denuncia of denunciasPaginadas" (click)="visualizarDenuncia(denuncia)">
           <div class="denuncia-header">
             <div class="denuncia-info">
-              <h3>{{ denuncia.idiomaNome }}</h3>
-              <span class="denuncia-id">ID: {{ denuncia.codigoIdioma }}</span>
+              <h3>{{ denuncia.idiomaNome || 'Idioma removido' }}</h3>
+              <span class="denuncia-id">ID: {{ denuncia.codigoIdioma || '—' }}</span>
             </div>
             <span class="status-badge" [ngClass]="getStatusClass(denuncia.status)">
               {{ getStatusTexto(denuncia.status) }}
@@ -399,9 +399,9 @@
       <!-- Lista de Idiomas -->
       <div class="idiomas-grid" *ngIf="idiomasPaginados.length > 0">
         <div class="idioma-card" *ngFor="let idioma of idiomasPaginados">
-          <img [src]="idioma.bandeira" [alt]="'Bandeira ' + idioma.nome" class="idioma-bandeira" (click)="visualizarIdioma(idioma)" />
+          <img [src]="idioma.bandeira" [alt]="'Bandeira ' + idioma.nome" class="idioma-bandeira" />
 
-          <div class="idioma-content" (click)="visualizarIdioma(idioma)">
+          <div class="idioma-content">
             <h3>{{ idioma.nome }}</h3>
             <p class="idioma-descricao">{{ idioma.descricao }}</p>
 
@@ -674,14 +674,12 @@
         <div class="denuncia-detalhes" *ngIf="denunciaSelecionada">
           <div class="detalhe-item">
             <strong>Idioma:</strong>
-            <div class="idioma-link" (click)="visualizarIdiomaDenuncia()">
-              <span>{{ denunciaSelecionada.idiomaNome }} ({{ denunciaSelecionada.codigoIdioma }})</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-              </svg>
-            </div>
+            <span *ngIf="denunciaSelecionada.idiomaNome">
+              {{ denunciaSelecionada.idiomaNome }} ({{ denunciaSelecionada.codigoIdioma }})
+            </span>
+            <span *ngIf="!denunciaSelecionada.idiomaNome" class="idioma-removido">
+              Idioma removido
+            </span>
           </div>
 
           <div class="detalhe-item">

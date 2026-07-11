@@ -8,5 +8,6 @@ public record UsuarioResponse(
     String telefone,
     String dataEntrada,
     String status,
-    String role
+    String role,
+    int quantidadeIdiomas
 ) {}

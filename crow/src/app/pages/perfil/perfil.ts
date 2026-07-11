@@ -1,5 +1,5 @@
 import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { Usuario } from '../../models/usuario.model';
@@ -61,11 +61,21 @@ export class Perfil implements OnInit {
     private router: Router,
     private authService: AuthService,
     private usuarioService: UsuarioService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
     this.carregarDadosUsuario();
+  }
+
+  /** Volta para a página anterior (respeita o histórico) ou para a home. */
+  voltar(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 
   private carregarDadosUsuario(): void {
@@ -268,12 +278,14 @@ export class Perfil implements OnInit {
       nome: this.user.nome,
       email: this.user.email
     }).subscribe({
-      next: () => {
+      next: (atualizado) => {
         this.salvando = false;
         this.emailVerificado = false;
         this.codigoEnviado = false;
         this.codigoDigitado = '';
         this.mensagemEmail = '';
+        // Mantém topbar e demais telas em sincronia com o novo nome/email.
+        this.authService.atualizarUsuarioLocal(atualizado);
         this.showSuccess(senhaTambem ? 'Dados e senha atualizados com sucesso!' : 'Dados do perfil atualizados com sucesso!');
         this.carregarDadosUsuario();
       },

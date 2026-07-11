@@ -59,6 +59,16 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  /**
+   * Sincroniza o usuário mantido em memória/localStorage após uma edição de
+   * perfil, para que componentes reativos (ex.: topbar) reflitam a mudança
+   * sem exigir novo login.
+   */
+  atualizarUsuarioLocal(usuario: Usuario): void {
+    localStorage.setItem('usuario', JSON.stringify(usuario));
+    this.currentUserSubject.next(usuario);
+  }
+
   isLoggedIn(): boolean {
     return !!this.getToken();
   }

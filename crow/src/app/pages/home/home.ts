@@ -52,6 +52,9 @@ export class Home implements OnInit, OnDestroy {
   idiomaEmExclusao: Idioma | null = null;
   indiceExclusao = -1;
   
+  // Card de detalhes aberto via toque (dispositivos sem hover)
+  infoAberta: number | null = null;
+
   // Opções disponíveis
   idiomasDisponiveis = IDIOMAS_DISPONIVEIS;
 
@@ -93,8 +96,7 @@ export class Home implements OnInit, OnDestroy {
         this.carregando = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Erro ao carregar idiomas:', err);
+      error: () => {
         this.carregando = false;
         this.cdr.detectChanges();
       }
@@ -117,7 +119,6 @@ export class Home implements OnInit, OnDestroy {
    */
   adicionarIdioma(): void {
     if (this.idiomas.length >= 4) {
-      console.warn('Limite máximo de 4 idiomas atingido');
       return;
     }
     this.mostrarModalOpcoes = true;
@@ -134,7 +135,6 @@ export class Home implements OnInit, OnDestroy {
    * Navega para buscar idioma
    */
   buscarIdioma(): void {
-    console.log('Navegar para Buscar Idioma');
     this.fecharModalOpcoes();
     this.router.navigate(['/buscar-idioma']);
   }
@@ -143,7 +143,6 @@ export class Home implements OnInit, OnDestroy {
    * Navega para buscar usuário
    */
   buscarUsuario(): void {
-    console.log('Navegar para Buscar Usuário');
     this.fecharModalOpcoes();
     this.router.navigate(['/buscar-usuario']);
   }
@@ -152,17 +151,22 @@ export class Home implements OnInit, OnDestroy {
    * Navega para criar novo idioma
    */
   novoIdioma(): void {
-    console.log('Navegar para Cadastrar Novo Idioma');
     this.fecharModalOpcoes();
     this.router.navigate(['/cadastrar-idioma']);
   }
 
   /**
-   * Gerar idioma com IA (desabilitado por enquanto)
+   * Gerar idioma com IA — funcionalidade futura; o botão fica desabilitado.
    */
   gerarIdiomaIA(): void {
-    console.log('Funcionalidade de IA em desenvolvimento');
-    // Será implementado em breve
+    // Intencionalmente vazio: reservado para evolução futura.
+  }
+
+  /**
+   * Alterna o card de detalhes do idioma no toque (dispositivos sem hover)
+   */
+  toggleInfo(indice: number): void {
+    this.infoAberta = this.infoAberta === indice ? null : indice;
   }
 
   /**

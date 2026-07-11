@@ -6,8 +6,10 @@ import com.crow.api.entity.Idioma;
 import com.crow.api.entity.Usuario;
 import com.crow.api.repository.DenunciaRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public class DenunciaService {
     private final IdiomaService idiomaService;
 
     public List<Denuncia> buscarTodas() {
-        return denunciaRepository.findAll();
+        return denunciaRepository.findAllComRelacionamentos();
     }
 
     public Denuncia buscarPorId(Long id) {
@@ -28,8 +30,8 @@ public class DenunciaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Denúncia não encontrada"));
     }
 
-    public Denuncia criar(DenunciaRequest dto, Usuario usuario) {
-        Idioma idioma = idiomaService.buscarPorId(dto.idiomaId());
+    public Denuncia criar(Long idiomaId, DenunciaRequest dto, Usuario usuario) {
+        Idioma idioma = idiomaService.buscarPorId(idiomaId);
 
         Denuncia denuncia = Denuncia.builder()
                 .idioma(idioma)
@@ -41,10 +43,19 @@ public class DenunciaService {
         return denunciaRepository.save(denuncia);
     }
 
+    @Transactional
     public Denuncia alterarStatus(Long id, String novoStatus, Usuario responsavel) {
         Denuncia denuncia = buscarPorId(id);
-        denuncia.setStatus(Denuncia.StatusDenuncia.valueOf(novoStatus.toUpperCase()));
+        try {
+            denuncia.setStatus(Denuncia.StatusDenuncia.valueOf(novoStatus.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status inválido: " + novoStatus);
+        }
         denuncia.setResponsavel(responsavel);
-        return denunciaRepository.save(denuncia);
+        Denuncia salva = denunciaRepository.save(denuncia);
+        // Inicializa as relações usadas na montagem do DTO (open-in-view=false).
+        Hibernate.initialize(salva.getIdioma());
+        Hibernate.initialize(salva.getUsuario());
+        return salva;
     }
 }

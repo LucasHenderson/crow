@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NovoUsuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 type CamposSenha = {
   senha: boolean;
@@ -49,8 +50,14 @@ export class CadastrarUsuario {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public themeService: ThemeService
   ) {}
+
+  /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
+  alternarTema(): void {
+    this.themeService.toggle();
+  }
 
   formularioValido(): boolean {
     return !!(

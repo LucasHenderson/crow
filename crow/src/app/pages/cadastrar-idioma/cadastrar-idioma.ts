@@ -1,7 +1,7 @@
-import { Component, HostListener } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
@@ -83,6 +83,7 @@ export class CadastrarIdioma {
   constructor(
     private router: Router,
     private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef,
     private idiomaService: IdiomaService,
     private moduloService: ModuloService,
     private fraseService: FraseService,
@@ -464,6 +465,8 @@ export class CadastrarIdioma {
   private tratarErro(err: any, fallback: string): void {
     this.salvando = false;
     this.erroSalvar = err?.error?.message || fallback;
+    // App zoneless: força a renderização da mensagem de erro.
+    this.cdr.detectChanges();
   }
 
   getDadosFrase(): any {

@@ -14,9 +14,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 20% 30%, var(--ambient-1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, var(--ambient-2) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -39,56 +39,26 @@
 .page-header h1 {
   font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 700;
-  color: white;
+  color: var(--color-text);
   margin: 0;
-  text-shadow: 0 2px 20px rgba(59, 130, 246, 0.5);
   letter-spacing: 0.02em;
-}
-
-.btn-voltar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem 1.5rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.15));
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  border-radius: 10px;
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.btn-voltar:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.25));
-  border-color: rgba(59, 130, 246, 0.5);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
-}
-
-.btn-voltar svg {
-  width: 18px;
-  height: 18px;
 }
 
 /* USUARIO CARD */
 .usuario-card {
-  background: var(--bg-elevated);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   margin-bottom: 2rem;
   transition: all 0.3s ease;
+  animation: crow-slide-up var(--transition-base) both;
 }
 
 .usuario-card:hover {
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
-  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
 }
 
 .card-header {
@@ -96,19 +66,9 @@
   align-items: center;
   gap: 0.8rem;
   padding: 1.2rem 1.5rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
-  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-bottom: 1px solid var(--border-color);
   position: relative;
-}
-
-.card-header::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
 }
 
 .card-header svg {
@@ -116,16 +76,14 @@
   height: 24px;
   color: var(--color-primary-light);
   flex-shrink: 0;
-  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
 }
 
 .card-header h2 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-text);
   margin: 0;
   letter-spacing: 0.02em;
-  text-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
 }
 
 .usuario-content {
@@ -140,34 +98,33 @@
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
-  border: 4px solid rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-md);
+  border: 4px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
   transition: all 0.3s ease;
 }
 
 .avatar:hover {
   transform: scale(1.05);
-  box-shadow: 0 12px 40px rgba(59, 130, 246, 0.6);
+  box-shadow: var(--shadow-lg);
 }
 
 .usuario-nome {
   font-size: 1.4rem;
   font-weight: 700;
-  color: white;
+  color: var(--color-text);
   margin: 0 0 1.5rem 0;
   letter-spacing: 0.01em;
   word-wrap: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
-  text-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
 }
 
 .usuario-info {
@@ -183,19 +140,19 @@
   align-items: center;
   gap: 0.8rem;
   padding: 0.9rem;
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
-  border-radius: 10px;
+  background: var(--surface-hover);
+  border-radius: var(--radius-md);
   text-align: left;
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .info-item:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
-  border-color: rgba(59, 130, 246, 0.4);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
   transform: translateX(3px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .info-item svg {
@@ -207,7 +164,7 @@
 
 .info-item span {
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   font-weight: 500;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -221,8 +178,8 @@
 }
 
 .id-item:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .id-item:active {
@@ -232,7 +189,7 @@
 .copy-icon {
   width: 18px;
   height: 18px;
-  color: #8b5cf6;
+  color: var(--color-primary-light);
   opacity: 0;
   transition: all 0.3s ease;
   margin-left: auto;
@@ -244,13 +201,13 @@
 
 /* IDIOMAS SECTION */
 .idiomas-section {
-  background: var(--bg-elevated);
-  border-radius: 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
   padding: 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
   position: relative;
-  backdrop-filter: blur(10px);
+  animation: crow-slide-up var(--transition-base) 60ms both;
 }
 
 .idiomas-section::before {
@@ -260,9 +217,8 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  background: var(--color-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .section-header {
@@ -284,15 +240,13 @@
   width: 28px;
   height: 28px;
   color: var(--color-primary-light);
-  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
 }
 
 .section-header h2 {
   font-size: clamp(1.3rem, 3vw, 1.6rem);
   font-weight: 700;
-  color: white;
+  color: var(--color-text);
   margin: 0;
-  text-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
 }
 
 .idiomas-count {
@@ -302,13 +256,13 @@
 }
 
 .count-badge {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   padding: 0.4rem 0.9rem;
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   font-weight: 700;
   font-size: 0.85rem;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: var(--shadow-sm);
 }
 
 /* IDIOMAS GRID */
@@ -320,16 +274,15 @@
 
 /* IDIOMA CARD */
 .idioma-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-  backdrop-filter: blur(10px);
-  color: var(--bg-elevated);
-  border-radius: 14px;
+  background: var(--surface-hover);
+  color: var(--color-text);
+  border-radius: var(--radius-lg);
   padding: 1.3rem;
   display: flex;
   gap: 1.3rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-  border: 2px solid rgba(59, 130, 246, 0.15);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
   cursor: pointer;
   position: relative;
 }
@@ -346,29 +299,29 @@
 }
 
 .idioma-card.nivel-iniciante::before {
-  background: linear-gradient(180deg, var(--color-success), #059669);
+  background: var(--color-success);
 }
 
 .idioma-card.nivel-basico::before {
-  background: linear-gradient(180deg, var(--color-primary), var(--color-primary-hover));
+  background: var(--color-primary);
 }
 
 .idioma-card.nivel-intermediario::before {
-  background: linear-gradient(180deg, #f59e0b, #d97706);
+  background: var(--color-warning);
 }
 
 .idioma-card.nivel-avancado::before {
-  background: linear-gradient(180deg, #f97316, #ea580c);
+  background: var(--color-orange);
 }
 
 .idioma-card.nivel-fluente::before {
-  background: linear-gradient(180deg, var(--color-danger), #dc2626);
+  background: var(--color-danger);
 }
 
 .idioma-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
-  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
 }
 
 .idioma-card:hover::before {
@@ -389,8 +342,8 @@
   width: 90px;
   height: 60px;
   object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
   transition: transform 0.3s ease;
 }
 
@@ -402,11 +355,11 @@
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.1em;
-  color: var(--bg-elevated);
+  color: var(--color-primary);
   text-align: center;
   padding: 0.3rem 0.7rem;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: var(--radius-sm);
 }
 
 /* INFO */
@@ -426,7 +379,7 @@
 }
 
 .idioma-info p strong {
-  color: #475569;
+  color: var(--color-muted);
   font-weight: 600;
   min-width: 95px;
 }
@@ -465,9 +418,9 @@
 }
 
 .proficiencia-badge.iniciante {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  color: var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 32%, transparent);
 }
 
 .proficiencia-badge.iniciante::before {
@@ -475,9 +428,9 @@
 }
 
 .proficiencia-badge.basico {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--color-primary-hover);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary-light);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
 }
 
 .proficiencia-badge.basico::before {
@@ -485,29 +438,29 @@
 }
 
 .proficiencia-badge.intermediario {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 32%, transparent);
 }
 
 .proficiencia-badge.intermediario::before {
-  background: #f59e0b;
+  background: var(--color-warning);
 }
 
 .proficiencia-badge.avancado {
-  background: rgba(249, 115, 22, 0.15);
-  color: #ea580c;
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  background: color-mix(in srgb, var(--color-orange) 14%, transparent);
+  color: var(--color-orange);
+  border: 1px solid color-mix(in srgb, var(--color-orange) 32%, transparent);
 }
 
 .proficiencia-badge.avancado::before {
-  background: #f97316;
+  background: var(--color-orange);
 }
 
 .proficiencia-badge.fluente {
-  background: rgba(239, 68, 68, 0.15);
-  color: #dc2626;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  color: var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 32%, transparent);
 }
 
 .proficiencia-badge.fluente::before {
@@ -522,7 +475,7 @@
 }
 
 .avaliacao strong {
-  color: #475569;
+  color: var(--color-muted);
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -535,39 +488,38 @@
 .avaliacao svg {
   width: 18px;
   height: 18px;
-  fill: #cbd5e1;
+  fill: var(--border-strong);
   transition: all 0.2s ease;
 }
 
 .avaliacao svg.active {
   fill: #fbbf24;
-  filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.5));
 }
 
 /* EMPTY STATE */
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-muted);
 }
 
 .empty-state svg {
   width: 80px;
   height: 80px;
-  color: rgba(59, 130, 246, 0.5);
+  color: color-mix(in srgb, var(--color-primary) 50%, transparent);
   margin-bottom: 1.5rem;
 }
 
 .empty-state h3 {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  color: white;
+  color: var(--color-text);
   font-weight: 700;
 }
 
 .empty-state p {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-muted);
 }
 
 /* RESPONSIVO */
