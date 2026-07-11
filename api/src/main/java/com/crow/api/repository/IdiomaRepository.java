@@ -9,9 +9,9 @@ import java.util.List;
 
 public interface IdiomaRepository extends JpaRepository<Idioma, Long> {
     List<Idioma> findByCriadorId(Long criadorId);
-    List<Idioma> findByVisibilidade(Idioma.Visibilidade visibilidade);
-    List<Idioma> findByNomeContainingIgnoreCaseOrIdiomaContainingIgnoreCase(String nome, String idioma);
-    List<Idioma> findByProficiencia(Idioma.Proficiencia proficiencia);
+
+    /** Idiomas de um criador filtrados por visibilidade (perfil público de usuário). */
+    List<Idioma> findByVisibilidadeAndCriadorId(Idioma.Visibilidade visibilidade, Long criadorId);
 
     /** Idiomas públicos que NÃO pertencem ao usuário informado. */
     List<Idioma> findByVisibilidadeAndCriadorIdNot(Idioma.Visibilidade visibilidade, Long criadorId);

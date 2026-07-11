@@ -37,6 +37,10 @@ export class AdminService {
     return this.http.get<IdiomaAdm[]>(`${this.apiUrl}/admin/idiomas`);
   }
 
+  editarIdiomaAdmin(id: number | string, dados: any): Observable<IdiomaAdm> {
+    return this.http.put<IdiomaAdm>(`${this.apiUrl}/admin/idiomas/${id}`, dados);
+  }
+
   excluirIdiomaAdmin(id: number | string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/idiomas/${id}`);
   }

@@ -4,6 +4,7 @@ import com.crow.api.dto.modulo.ModuloRequest;
 import com.crow.api.dto.modulo.ModuloResponse;
 import com.crow.api.entity.Modulo;
 import com.crow.api.repository.FraseRepository;
+import com.crow.api.service.IdiomaService;
 import com.crow.api.service.ModuloService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +22,15 @@ import java.util.List;
 public class ModuloController {
 
     private final ModuloService moduloService;
+    private final IdiomaService idiomaService;
     private final FraseRepository fraseRepository;
 
     @GetMapping
-    public ResponseEntity<List<ModuloResponse>> listar(@PathVariable Long idiomaId) {
+    public ResponseEntity<List<ModuloResponse>> listar(
+            @PathVariable Long idiomaId,
+            Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        idiomaService.validarAcessoLeitura(idiomaId, userId);
         return ResponseEntity.ok(
                 moduloService.buscarPorIdioma(idiomaId).stream()
                         .map(this::toResponse)

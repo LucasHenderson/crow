@@ -25,10 +25,6 @@ public class LogAdminService {
     }
 
     public List<LogAdmin> listarTodos() {
-        return logAdminRepository.findAllByOrderByDataDesc();
-    }
-
-    public List<LogAdmin> listarPorTipo(LogAdmin.TipoLog tipo) {
-        return logAdminRepository.findByTipo(tipo);
+        return logAdminRepository.findAllComAdmin();
     }
 }

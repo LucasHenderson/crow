@@ -5,6 +5,7 @@ import com.crow.api.dto.auth.LoginRequest;
 import com.crow.api.dto.auth.RegisterRequest;
 import com.crow.api.dto.usuario.UsuarioResponse;
 import com.crow.api.entity.Usuario;
+import com.crow.api.repository.IdiomaUsuarioRepository;
 import com.crow.api.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final IdiomaUsuarioRepository idiomaUsuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -67,7 +69,8 @@ public class AuthService {
                         ? usuario.getDataEntrada().format(DateTimeFormatter.ISO_LOCAL_DATE)
                         : null,
                 usuario.getStatus().name().toLowerCase(),
-                usuario.getRole().name().toLowerCase()
+                usuario.getRole().name().toLowerCase(),
+                idiomaUsuarioRepository.countByUsuarioId(usuario.getId())
         );
     }
 }

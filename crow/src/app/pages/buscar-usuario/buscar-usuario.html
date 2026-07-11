@@ -1,5 +1,10 @@
 <main class="buscar">
 
+  <button class="btn-voltar" (click)="voltar()" title="Voltar">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    Voltar
+  </button>
+
   <!-- BARRA DE BUSCA -->
   <div class="top-actions">
 
@@ -55,11 +60,10 @@
   <h2>{{ resultadosTexto }}</h2>
 
   <!-- LISTA DE USUÁRIOS -->
-  <div class="lista" *ngIf="paginados.length > 0">
+  <div class="lista stagger" *ngIf="paginados.length > 0">
 
-    <div 
-      routerLink="/visualizar-usuario"
-      class="usuario-item" 
+    <div
+      class="usuario-item"
       *ngFor="let usuario of paginados"
       (click)="selecionarUsuario(usuario)">
 
@@ -114,7 +118,7 @@
   </div>
 
   <!-- EMPTY STATE -->
-  <div class="empty-state" *ngIf="paginados.length === 0">
+  <div class="empty-state anim-fade-in" *ngIf="paginados.length === 0">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
       <circle cx="12" cy="7" r="4"></circle>

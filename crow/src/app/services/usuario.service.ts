@@ -23,6 +23,11 @@ export class UsuarioService {
     return this.http.get<Usuario>(`${this.apiUrl}/usuarios/${id}`);
   }
 
+  /** Idiomas públicos criados pelo usuário (perfil público). */
+  getIdiomasPublicosDoUsuario(id: number | string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/usuarios/${id}/idiomas`);
+  }
+
   atualizarPerfil(dados: Partial<Usuario>): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}/usuarios/me`, dados);
   }

@@ -1,11 +1,14 @@
 package com.crow.api.service;
 
 import com.crow.api.dto.idioma.IdiomaRequest;
+import com.crow.api.entity.Denuncia;
 import com.crow.api.entity.Frase;
 import com.crow.api.entity.Idioma;
 import com.crow.api.entity.IdiomaUsuario;
 import com.crow.api.entity.Modulo;
 import com.crow.api.entity.Usuario;
+import com.crow.api.repository.AvaliacaoRepository;
+import com.crow.api.repository.DenunciaRepository;
 import com.crow.api.repository.FraseRepository;
 import com.crow.api.repository.IdiomaRepository;
 import com.crow.api.repository.IdiomaUsuarioRepository;
@@ -27,12 +30,16 @@ public class IdiomaService {
     private final IdiomaUsuarioRepository idiomaUsuarioRepository;
     private final ModuloRepository moduloRepository;
     private final FraseRepository fraseRepository;
+    private final AvaliacaoRepository avaliacaoRepository;
+    private final DenunciaRepository denunciaRepository;
 
     /** Limite máximo de idiomas que um usuário pode possuir. */
     private static final int LIMITE_IDIOMAS_POR_USUARIO = 4;
 
+    @Transactional(readOnly = true)
     public List<Idioma> buscarTodos() {
         List<Idioma> idiomas = idiomaRepository.findAll();
+        idiomas.forEach(i -> Hibernate.initialize(i.getCriador()));
         atualizarContagemModulos(idiomas);
         return idiomas;
     }
@@ -46,8 +53,12 @@ public class IdiomaService {
         return idioma;
     }
 
-    public List<Idioma> buscarPorCriador(Long criadorId) {
-        List<Idioma> idiomas = idiomaRepository.findByCriadorId(criadorId);
+    /** Idiomas públicos criados por um usuário — exibidos no perfil público dele. */
+    @Transactional(readOnly = true)
+    public List<Idioma> buscarPublicosPorCriador(Long criadorId) {
+        List<Idioma> idiomas = idiomaRepository
+                .findByVisibilidadeAndCriadorId(Idioma.Visibilidade.PUBLICO, criadorId);
+        idiomas.forEach(i -> Hibernate.initialize(i.getCriador()));
         atualizarContagemModulos(idiomas);
         return idiomas;
     }
@@ -96,6 +107,23 @@ public class IdiomaService {
         }
     }
 
+    /**
+     * Garante que o usuário pode LER o conteúdo do idioma: proprietário sempre
+     * pode; demais usuários apenas se o idioma for público. Lança 403 caso
+     * contrário. Protege módulos e frases de idiomas privados.
+     */
+    @Transactional(readOnly = true)
+    public void validarAcessoLeitura(Long idiomaId, Long usuarioId) {
+        Idioma idioma = idiomaRepository.findById(idiomaId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
+        Long criadorId = idioma.getCriador() != null ? idioma.getCriador().getId() : null;
+        boolean ehProprietario = criadorId != null && criadorId.equals(usuarioId);
+        if (!ehProprietario && idioma.getVisibilidade() != Idioma.Visibilidade.PUBLICO) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Este idioma é privado");
+        }
+    }
+
     @Transactional
     public Idioma criar(IdiomaRequest dto, Usuario criador) {
         int count = idiomaUsuarioRepository.countByUsuarioId(criador.getId());
@@ -140,6 +168,14 @@ public class IdiomaService {
                     "Você não tem permissão para editar este idioma");
         }
 
+        aplicarEdicao(idioma, dto);
+        Idioma salvo = idiomaRepository.save(idioma);
+        Hibernate.initialize(salvo.getCriador());
+        return salvo;
+    }
+
+    /** Aplica os campos não nulos do request sobre a entidade (edição parcial). */
+    private void aplicarEdicao(Idioma idioma, IdiomaRequest dto) {
         if (dto.nome() != null) idioma.setNome(dto.nome());
         if (dto.idioma() != null) idioma.setIdioma(dto.idioma());
         if (dto.bandeira() != null) idioma.setBandeira(dto.bandeira());
@@ -150,11 +186,7 @@ public class IdiomaService {
         if (dto.visibilidade() != null) {
             idioma.setVisibilidade(Idioma.Visibilidade.valueOf(dto.visibilidade().toUpperCase()));
         }
-
-        idioma.setModulos(moduloRepository.countByIdiomaId(id));
-        Idioma salvo = idiomaRepository.save(idioma);
-        Hibernate.initialize(salvo.getCriador());
-        return salvo;
+        idioma.setModulos(moduloRepository.countByIdiomaId(idioma.getId()));
     }
 
     @Transactional
@@ -164,7 +196,7 @@ public class IdiomaService {
                 && idioma.getCriador().getId().equals(usuarioId);
 
         if (ehCriador) {
-            idiomaUsuarioRepository.deleteByIdiomaId(id);
+            removerVinculosDoIdioma(id);
             idiomaRepository.delete(idioma);
         } else {
             idiomaUsuarioRepository.deleteByUsuarioIdAndIdiomaId(usuarioId, id);
@@ -174,8 +206,32 @@ public class IdiomaService {
     @Transactional
     public void excluirComoAdmin(Long id) {
         Idioma idioma = buscarPorId(id);
-        idiomaUsuarioRepository.deleteByIdiomaId(id);
+        removerVinculosDoIdioma(id);
         idiomaRepository.delete(idioma);
+    }
+
+    /** Edição administrativa: mesmos campos da edição comum, sem exigir propriedade. */
+    @Transactional
+    public Idioma editarComoAdmin(Long id, IdiomaRequest dto) {
+        Idioma idioma = idiomaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
+        aplicarEdicao(idioma, dto);
+        Idioma salvo = idiomaRepository.save(idioma);
+        Hibernate.initialize(salvo.getCriador());
+        return salvo;
+    }
+
+    /**
+     * Remove registros que referenciam o idioma antes da exclusão, evitando
+     * violação de chave estrangeira: avaliações são apagadas e denúncias são
+     * apenas desvinculadas (o histórico de moderação é preservado).
+     */
+    private void removerVinculosDoIdioma(Long id) {
+        avaliacaoRepository.deleteByIdiomaId(id);
+        List<Denuncia> denuncias = denunciaRepository.findByIdiomaId(id);
+        denuncias.forEach(d -> d.setIdioma(null));
+        denunciaRepository.saveAll(denuncias);
+        idiomaUsuarioRepository.deleteByIdiomaId(id);
     }
 
     /**

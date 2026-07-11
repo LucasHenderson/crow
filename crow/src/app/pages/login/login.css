@@ -25,6 +25,47 @@
   pointer-events: none;
 }
 
+/* Toggle de tema disponível antes da autenticação */
+.theme-toggle-login {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition-base), color var(--transition-base),
+              border-color var(--transition-base), transform var(--transition-base),
+              box-shadow var(--transition-base);
+  animation: crow-fade-in var(--transition-base) both;
+}
+
+.theme-toggle-login:hover {
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-2px) rotate(12deg);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle-login:active {
+  transform: translateY(0) rotate(0deg);
+}
+
+.theme-toggle-login svg {
+  width: 21px;
+  height: 21px;
+}
+
 .login-card {
   background: var(--surface-glass);
   backdrop-filter: blur(16px);

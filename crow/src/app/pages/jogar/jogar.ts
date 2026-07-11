@@ -181,18 +181,6 @@ export class Jogar implements OnInit, OnDestroy {
     return url;
   }
 
-  sortearFrases(frases: Frase[], quantidade: number): Frase[] {
-    const embaralhadas = [...frases].sort(() => Math.random() - 0.5);
-    return embaralhadas.slice(0, Math.min(quantidade, embaralhadas.length));
-  }
-
-  iniciarJogo(): void {
-    this.tempoInicio = Date.now();
-    if (this.frases.length > 0) {
-      this.carregarFrase(0);
-    }
-  }
-
   carregarFrase(index: number): void {
     this.fraseAtual = this.frases[index];
     this.resetarEstados();

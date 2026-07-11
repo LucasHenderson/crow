@@ -8,8 +8,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -25,14 +25,15 @@ public class EmailVerificationService {
     private final ConcurrentHashMap<String, LocalDateTime> emailsVerificados = new ConcurrentHashMap<>();
 
     private static final int EXPIRACAO_MINUTOS = 10;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     public void enviarCodigo(String email) {
         // Limpar códigos expirados
         codigos.entrySet().removeIf(entry ->
                 entry.getValue().criadoEm().plusMinutes(EXPIRACAO_MINUTOS).isBefore(LocalDateTime.now()));
 
-        // Gerar código de 6 dígitos
-        String codigo = String.format("%06d", new Random().nextInt(1000000));
+        // Gerar código de 6 dígitos (gerador criptograficamente seguro)
+        String codigo = String.format("%06d", RANDOM.nextInt(1000000));
 
         // Armazenar
         codigos.put(email.toLowerCase(), new CodigoVerificacao(codigo, LocalDateTime.now()));

@@ -4,12 +4,14 @@ import com.crow.api.dto.frase.FraseRequest;
 import com.crow.api.dto.frase.FraseResponse;
 import com.crow.api.entity.Frase;
 import com.crow.api.service.FraseService;
+import com.crow.api.service.ModuloService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,9 +22,14 @@ import java.util.List;
 public class FraseController {
 
     private final FraseService fraseService;
+    private final ModuloService moduloService;
 
     @GetMapping
-    public ResponseEntity<List<FraseResponse>> listar(@PathVariable Long moduloId) {
+    public ResponseEntity<List<FraseResponse>> listar(
+            @PathVariable Long moduloId,
+            Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        moduloService.validarAcessoLeituraDoModulo(moduloId, userId);
         return ResponseEntity.ok(
                 fraseService.buscarPorModulo(moduloId).stream()
                         .map(this::toResponse)
@@ -63,12 +70,28 @@ public class FraseController {
     @GetMapping("/jogar")
     public ResponseEntity<List<FraseResponse>> jogar(
             @PathVariable Long moduloId,
+            Authentication authentication,
             @RequestParam String modulos,
             @RequestParam(defaultValue = "aleatoria") String ordem) {
-        List<Long> moduloIds = Arrays.stream(modulos.split(","))
-                .map(String::trim)
-                .map(Long::parseLong)
-                .toList();
+        Long userId = Long.valueOf(authentication.getName());
+
+        List<Long> moduloIds;
+        try {
+            moduloIds = Arrays.stream(modulos.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Long::parseLong)
+                    .distinct()
+                    .toList();
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lista de módulos inválida");
+        }
+        if (moduloIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum módulo informado");
+        }
+
+        moduloIds.forEach(id -> moduloService.validarAcessoLeituraDoModulo(id, userId));
+
         return ResponseEntity.ok(
                 fraseService.getFrasesParaJogo(moduloIds, ordem).stream()
                         .map(this::toResponse)

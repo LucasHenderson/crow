@@ -67,8 +67,31 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
+    /**
+     * Edição administrativa: além dos dados de perfil, permite alterar o papel
+     * (comum/admin) e redefinir a senha do usuário. Esses dois campos são
+     * ignorados no fluxo de autoatualização (/usuarios/me).
+     */
     public Usuario editarUsuarioAdmin(Long id, UsuarioUpdateRequest dto) {
-        return atualizarPerfil(id, dto);
+        Usuario usuario = atualizarPerfil(id, dto);
+
+        if (dto.role() != null && !dto.role().isBlank()) {
+            try {
+                usuario.setRole(Usuario.Role.valueOf(dto.role().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Papel inválido: " + dto.role());
+            }
+        }
+
+        if (dto.novaSenha() != null && !dto.novaSenha().isBlank()) {
+            if (dto.novaSenha().length() < 6) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "A nova senha deve ter no mínimo 6 caracteres");
+            }
+            usuario.setSenha(passwordEncoder.encode(dto.novaSenha()));
+        }
+
+        return usuarioRepository.save(usuario);
     }
 
     public boolean emailCadastrado(String email) {

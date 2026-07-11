@@ -1,11 +1,13 @@
 package com.crow.api.controller;
 
+import com.crow.api.dto.idioma.IdiomaResponse;
 import com.crow.api.dto.usuario.AlterarSenhaRequest;
 import com.crow.api.dto.usuario.UsuarioResponse;
 import com.crow.api.dto.usuario.UsuarioUpdateRequest;
 import com.crow.api.entity.Usuario;
 import com.crow.api.service.AuthService;
 import com.crow.api.service.EmailVerificationService;
+import com.crow.api.service.IdiomaService;
 import com.crow.api.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
     private final AuthService authService;
     private final EmailVerificationService emailVerificationService;
+    private final IdiomaService idiomaService;
 
     @GetMapping
     public ResponseEntity<List<UsuarioResponse>> listarTodos() {
@@ -49,7 +52,7 @@ public class UsuarioController {
     @PutMapping("/me")
     public ResponseEntity<?> atualizarPerfil(
             Authentication authentication,
-            @RequestBody UsuarioUpdateRequest request) {
+            @Valid @RequestBody UsuarioUpdateRequest request) {
         Long userId = Long.valueOf(authentication.getName());
         Usuario usuarioAtual = usuarioService.buscarPorId(userId);
 
@@ -80,10 +83,24 @@ public class UsuarioController {
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<List<UsuarioResponse>> buscar(@RequestParam String q) {
+    public ResponseEntity<List<UsuarioResponse>> buscar(@RequestParam(required = false) String q) {
+        List<Usuario> usuarios = (q == null || q.isBlank())
+                ? usuarioService.buscarTodos()
+                : usuarioService.buscarPorNome(q);
         return ResponseEntity.ok(
-                usuarioService.buscarPorNome(q).stream()
+                usuarios.stream()
                         .map(authService::toUsuarioResponse)
+                        .toList()
+        );
+    }
+
+    /** Idiomas públicos criados pelo usuário — exibidos no perfil público dele. */
+    @GetMapping("/{id}/idiomas")
+    public ResponseEntity<List<IdiomaResponse>> idiomasPublicos(@PathVariable Long id) {
+        usuarioService.buscarPorId(id);
+        return ResponseEntity.ok(
+                idiomaService.buscarPublicosPorCriador(id).stream()
+                        .map(IdiomaResponse::from)
                         .toList()
         );
     }

@@ -1,5 +1,10 @@
 <main class="buscar">
 
+  <button class="btn-voltar" (click)="voltar()" title="Voltar">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    Voltar
+  </button>
+
   <!-- BARRA DE BUSCA -->
   <div class="top-actions">
 
@@ -119,7 +124,7 @@
   <h2>{{ resultadosTexto }}</h2>
 
   <!-- LISTA -->
-  <div class="lista" *ngIf="paginados.length > 0">
+  <div class="lista stagger" *ngIf="paginados.length > 0">
 
     <div
       class="item"
@@ -188,7 +193,7 @@
   </div>
 
   <!-- EMPTY STATE -->
-  <div class="empty-state" *ngIf="paginados.length === 0">
+  <div class="empty-state anim-fade-in" *ngIf="paginados.length === 0">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="11" cy="11" r="8"></circle>
       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>

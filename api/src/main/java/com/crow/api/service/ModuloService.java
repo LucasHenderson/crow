@@ -41,6 +41,16 @@ public class ModuloService {
         idiomaService.validarProprietario(modulo.getIdioma().getId(), usuarioId);
     }
 
+    /**
+     * Garante que o usuário pode ler o conteúdo do módulo (dono do idioma ou
+     * idioma público). Lança 403 caso contrário.
+     */
+    @Transactional(readOnly = true)
+    public void validarAcessoLeituraDoModulo(Long moduloId, Long usuarioId) {
+        Modulo modulo = buscarPorId(moduloId);
+        idiomaService.validarAcessoLeitura(modulo.getIdioma().getId(), usuarioId);
+    }
+
     @Transactional
     public Modulo criar(Long idiomaId, ModuloRequest dto, Long usuarioId) {
         idiomaService.validarProprietario(idiomaId, usuarioId);

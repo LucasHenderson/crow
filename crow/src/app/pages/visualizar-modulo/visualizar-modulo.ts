@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
@@ -172,15 +172,6 @@ export class VisualizarModulo implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  @HostListener('document:click', ['$event'])
-  fecharDropdowns(event: MouseEvent): void {
-    if (!this.mostrarModalEdicao) return;
-    const target = event.target as HTMLElement;
-    if (!target.closest('.campo')) {
-      // Fechar dropdowns se houver
-    }
   }
 
   carregarModulo(): void {

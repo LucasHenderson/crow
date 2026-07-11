@@ -339,6 +339,8 @@ export class CadastrarFrase {
   private tratarErro(err: any, fallback: string): void {
     this.salvando = false;
     this.erroSalvar = err?.error?.message || fallback;
+    // App zoneless: força a renderização da mensagem de erro.
+    this.cdr.detectChanges();
   }
 
   getDadosFrase(): any {

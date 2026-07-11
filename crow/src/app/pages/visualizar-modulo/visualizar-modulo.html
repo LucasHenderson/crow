@@ -1,6 +1,13 @@
 <main class="visualizar">
   <div class="visualizar-container">
-    
+
+    <button class="btn-voltar-lista" (click)="voltarParaLista()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Voltar
+    </button>
+
     <!-- HEADER DO MÓDULO -->
     <div class="modulo-header">
       <div class="modulo-info">
@@ -9,12 +16,6 @@
         </div>
         <h1>{{ moduloNome }}</h1>
       </div>
-      <button class="btn-voltar-lista" (click)="voltarParaLista()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        Voltar
-      </button>
     </div>
 
     <!-- INFORMAÇÕES DO MÓDULO -->

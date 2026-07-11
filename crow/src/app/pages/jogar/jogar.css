@@ -668,13 +668,13 @@
 }
 
 .modal-resultado {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+  background: var(--bg-elevated);
   border-radius: 20px;
   padding: 0;
   max-width: 500px;
   width: 100%;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   animation: slideUp 0.4s ease;
 }
@@ -696,15 +696,15 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header.correto {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.15));
+  background: color-mix(in srgb, var(--color-success) 14%, transparent);
 }
 
 .modal-header.incorreto {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.15));
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
 }
 
 .modal-header svg {
@@ -713,17 +713,17 @@
 }
 
 .modal-header.correto svg {
-  color: #6ee7b7;
+  color: var(--color-success);
 }
 
 .modal-header.incorreto svg {
-  color: #fca5a5;
+  color: var(--color-danger);
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: white;
+  color: var(--color-text);
 }
 
 .modal-conteudo {
@@ -731,7 +731,7 @@
 }
 
 .modal-conteudo p {
-  color: rgba(226, 232, 240, 0.9);
+  color: var(--color-text);
   line-height: 1.6;
   margin: 0;
   text-align: center;
@@ -739,21 +739,21 @@
 }
 
 .erro-msg {
-  color: #fca5a5;
+  color: var(--color-danger);
   margin-bottom: 1.5rem !important;
 }
 
 .resposta-correta {
   margin-top: 1.5rem;
   padding: 1.2rem;
-  background: rgba(71, 85, 105, 0.4);
+  background: var(--surface-hover);
   border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid var(--border-color);
 }
 
 .resposta-correta h4 {
   margin: 0 0 0.8rem;
-  color: #a78bfa;
+  color: var(--color-primary);
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -761,7 +761,7 @@
 
 .resposta-correta p {
   margin: 0;
-  color: #6ee7b7 !important;
+  color: var(--color-success) !important;
   font-weight: 600;
   text-align: left !important;
 }
@@ -769,10 +769,10 @@
 .btn-continuar {
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  background: var(--color-primary);
   border: none;
   border-radius: 0 0 20px 20px;
-  color: white;
+  color: var(--color-on-primary);
   font-weight: 700;
   font-size: 1.1rem;
   cursor: pointer;
@@ -780,7 +780,7 @@
 }
 
 .btn-continuar:hover {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: var(--color-primary-hover);
 }
 
 /* RESULTADOS FINAIS */

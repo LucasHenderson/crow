@@ -30,8 +30,8 @@ export class VisualizarIdioma implements OnInit {
   codigoCriador = '';
   isProprietario = false;
   carregando = true;
-  avaliacao = 4.3;
-  totalAvaliacoes = 2134;
+  avaliacao = 0;
+  totalAvaliacoes = 0;
   
   // Controle dos modais
   mostrarModalDenuncia = false;
@@ -141,7 +141,6 @@ export class VisualizarIdioma implements OnInit {
   ];
 
   modulos: Modulo[] = [];
-  private nextId = 1;
 
   constructor(
     private sanitizer: DomSanitizer,
@@ -209,7 +208,6 @@ export class VisualizarIdioma implements OnInit {
             frases: m.frases || 0
           };
         });
-        this.nextId = this.modulos.length + 1;
         this.carregando = false;
         this.cdr.detectChanges();
       },
@@ -476,7 +474,6 @@ export class VisualizarIdioma implements OnInit {
               frases: 1
             };
             this.modulos.push(novoModulo);
-            this.nextId = this.modulos.length + 1;
             this.salvandoAdicao = false;
             this.fecharModalAdicionarModulo();
             this.exibirMensagemSucesso(`Módulo "${nome}" adicionado com sucesso!`);
@@ -692,9 +689,8 @@ export class VisualizarIdioma implements OnInit {
   copiarIdIdioma(): void {
     navigator.clipboard.writeText(this.codigoIdioma).then(() => {
       this.exibirMensagemSucesso('ID do Idioma copiado para a área de transferência!');
-    }).catch(err => {
-      console.error('Erro ao copiar ID:', err);
-      alert('Não foi possível copiar o ID. Tente novamente.');
+    }).catch(() => {
+      this.exibirMensagemSucesso('Não foi possível copiar o ID. Tente novamente.');
     });
   }
 
@@ -746,16 +742,18 @@ export class VisualizarIdioma implements OnInit {
     if (this.denunciaFrasesInapropriadas) tipos.push('Frases Inapropriadas');
     if (this.denunciaOutros) tipos.push('Outros');
 
+    // O backend espera os tipos serializados em JSON (campo tiposJson).
     this.idiomaService.denunciarIdioma(this.idIdioma, {
-      tipos,
+      tiposJson: JSON.stringify(tipos),
       descricao: this.denunciaDescricao
     }).subscribe({
       next: () => {
         this.fecharModalDenuncia();
         this.exibirMensagemSucesso('Obrigado por sua colaboração! A moderação verificará e agirá assim que possível.');
       },
-      error: () => {
+      error: (err) => {
         this.fecharModalDenuncia();
+        this.exibirMensagemSucesso(err?.error?.message || 'Erro ao enviar denúncia. Tente novamente.');
       }
     });
   }
@@ -796,8 +794,9 @@ export class VisualizarIdioma implements OnInit {
         this.fecharModalAvaliacao();
         this.exibirMensagemSucesso('Avaliação enviada com sucesso! Obrigado pelo seu feedback.');
       },
-      error: () => {
+      error: (err) => {
         this.fecharModalAvaliacao();
+        this.exibirMensagemSucesso(err?.error?.message || 'Erro ao enviar avaliação. Tente novamente.');
       }
     });
   }
@@ -985,7 +984,6 @@ export class VisualizarIdioma implements OnInit {
     this.moduloService.excluirModulo(this.idIdioma, modulo.id).subscribe({
       next: () => {
         this.modulos = this.modulos.filter(m => m.id !== modulo.id);
-        this.nextId = this.modulos.length + 1;
         this.limparSelecao();
         this.salvandoExclusao = false;
         this.fecharModalExcluirModulo();

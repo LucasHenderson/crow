@@ -14,6 +14,8 @@ export interface IdiomaAdm {
   id: number;
   codigo: string;
   nome: string;
+  /** Nome da linguagem (ex.: "Inglês (Estados Unidos)"). */
+  idioma: string;
   bandeira: string;
   descricao: string;
   criadorId: number;

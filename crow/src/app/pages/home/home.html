@@ -13,14 +13,27 @@
   <!-- COM IDIOMAS -->
   <div class="grid stagger" *ngIf="idiomas.length > 0">
 
-    <div class="card-wrapper" *ngFor="let idioma of idiomas; let i = index">
+    <div class="card-wrapper" [class.info-aberta]="infoAberta === i" *ngFor="let idioma of idiomas; let i = index">
 
       <div class="card" (click)="selecionarIdioma(idioma)">
         <img [src]="idioma.bandeira" alt="Bandeira">
         <span>{{ idioma.nome | uppercase }}</span>
 
-        <!-- Botões de ação (aparecem no hover) -->
+        <!-- Botões de ação (hover no desktop; sempre visíveis no toque) -->
         <div class="acoes-card">
+          <button
+            class="mini-btn info-mini"
+            title="Ver detalhes do idioma"
+            [attr.aria-expanded]="infoAberta === i"
+            aria-label="Ver detalhes do idioma"
+            (click)="$event.stopPropagation(); toggleInfo(i)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
+
           <button
             class="mini-btn editar-mini"
             title="Editar idioma"

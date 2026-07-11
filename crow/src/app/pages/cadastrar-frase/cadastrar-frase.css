@@ -14,9 +14,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 20% 30%, var(--ambient-1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, var(--ambient-2) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -37,32 +37,10 @@
   flex-wrap: wrap;
 }
 
-.btn-voltar {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  border-radius: 12px;
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+/* Botão voltar usa o padrão global (.btn-voltar em styles.css) —
+   aqui só o ajuste de layout do cabeçalho. */
+.header .btn-voltar {
   flex-shrink: 0;
-}
-
-.btn-voltar:hover {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-  transform: translateX(-4px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-}
-
-.icon-voltar {
-  width: 24px;
-  height: 24px;
-  stroke: white;
-  fill: none;
-  stroke-width: 2;
 }
 
 .page-header {
@@ -75,13 +53,12 @@
   font-weight: 700;
   margin: 0 0 0.5rem;
   letter-spacing: 0.05em;
-  text-shadow: 0 2px 20px rgba(59, 130, 246, 0.5);
   line-height: 1.3;
-  color: white;
+  color: var(--color-text);
 }
 
 .page-header p {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-muted);
   font-size: clamp(0.8rem, 2vw, 0.9rem);
   margin: 0;
   line-height: 1.5;
@@ -89,12 +66,13 @@
 
 /* FORM CARD */
 .form-card {
-  background: var(--bg-elevated);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
   padding: 2rem;
-  border: 2px solid rgba(59, 130, 246, 0.3);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
   position: relative;
+  animation: crow-slide-up var(--transition-base) both;
 }
 
 .form-card::before {
@@ -104,9 +82,8 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  background: var(--color-primary);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 /* CAMPOS */
@@ -119,38 +96,36 @@ label {
   display: block;
   margin-bottom: 0.6rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   font-size: clamp(0.8rem, 2vw, 0.9rem);
 }
 
 input[type="text"], textarea {
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
+  background: var(--surface-hover);
   padding: 0.9rem 1rem;
-  border-radius: 10px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  transition: all 0.3s ease;
-  color: white;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+  color: var(--color-text);
   font-weight: 500;
   width: 100%;
   font-family: inherit;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
 }
 
 input:hover, textarea:hover {
-  border-color: rgba(59, 130, 246, 0.5);
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.7) 0%, rgba(30, 41, 59, 0.7) 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  border-color: var(--border-strong);
 }
 
 input:focus, textarea:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--ring);
   outline: none;
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);
 }
 
 input::placeholder, textarea::placeholder {
-  color: rgba(148, 163, 184, 0.7);
+  color: var(--color-muted);
+  opacity: 0.7;
 }
 
 textarea {
@@ -167,33 +142,33 @@ textarea {
 }
 
 .modo-card {
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   padding: 1.5rem 1rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: var(--surface-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .modo-card:hover {
   border-color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .modo-card.selected {
   border-color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.2) 100%);
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4), 0 0 30px rgba(59, 130, 246, 0.2);
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  box-shadow: var(--ring);
 }
 
 .modo-card svg {
   width: 48px;
   height: 48px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-muted);
   margin-bottom: 0.8rem;
 }
 
@@ -204,13 +179,13 @@ textarea {
 .modo-card h3 {
   margin: 0;
   font-size: clamp(0.85rem, 2vw, 0.95rem);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   font-weight: 700;
   line-height: 1.3;
 }
 
 .modo-card.selected h3 {
-  color: white;
+  color: var(--color-text);
 }
 
 /* LINHA DINÂMICA */
@@ -244,27 +219,27 @@ textarea {
 }
 
 .btn-add {
-  background: linear-gradient(135deg, var(--color-success), #059669);
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  background: var(--color-success);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-add:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: color-mix(in srgb, var(--color-success) 85%, black);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-remove {
-  background: linear-gradient(135deg, var(--color-danger), #dc2626);
-  color: white;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-remove:hover {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  background: color-mix(in srgb, var(--color-danger) 85%, black);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.5);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-icone svg {
@@ -274,11 +249,11 @@ textarea {
 
 /* UPLOAD DE IMAGEM */
 .upload-area {
-  border: 2px dashed rgba(59, 130, 246, 0.4);
-  border-radius: 12px;
+  border: 2px dashed color-mix(in srgb, var(--color-primary) 40%, transparent);
+  border-radius: var(--radius-md);
   padding: 2rem;
   text-align: center;
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.4) 0%, rgba(30, 41, 59, 0.4) 100%);
+  background: var(--surface-hover);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -287,25 +262,25 @@ textarea {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .upload-area:hover {
   border-color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  box-shadow: var(--shadow-md);
 }
 
 .upload-area svg {
   width: 48px;
   height: 48px;
-  color: rgba(59, 130, 246, 0.6);
+  color: color-mix(in srgb, var(--color-primary) 60%, transparent);
   margin-bottom: 0.8rem;
 }
 
 .upload-area p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-muted);
   font-weight: 600;
   font-size: clamp(0.8rem, 2vw, 0.9rem);
 }
@@ -316,7 +291,7 @@ textarea {
 
 .upload-area.has-image {
   padding: 0;
-  border: 2px solid rgba(59, 130, 246, 0.4);
+  border: 2px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
   overflow: hidden;
 }
 
@@ -360,11 +335,11 @@ textarea {
 
 /* UPLOAD ÁREA PEQUENA (PARES) */
 .upload-area-small {
-  border: 2px dashed rgba(59, 130, 246, 0.4);
-  border-radius: 10px;
+  border: 2px dashed color-mix(in srgb, var(--color-primary) 40%, transparent);
+  border-radius: var(--radius-md);
   padding: 1rem;
   text-align: center;
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.4) 0%, rgba(30, 41, 59, 0.4) 100%);
+  background: var(--surface-hover);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -372,18 +347,18 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .upload-area-small:hover {
   border-color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  box-shadow: var(--shadow-md);
 }
 
 .upload-area-small.has-image {
   padding: 0;
-  border: 2px solid rgba(59, 130, 246, 0.4);
+  border: 2px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
   overflow: hidden;
   min-height: 120px;
 }
@@ -423,20 +398,19 @@ textarea {
   gap: 0.6rem;
   cursor: pointer;
   padding: 0.8rem 1.2rem;
-  border-radius: 10px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--surface-hover);
   transition: all 0.3s ease;
   flex: 1 1 auto;
   min-width: 130px;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .radio-option:hover {
-  border-color: rgba(59, 130, 246, 0.5);
-  background: linear-gradient(135deg, rgba(51, 65, 85, 0.7) 0%, rgba(30, 41, 59, 0.7) 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .radio-option input[type="radio"] {
@@ -449,21 +423,21 @@ textarea {
 
 .radio-option.selected {
   border-color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.2) 100%);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  box-shadow: var(--ring);
 }
 
 .radio-option label {
   margin: 0;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   font-weight: 600;
   font-size: clamp(0.8rem, 2vw, 0.9rem);
   white-space: nowrap;
 }
 
 .radio-option.selected label {
-  color: white;
+  color: var(--color-text);
 }
 
 /* LINHA PARES */
@@ -518,15 +492,15 @@ textarea {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.8rem;
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
   transition: all 0.3s ease;
 }
 
 .checkbox-resposta-correta:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
-  border-color: rgba(16, 185, 129, 0.5);
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  border-color: color-mix(in srgb, var(--color-success) 50%, transparent);
 }
 
 .checkbox-resposta-correta input[type="radio"] {
@@ -540,7 +514,7 @@ textarea {
 .checkbox-resposta-correta label {
   margin: 0;
   cursor: pointer;
-  color: rgba(16, 185, 129, 0.9);
+  color: var(--color-success);
   font-weight: 600;
   font-size: 0.8rem;
   white-space: nowrap;
@@ -560,7 +534,7 @@ textarea {
   gap: 1rem;
   margin-top: 2rem;
   padding-top: 1.8rem;
-  border-top: 2px solid rgba(59, 130, 246, 0.2);
+  border-top: 1px solid var(--border-color);
   flex-wrap: wrap;
 }
 
@@ -583,35 +557,36 @@ textarea {
 }
 
 .cancelar {
-  background: rgba(239, 68, 68, 0.15);
-  border: 2px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  color: var(--color-danger);
+  box-shadow: var(--shadow-sm);
 }
 
 .cancelar:hover {
   border-color: var(--color-danger);
-  color: white;
+  color: var(--color-on-primary);
   background: var(--color-danger);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .finalizar {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   border: none;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .finalizar:hover {
-  background: linear-gradient(135deg, var(--color-primary-hover) 0%, #1d4ed8 100%);
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .finalizar:disabled {
-  background: #cbd5e1;
+  background: var(--surface-hover);
+  color: var(--color-muted);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -646,13 +621,13 @@ textarea {
 /* Modal Container */
 .modal-container {
   background: var(--bg-elevated);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   max-width: 550px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
-  border: 2px solid rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-strong);
   position: relative;
   animation: slideUp 0.3s ease;
 }
@@ -675,9 +650,8 @@ textarea {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  background: var(--color-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 /* Modal Header */
@@ -686,24 +660,23 @@ textarea {
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 2rem;
-  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h2 {
-  color: white;
+  color: var(--color-text);
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  text-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
 }
 
 .btn-fechar-modal {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  color: var(--color-danger);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -713,7 +686,7 @@ textarea {
 
 .btn-fechar-modal:hover {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-on-primary);
   transform: scale(1.1);
 }
 
@@ -736,12 +709,11 @@ textarea {
 .icone-alerta-cancelar svg {
   width: 64px;
   height: 64px;
-  color: #f59e0b;
-  filter: drop-shadow(0 4px 15px rgba(245, 158, 11, 0.4));
+  color: var(--color-warning);
 }
 
 .texto-confirmacao-cancelar {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--color-text);
   font-size: 1.1rem;
   text-align: center;
   margin-bottom: 1.5rem;
@@ -754,9 +726,9 @@ textarea {
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.2rem;
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%);
-  border-radius: 10px;
-  border: 2px solid rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
 }
 
 .alerta-cancelar svg {
@@ -768,14 +740,14 @@ textarea {
 }
 
 .alerta-cancelar p {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.6;
 }
 
 .alerta-cancelar strong {
-  color: #f87171;
+  color: var(--color-danger);
   font-weight: 700;
 }
 
@@ -784,9 +756,9 @@ textarea {
   display: flex;
   gap: 1rem;
   padding: 1.5rem 2rem;
-  border-top: 2px solid rgba(59, 130, 246, 0.2);
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 0 0 16px 16px;
+  border-top: 1px solid var(--border-color);
+  background: var(--surface-hover);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .btn-continuar-editando,
@@ -811,29 +783,29 @@ textarea {
 }
 
 .btn-continuar-editando {
-  background: rgba(59, 130, 246, 0.15);
-  border: 2px solid rgba(59, 130, 246, 0.4);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
   color: var(--color-primary-light);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-continuar-editando:hover {
   border-color: var(--color-primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.2));
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-confirmar-cancelamento {
-  background: linear-gradient(135deg, var(--color-danger) 0%, #dc2626 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-confirmar-cancelamento:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  background: color-mix(in srgb, var(--color-danger) 85%, black);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-continuar-editando svg,

@@ -140,15 +140,35 @@ export class ControleAdm implements OnInit {
   
   carregarDenuncias(): void {
     this.adminService.getDenuncias().subscribe({
-      next: (denuncias) => this.denuncias = denuncias,
-      error: () => {}
+      next: (denuncias) => {
+        this.denuncias = denuncias.map(d => this.normalizarDenuncia(d));
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
     });
+  }
+
+  /**
+   * O backend envia os tipos serializados em JSON (tiposJson); o template
+   * espera um array em `tipos`.
+   */
+  private normalizarDenuncia(d: any): Denuncia {
+    let tipos: string[] = [];
+    if (d.tiposJson) {
+      try {
+        tipos = JSON.parse(d.tiposJson) || [];
+      } catch { /* JSON inválido — mantém lista vazia */ }
+    }
+    return { ...d, tipos };
   }
 
   carregarUsuarios(): void {
     this.adminService.getUsuariosAdmin().subscribe({
-      next: (usuarios) => this.usuarios = usuarios,
-      error: () => {}
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
     });
   }
 
@@ -157,17 +177,22 @@ export class ControleAdm implements OnInit {
       next: (idiomas) => {
         this.idiomas = idiomas;
         this.carregando = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.carregando = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
   carregarLogs(): void {
     this.adminService.getLogs().subscribe({
-      next: (logs) => this.logs = logs,
-      error: () => {}
+      next: (logs) => {
+        this.logs = logs;
+        this.cdr.detectChanges();
+      },
+      error: () => this.cdr.detectChanges()
     });
   }
 
@@ -253,8 +278,9 @@ export class ControleAdm implements OnInit {
 
     this.adminService.alterarStatusDenuncia(this.denunciaSelecionada.id, status).subscribe({
       next: (denunciaAtualizada) => {
-        const index = this.denuncias.findIndex(d => d.id === denunciaAtualizada.id);
-        if (index >= 0) this.denuncias[index] = denunciaAtualizada;
+        const normalizada = this.normalizarDenuncia(denunciaAtualizada);
+        const index = this.denuncias.findIndex(d => d.id === normalizada.id);
+        if (index >= 0) this.denuncias[index] = normalizada;
         this.fecharModalDenuncia();
         this.exibirMensagemSucesso('Status da denúncia atualizado com sucesso!');
         this.carregarLogs();
@@ -263,12 +289,6 @@ export class ControleAdm implements OnInit {
         this.exibirMensagemSucesso('Erro ao alterar status da denúncia.');
       }
     });
-  }
-
-  visualizarIdiomaDenuncia(): void {
-    if (!this.denunciaSelecionada) return;
-    console.log('Navegando para idioma:', this.denunciaSelecionada.idiomaId);
-    window.open('/visualizar-idioma', '_blank');
   }
 
   formatarData(dataString: string): string {
@@ -630,10 +650,35 @@ export class ControleAdm implements OnInit {
     this.idiomaEmEdicao = { ...idioma };
     this.nomeIdiomaEdicao = idioma.nome;
     this.descricaoIdiomaEdicao = idioma.descricao;
-    this.idiomaSelecionadoEdicao = this.idiomasDisponiveis.find(i => i.nome === idioma.nome) || null;
-    this.proficienciaIdiomaEdicao = idioma.proficiencia || 'Básico';
+    // O nome da linguagem (ex.: "Inglês (Estados Unidos)") vem no campo `idioma`.
+    const nomeLinguagem = idioma.idioma || idioma.nome;
+    this.idiomaSelecionadoEdicao = this.idiomasDisponiveis.find(i => i.nome === nomeLinguagem) || null;
+    this.proficienciaIdiomaEdicao = this.mapProficienciaParaLabel(idioma.proficiencia);
     this.visibilidadeIdiomaEdicao = idioma.visibilidade || 'publico';
     this.mostrarModalEditarIdioma = true;
+  }
+
+  private mapProficienciaParaLabel(valor: string | undefined): string {
+    if (!valor) return 'Básico';
+    const mapa: Record<string, string> = {
+      'iniciante': 'Iniciante',
+      'basico': 'Básico',
+      'intermediario': 'Intermediário',
+      'avancado': 'Avançado',
+      'fluente': 'Fluente'
+    };
+    return mapa[valor.toLowerCase()] || valor;
+  }
+
+  private mapProficienciaParaBackend(nivel: string): string {
+    const mapa: Record<string, string> = {
+      'Iniciante': 'INICIANTE',
+      'Básico': 'BASICO',
+      'Intermediário': 'INTERMEDIARIO',
+      'Avançado': 'AVANCADO',
+      'Fluente': 'FLUENTE'
+    };
+    return mapa[nivel] || nivel.toUpperCase();
   }
 
   fecharModalEditarIdioma(): void {
@@ -651,50 +696,48 @@ export class ControleAdm implements OnInit {
 
   get podeConfirmarEdicaoIdioma(): boolean {
     if (!this.idiomaEmEdicao) return false;
-    
+
     const nomeValido = this.nomeIdiomaEdicao.trim().length > 0;
     const descricaoValida = this.descricaoIdiomaEdicao.trim().length > 0;
     const idiomaValido = !!this.idiomaSelecionadoEdicao;
     const proficienciaValida = !!this.proficienciaIdiomaEdicao;
-    
-    const dadosAlterados = 
+
+    const nomeLinguagemAtual = this.idiomaEmEdicao.idioma || this.idiomaEmEdicao.nome;
+    const dadosAlterados =
       this.nomeIdiomaEdicao !== this.idiomaEmEdicao.nome ||
       this.descricaoIdiomaEdicao !== this.idiomaEmEdicao.descricao ||
-      this.idiomaSelecionadoEdicao?.nome !== this.idiomaEmEdicao.nome ||
-      this.proficienciaIdiomaEdicao !== this.idiomaEmEdicao.proficiencia ||
+      this.idiomaSelecionadoEdicao?.nome !== nomeLinguagemAtual ||
+      this.proficienciaIdiomaEdicao !== this.mapProficienciaParaLabel(this.idiomaEmEdicao.proficiencia) ||
       this.visibilidadeIdiomaEdicao !== this.idiomaEmEdicao.visibilidade;
-    
+
     return nomeValido && descricaoValida && idiomaValido && proficienciaValida && dadosAlterados;
   }
 
   confirmarEdicaoIdioma(): void {
     if (!this.podeConfirmarEdicaoIdioma || !this.idiomaEmEdicao || !this.idiomaSelecionadoEdicao) return;
-    
-    const idioma = this.idiomas.find(i => i.id === this.idiomaEmEdicao!.id);
-    if (idioma) {
-      const nomeAnterior = idioma.nome;
-      const descricaoAnterior = idioma.descricao;
-      
-      idioma.nome = this.nomeIdiomaEdicao.trim();
-      idioma.bandeira = this.idiomaSelecionadoEdicao.bandeira;
-      idioma.descricao = this.descricaoIdiomaEdicao.trim();
-      idioma.proficiencia = this.proficienciaIdiomaEdicao;
-      idioma.visibilidade = this.visibilidadeIdiomaEdicao;
-      
-      // Registrar log
-      const alteracoes: string[] = [];
-      if (nomeAnterior !== idioma.nome) alteracoes.push(`Nome: "${nomeAnterior}" → "${idioma.nome}"`);
-      if (descricaoAnterior !== idioma.descricao) alteracoes.push('Descrição atualizada');
-      
-      this.registrarLog(
-        'idioma',
-        'Editou idioma',
-        `Idioma "${idioma.nome}" (${idioma.id}) - ${alteracoes.join(', ')}`
-      );
-    }
-    
-    this.fecharModalEditarIdioma();
-    this.exibirMensagemSucesso(`Idioma "${idioma?.nome}" atualizado com sucesso!`);
+
+    const id = this.idiomaEmEdicao.id;
+    const dados = {
+      nome: this.nomeIdiomaEdicao.trim(),
+      idioma: this.idiomaSelecionadoEdicao.nome,
+      bandeira: this.idiomaSelecionadoEdicao.bandeira,
+      descricao: this.descricaoIdiomaEdicao.trim(),
+      proficiencia: this.mapProficienciaParaBackend(this.proficienciaIdiomaEdicao),
+      visibilidade: this.visibilidadeIdiomaEdicao.toUpperCase()
+    };
+
+    this.adminService.editarIdiomaAdmin(id, dados).subscribe({
+      next: (atualizado) => {
+        const index = this.idiomas.findIndex(i => i.id === id);
+        if (index >= 0) this.idiomas[index] = atualizado;
+        this.fecharModalEditarIdioma();
+        this.exibirMensagemSucesso(`Idioma "${atualizado.nome}" atualizado com sucesso!`);
+        this.carregarLogs();
+      },
+      error: (err) => {
+        this.exibirMensagemSucesso(err?.error?.message || 'Erro ao editar idioma.');
+      }
+    });
   }
 
   excluirIdioma(idioma: Idioma): void {
@@ -723,11 +766,6 @@ export class ControleAdm implements OnInit {
         this.exibirMensagemSucesso('Erro ao excluir idioma.');
       }
     });
-  }
-
-  visualizarIdioma(idioma: Idioma): void {
-    console.log('Visualizar idioma:', idioma.nome);
-    window.open('/visualizar-idioma', '_blank');
   }
 
   estrelas(nota: number): boolean[] {
@@ -799,10 +837,6 @@ export class ControleAdm implements OnInit {
     if (pagina >= 1 && pagina <= this.totalPaginasLogs) {
       this.paginaAtualLogs = pagina;
     }
-  }
-
-  registrarLog(tipo: Log['tipo'], acao: string, detalhes: string): void {
-    this.carregarLogs();
   }
 
   getLogTipoClass(tipo: Log['tipo']): string {

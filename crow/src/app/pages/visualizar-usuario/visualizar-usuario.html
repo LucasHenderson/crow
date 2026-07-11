@@ -77,11 +77,10 @@
 
       <!-- LISTA DE IDIOMAS -->
       <div class="idiomas-grid" *ngIf="idiomas.length > 0">
-        <div 
-          class="idioma-card" 
+        <div
+          class="idioma-card"
           *ngFor="let idioma of idiomas"
           (click)="selecionarIdioma(idioma)"
-          routerLink="/visualizar-idioma"
           [class.nivel-iniciante]="idioma.proficiencia === 'iniciante'"
           [class.nivel-basico]="idioma.proficiencia === 'basico'"
           [class.nivel-intermediario]="idioma.proficiencia === 'intermediario'"

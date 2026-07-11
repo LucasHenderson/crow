@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface FraseRepository extends JpaRepository<Frase, Long> {
-    List<Frase> findByModuloId(Long moduloId);
 
     /**
      * Frases de um módulo na ordem de cadastro (id crescente). Garante uma
