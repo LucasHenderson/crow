@@ -11,7 +11,13 @@ import { FraseService } from '../../services/frase.service';
 import { ModuloService } from '../../services/modulo.service';
 import { UploadService } from '../../services/upload.service';
 import { IdiomaService } from '../../services/idioma.service';
+import { OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { AuthService } from '../../services/auth.service';
+import {
+  DirecaoMovimento,
+  EstadoReordenacao,
+  ReordenacaoService
+} from '../../services/reordenacao.service';
 
 @Component({
   selector: 'app-visualizar-modulo',
@@ -22,8 +28,18 @@ import { AuthService } from '../../services/auth.service';
 })
 export class VisualizarModulo implements OnInit, OnDestroy {
 
+  /** Id numérico do módulo — os endpoints de módulo/frase seguem numéricos nesta fase. */
   moduloId: string = '';
+  /** Código público do idioma (IDM-...), recebido pelo query param. */
   idIdioma: string = '';
+  /** Id numérico do idioma, resolvido a partir do código para as chamadas de módulo. */
+  idIdiomaNumerico = 0;
+  /**
+   * Origem da cadeia de navegação (home, buscar-idioma ou visualizar-usuario).
+   * Só é repassada ao voltar para o idioma, para que o Voltar de lá continue
+   * sabendo de onde o usuário veio.
+   */
+  origem: OrigemIdioma = 'home';
   moduloNome: string = '';
   moduloIcone: SafeHtml = '';
   dataAtualizacao: string = '';
@@ -119,6 +135,9 @@ export class VisualizarModulo implements OnInit, OnDestroy {
 
   carregando = true;
 
+  /** Reordenação das frases por troca com a vizinha (otimista, com desfazer). */
+  readonly reordenacao: EstadoReordenacao<Frase>;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -128,8 +147,16 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     private moduloService: ModuloService,
     private uploadService: UploadService,
     private idiomaService: IdiomaService,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    reordenacaoService: ReordenacaoService
+  ) {
+    this.reordenacao = reordenacaoService.criarEstado<Frase>({
+      obterItens: () => this.frases,
+      aplicarItens: (frases) => this.aplicarOrdemFrases(frases),
+      extrairId: (frase) => frase.id as number,
+      persistir: (ids) => this.fraseService.reordenarFrases(this.moduloId, ids)
+    });
+  }
 
   ngOnInit(): void {
     this.lerParametrosECarregar();
@@ -142,30 +169,36 @@ export class VisualizarModulo implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.navSub?.unsubscribe();
+    // Envia o que estiver pendente no debounce antes de a tela sair de cena.
+    this.reordenacao.destruir();
   }
 
   private lerParametrosECarregar(): void {
     const qp = this.route.snapshot.queryParamMap;
     this.moduloId = qp.get('id') || this.route.snapshot.paramMap.get('id') || '';
     this.idIdioma = qp.get('idIdioma') || '';
-    this.verificarProprietario();
-    this.carregarModulo();
+    this.origem = normalizarOrigem(qp.get('origem'));
+    this.carregarIdioma();
     this.carregarFrases();
   }
 
   /**
-   * Determina se o usuário logado é o proprietário do idioma. Apenas o dono
-   * pode criar, editar ou excluir frases — visitantes têm acesso somente leitura.
+   * Carrega o idioma pelo código público. Além de definir se o usuário logado é
+   * o proprietário (apenas o dono cria, edita ou exclui frases), resolve o id
+   * numérico exigido pelos endpoints de módulo — por isso o módulo só é
+   * carregado depois desta resposta.
    */
-  private verificarProprietario(): void {
+  private carregarIdioma(): void {
     this.isProprietario = false;
     if (!this.idIdioma) return;
 
-    this.idiomaService.getIdiomaPorId(this.idIdioma).subscribe({
+    this.idiomaService.getIdiomaPorCodigo(this.idIdioma).subscribe({
       next: (idioma) => {
         const user = this.authService.getCurrentUser();
         this.isProprietario = !!user && user.id === idioma.criadorId;
+        this.idIdiomaNumerico = idioma.id;
         this.cdr.detectChanges();
+        this.carregarModulo();
       },
       error: () => {
         this.isProprietario = false;
@@ -175,9 +208,9 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   }
 
   carregarModulo(): void {
-    if (!this.moduloId || !this.idIdioma) return;
+    if (!this.moduloId || !this.idIdiomaNumerico) return;
 
-    this.moduloService.getModulosPorIdioma(this.idIdioma).subscribe({
+    this.moduloService.getModulosPorIdioma(this.idIdiomaNumerico).subscribe({
       next: (modulos) => {
         const m = modulos.find((mod: any) => String(mod.id) === String(this.moduloId));
         if (m) {
@@ -281,10 +314,18 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   }
 
   atualizarFrasesPaginadas(): void {
-    const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
-    const fim = inicio + this.itensPorPagina;
-    this.frasesPaginadas = this.frases.slice(inicio, fim);
+    this.fatiarPaginaAtual();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /**
+   * Recorta a página atual sem rolar a tela. Separado de
+   * {@link atualizarFrasesPaginadas} porque a reordenação re-renderiza a lista a
+   * cada clique e subir ao topo a cada seta tornaria os botões inutilizáveis.
+   */
+  private fatiarPaginaAtual(): void {
+    const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
+    this.frasesPaginadas = this.frases.slice(inicio, inicio + this.itensPorPagina);
   }
 
   irParaPagina(pagina: number): void {
@@ -313,7 +354,50 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   }
 
   getNumeroFrase(indexPagina: number): number {
-    return (this.paginaAtual - 1) * this.itensPorPagina + indexPagina + 1;
+    return this.indiceGlobalFrase(indexPagina) + 1;
+  }
+
+  // ===== REORDENAÇÃO DAS FRASES =====
+
+  /** Converte o índice dentro da página no índice da lista completa. */
+  private indiceGlobalFrase(indexPagina: number): number {
+    return (this.paginaAtual - 1) * this.itensPorPagina + indexPagina;
+  }
+
+  /** Primeira frase da lista inteira — não apenas da página exibida. */
+  podeSubirFrase(indexPagina: number): boolean {
+    return this.reordenacao.podeSubir(this.indiceGlobalFrase(indexPagina));
+  }
+
+  /** Última frase da lista inteira — não apenas da página exibida. */
+  podeDescerFrase(indexPagina: number): boolean {
+    return this.reordenacao.podeDescer(this.indiceGlobalFrase(indexPagina));
+  }
+
+  /**
+   * Move a frase uma posição e, quando a troca cruza a fronteira da paginação,
+   * acompanha a frase até a página onde ela caiu — sem isso ela desapareceria da
+   * tela justamente ao ser movida.
+   */
+  moverFrase(indexPagina: number, direcao: DirecaoMovimento): void {
+    if (!this.isProprietario) return;
+
+    const destino = this.indiceGlobalFrase(indexPagina) + direcao;
+    if (!this.reordenacao.mover(this.indiceGlobalFrase(indexPagina), direcao)) return;
+
+    const paginaDestino = Math.floor(destino / this.itensPorPagina) + 1;
+    if (paginaDestino !== this.paginaAtual) {
+      this.paginaAtual = paginaDestino;
+      this.fatiarPaginaAtual();
+      this.cdr.detectChanges();
+    }
+  }
+
+  /** Aplica a nova ordem (ou o desfazer) vinda da reordenação. */
+  private aplicarOrdemFrases(frases: Frase[]): void {
+    this.frases = frases;
+    this.fatiarPaginaAtual();
+    this.cdr.detectChanges();
   }
 
   getLetraAlternativa(index: number): string {
@@ -330,11 +414,17 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     return `${dia}/${mes}/${ano} às ${horas}:${minutos}`;
   }
 
+  /**
+   * Volta para o idioma dono deste módulo — inclusive quando ele é de outro
+   * usuário — preservando o código do idioma e a origem da navegação.
+   */
   voltarParaLista(): void {
     if (this.idIdioma) {
-      this.router.navigate(['/visualizar-idioma'], { queryParams: { id: this.idIdioma } });
+      this.router.navigate(['/visualizar-idioma'], {
+        queryParams: { id: this.idIdioma, origem: this.origem }
+      });
     } else {
-      this.router.navigate(['/visualizar-idioma']);
+      this.router.navigate(['/home']);
     }
   }
 
@@ -779,11 +869,11 @@ export class VisualizarModulo implements OnInit, OnDestroy {
       this.fraseService.excluirFrase(this.moduloId, this.fraseEmExclusao.id).subscribe({
         next: () => {
           if (ehUltimaFrase) {
-            this.moduloService.excluirModulo(this.idIdioma, Number(this.moduloId)).subscribe({
+            this.moduloService.excluirModulo(this.idIdiomaNumerico, Number(this.moduloId)).subscribe({
               next: () => {
                 this.fecharModalExclusao();
                 this.router.navigate(['/visualizar-idioma'], {
-                  queryParams: { id: this.idIdioma }
+                  queryParams: { id: this.idIdioma, origem: this.origem }
                 });
               },
               error: () => {

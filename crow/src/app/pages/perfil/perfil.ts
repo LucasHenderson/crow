@@ -1,10 +1,11 @@
-import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { Usuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { ClipboardService, EstadoCopia } from '../../services/clipboard.service';
 
 type CamposSenha = {
   senhaAtual: boolean;
@@ -19,7 +20,7 @@ type CamposSenha = {
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
-export class Perfil implements OnInit {
+export class Perfil implements OnInit, OnDestroy {
   showSuccessAlert = false;
   successMessage = '';
   erroMensagem = '';
@@ -57,16 +58,31 @@ export class Perfil implements OnInit {
   erroEmail = false;
   private emailVerificadoValor = '';
 
+  /** Confirmação temporária ao copiar o código público do usuário. */
+  readonly estadoCopiaId: EstadoCopia;
+
   constructor(
     private router: Router,
     private authService: AuthService,
     private usuarioService: UsuarioService,
     private cdr: ChangeDetectorRef,
-    private location: Location
-  ) {}
+    private location: Location,
+    clipboard: ClipboardService
+  ) {
+    this.estadoCopiaId = clipboard.criarEstado();
+  }
 
   ngOnInit(): void {
     this.carregarDadosUsuario();
+  }
+
+  ngOnDestroy(): void {
+    this.estadoCopiaId.destruir();
+  }
+
+  /** Copia o código do usuário e exibe a confirmação por alguns segundos. */
+  copiarId(): void {
+    this.estadoCopiaId.copiar(this.user.codigo);
   }
 
   /** Volta para a página anterior (respeita o histórico) ou para a home. */

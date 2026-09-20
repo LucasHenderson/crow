@@ -18,11 +18,20 @@ export class BuscarIdioma implements OnInit {
 
   mostrarOrdenacao = false;
   mostrarProficiencia = false;
+  mostrarIdioma = false;
 
   criterio: 'avaliacao' | 'data' = 'avaliacao';
   direcao: 'asc' | 'desc' = 'desc';
 
-  proficienciaSelecionada: Proficiencia | null = null;
+  /** Niveis do filtro de proficiencia, na ordem de progressao. */
+  readonly niveis: Proficiencia[] = ['iniciante', 'basico', 'intermediario', 'avancado', 'fluente'];
+
+  /** Filtros multiplos: vazio = sem restricao (mostra tudo). */
+  proficienciasSelecionadas: Proficiencia[] = [];
+  idiomasSelecionados: string[] = [];
+
+  /** Idiomas realmente presentes nos resultados carregados. */
+  opcoesIdioma: string[] = [];
 
   paginaAtual = 1;
   porPagina = 9;
@@ -55,6 +64,7 @@ export class BuscarIdioma implements OnInit {
     this.idiomaService.buscarIdiomas().subscribe({
       next: (idiomas) => {
         this.idiomas = idiomas;
+        this.opcoesIdioma = this.extrairOpcoesIdioma(idiomas);
         this.carregando = false;
         // App em modo zoneless: a atualização assíncrona não dispara
         // change detection sozinha — força a renderização da lista.
@@ -62,10 +72,26 @@ export class BuscarIdioma implements OnInit {
       },
       error: () => {
         this.idiomas = [];
+        this.opcoesIdioma = [];
         this.carregando = false;
         this.cdr.detectChanges();
       }
     });
+  }
+
+  /**
+   * Monta a lista de opções do filtro de idioma a partir dos registros
+   * carregados — nada de lista fixa: só aparece o que existe nos resultados.
+   */
+  private extrairOpcoesIdioma(idiomas: Idioma[]): string[] {
+    const nomes = new Set<string>();
+    for (const idioma of idiomas) {
+      const nome = (idioma.idioma ?? '').trim();
+      if (nome) {
+        nomes.add(nome);
+      }
+    }
+    return [...nomes].sort((a, b) => a.localeCompare(b, 'pt-BR'));
   }
 
   /**
@@ -74,13 +100,17 @@ export class BuscarIdioma implements OnInit {
   @HostListener('document:click', ['$event'])
   fecharMenus(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    
+
     if (!target.closest('.ordenar-wrapper')) {
       this.mostrarOrdenacao = false;
     }
-    
+
     if (!target.closest('.proficiencia-wrapper')) {
       this.mostrarProficiencia = false;
+    }
+
+    if (!target.closest('.idioma-wrapper')) {
+      this.mostrarIdioma = false;
     }
   }
 
@@ -91,6 +121,7 @@ export class BuscarIdioma implements OnInit {
     this.mostrarOrdenacao = !this.mostrarOrdenacao;
     if (this.mostrarOrdenacao) {
       this.mostrarProficiencia = false;
+      this.mostrarIdioma = false;
     }
   }
 
@@ -101,6 +132,18 @@ export class BuscarIdioma implements OnInit {
     this.mostrarProficiencia = !this.mostrarProficiencia;
     if (this.mostrarProficiencia) {
       this.mostrarOrdenacao = false;
+      this.mostrarIdioma = false;
+    }
+  }
+
+  /**
+   * Alterna visibilidade do menu de idioma
+   */
+  toggleIdioma(): void {
+    this.mostrarIdioma = !this.mostrarIdioma;
+    if (this.mostrarIdioma) {
+      this.mostrarOrdenacao = false;
+      this.mostrarProficiencia = false;
     }
   }
 
@@ -134,12 +177,61 @@ export class BuscarIdioma implements OnInit {
   }
 
   /**
-   * 🎯 PROFICIÊNCIA - Filtra por nível de proficiência
+   * 🎯 PROFICIÊNCIA - Marca/desmarca um nível (seleção múltipla).
+   * O menu continua aberto para permitir marcar vários de uma vez.
    */
-  filtrarPorProficiencia(nivel: Proficiencia | null): void {
-    this.proficienciaSelecionada = nivel;
+  alternarProficiencia(nivel: Proficiencia): void {
+    this.proficienciasSelecionadas = this.proficienciasSelecionadas.includes(nivel)
+      ? this.proficienciasSelecionadas.filter(n => n !== nivel)
+      : [...this.proficienciasSelecionadas, nivel];
+    this.paginaAtual = 1;
+  }
+
+  /**
+   * 🌐 IDIOMA - Marca/desmarca um idioma (seleção múltipla).
+   */
+  alternarIdioma(idioma: string): void {
+    this.idiomasSelecionados = this.idiomasSelecionados.includes(idioma)
+      ? this.idiomasSelecionados.filter(i => i !== idioma)
+      : [...this.idiomasSelecionados, idioma];
+    this.paginaAtual = 1;
+  }
+
+  proficienciaMarcada(nivel: Proficiencia): boolean {
+    return this.proficienciasSelecionadas.includes(nivel);
+  }
+
+  idiomaMarcado(idioma: string): boolean {
+    return this.idiomasSelecionados.includes(idioma);
+  }
+
+  /** Limpa apenas o filtro de proficiência (opção "Todos os níveis"). */
+  limparProficiencia(): void {
+    this.proficienciasSelecionadas = [];
+    this.paginaAtual = 1;
+  }
+
+  /** Limpa apenas o filtro de idioma (opção "Todos os idiomas"). */
+  limparIdioma(): void {
+    this.idiomasSelecionados = [];
+    this.paginaAtual = 1;
+  }
+
+  /** Há busca ou algum filtro aplicado? Controla o botão "Limpar filtros". */
+  get temFiltrosAtivos(): boolean {
+    return !!this.busca
+      || this.proficienciasSelecionadas.length > 0
+      || this.idiomasSelecionados.length > 0;
+  }
+
+  /** Zera busca e filtros (a ordenação é preservada). */
+  limparFiltros(): void {
+    this.busca = '';
+    this.proficienciasSelecionadas = [];
+    this.idiomasSelecionados = [];
     this.paginaAtual = 1;
     this.mostrarProficiencia = false;
+    this.mostrarIdioma = false;
   }
 
   /**
@@ -184,7 +276,8 @@ export class BuscarIdioma implements OnInit {
   }
 
   /**
-   * Retorna idiomas filtrados pela busca e proficiência
+   * Retorna idiomas filtrados pela busca, pelo idioma e pela proficiência.
+   * Filtros diferentes se combinam com E; opções do mesmo filtro, com OU.
    */
   get idiomasFiltrados(): Idioma[] {
     let resultado = this.idiomas;
@@ -199,9 +292,14 @@ export class BuscarIdioma implements OnInit {
       );
     }
 
-    // Filtro de proficiência
-    if (this.proficienciaSelecionada) {
-      resultado = resultado.filter(i => i.proficiencia === this.proficienciaSelecionada);
+    // Filtro de idioma (OU entre os selecionados)
+    if (this.idiomasSelecionados.length > 0) {
+      resultado = resultado.filter(i => this.idiomasSelecionados.includes(i.idioma));
+    }
+
+    // Filtro de proficiência (OU entre os selecionados)
+    if (this.proficienciasSelecionadas.length > 0) {
+      resultado = resultado.filter(i => this.proficienciasSelecionadas.includes(i.proficiencia));
     }
 
     return this.ordenarIdiomas(resultado);
@@ -258,17 +356,17 @@ export class BuscarIdioma implements OnInit {
    */
   get resultadosTexto(): string {
     const total = this.idiomasFiltrados.length;
-    
-    if (this.busca || this.proficienciaSelecionada) {
-      return total === 0 
-        ? 'NENHUM RESULTADO' 
-        : total === 1 
+
+    if (this.temFiltrosAtivos) {
+      return total === 0
+        ? 'NENHUM RESULTADO'
+        : total === 1
           ? '1 RESULTADO ENCONTRADO'
           : `${total} RESULTADOS ENCONTRADOS`;
     }
-    
-    return total === 1 
-      ? '1 IDIOMA DISPONÍVEL' 
+
+    return total === 1
+      ? '1 IDIOMA DISPONÍVEL'
       : `${total} IDIOMAS DISPONÍVEIS`;
   }
 
@@ -278,7 +376,7 @@ export class BuscarIdioma implements OnInit {
    */
   selecionarIdioma(idioma: Idioma): void {
     this.router.navigate(['/visualizar-idioma'], {
-      queryParams: { id: idioma.id }
+      queryParams: { id: idioma.codigo, origem: 'buscar-idioma' }
     });
   }
 }

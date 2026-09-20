@@ -106,6 +106,32 @@ export class RecuperarSenha {
     }
   }
 
+  /**
+   * Cancela a verificação do código e reinicia o fluxo na etapa 1.
+   * Como o código já foi enviado, voltar para uma etapa intermediária deixaria
+   * o fluxo inconsistente: aqui todo o estado intermediário é descartado.
+   */
+  cancelarVerificacao(): void {
+    this.etapaAtual = 1;
+
+    this.email = '';
+    this.emailErro = '';
+
+    this.codigoDigitado = '';
+    this.codigoErro = '';
+    this.mensagemCodigo = '';
+    this.enviandoCodigo = false;
+    this.verificandoCodigo = false;
+
+    this.novaSenha = '';
+    this.confirmarSenha = '';
+    this.senhaErro = '';
+    this.camposVisiveis = { novaSenha: false, confirmarSenha: false };
+
+    this.carregando = false;
+    this.forcarAtualizacao();
+  }
+
   private validarEmail(): boolean {
     this.emailErro = '';
 

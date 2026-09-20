@@ -97,14 +97,16 @@
 }
 
 .ordenar,
-.proficiencia-btn {
+.proficiencia-btn,
+.idioma-btn {
   background: var(--bg-card);
   color: var(--color-text);
   box-shadow: var(--shadow-sm);
 }
 
 .ordenar:hover,
-.proficiencia-btn:hover {
+.proficiencia-btn:hover,
+.idioma-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
   transform: translateY(-2px);
@@ -120,14 +122,20 @@
   z-index: 3000;
 }
 
+.idioma-wrapper:has(.idioma-menu) {
+  z-index: 3000;
+}
+
 .ordenar-wrapper,
-.proficiencia-wrapper {
+.proficiencia-wrapper,
+.idioma-wrapper {
   position: relative;
   z-index: 200;
 }
 
 .ordenacao-menu,
-.proficiencia-menu {
+.proficiencia-menu,
+.idioma-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
@@ -153,7 +161,8 @@
 }
 
 .ordenacao-menu div,
-.proficiencia-menu div {
+.proficiencia-menu div,
+.idioma-menu div {
   padding: 0.9rem 1.2rem;
   cursor: pointer;
   display: flex;
@@ -166,14 +175,23 @@
 }
 
 .ordenacao-menu div:last-child,
-.proficiencia-menu div:last-child {
+.proficiencia-menu div:last-child,
+.idioma-menu div:last-child {
   border-bottom: none;
 }
 
 .ordenacao-menu div:hover,
-.proficiencia-menu div:hover {
+.proficiencia-menu div:hover,
+.idioma-menu div:hover {
   background: var(--surface-hover);
   padding-left: 1.5rem;
+}
+
+/* Opções de seleção múltipla: sem deslocamento no hover, para não
+   "fugir" do cursor enquanto o usuário marca vários itens seguidos. */
+.proficiencia-menu .opcao:hover,
+.idioma-menu .opcao:hover {
+  padding-left: 1.2rem;
 }
 
 .ordenacao-menu div:hover {
@@ -194,13 +212,98 @@
   box-shadow: 0 0 8px currentColor;
 }
 
-.proficiencia-menu div.selected {
+.proficiencia-menu div.selected,
+.idioma-menu div.selected {
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
   border-left: 3px solid var(--color-primary);
 }
 
-.nivel-todos {
+.opcao-todos {
   color: var(--color-muted) !important;
+}
+
+/* MENU DE IDIOMA - lista longa rola dentro do próprio menu */
+.idioma-menu {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.opcao-vazia {
+  color: var(--color-muted);
+  font-style: italic;
+  cursor: default !important;
+}
+
+/* SELEÇÃO MÚLTIPLA - caixa de marcação das opções */
+.opcao {
+  gap: 0.7rem;
+}
+
+.opcao-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.opcao-check {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  position: relative;
+  transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.opcao.selected .opcao-check {
+  background: currentColor;
+  border-color: currentColor;
+}
+
+.opcao.selected .opcao-check::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 4px;
+  height: 9px;
+  border: solid var(--bg-elevated);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* CONTADOR DE OPÇÕES SELECIONADAS NO BOTÃO */
+.filtro-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.actions button.filtro-ativo {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* LIMPAR FILTROS */
+.limpar-filtros {
+  background: transparent;
+  color: var(--color-muted);
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.limpar-filtros:hover {
+  border-style: solid;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 
 .nivel-iniciante {
@@ -627,7 +730,8 @@ h2 {
   }
 
   .ordenacao-menu,
-  .proficiencia-menu {
+  .proficiencia-menu,
+  .idioma-menu {
     left: 0;
     right: 0;
     width: 100%;

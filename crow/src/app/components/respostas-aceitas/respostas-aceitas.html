@@ -1,0 +1,58 @@
+<div class="respostas-aceitas">
+  <label class="titulo">Outras respostas aceitas (opcional)</label>
+  <p class="ajuda-campo">Cadastre outras ordens/traduções que também devem ser aceitas como corretas. Maiúsculas, acentos e pontuação são ignorados na correção.</p>
+
+  <div class="principal" [class.indefinida]="!principal.trim()">
+    <span class="tag-principal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Tradução principal
+    </span>
+    <span class="texto-principal" *ngIf="principal.trim(); else semPrincipal">{{ principal }}</span>
+    <ng-template #semPrincipal>
+      <span class="texto-principal">Preencha as palavras acima para definir a tradução principal.</span>
+    </ng-template>
+  </div>
+
+  <div class="linha-resposta" *ngFor="let alt of respostas; let i = index; trackBy: trackByIndex">
+    <div class="campo">
+      <label [attr.for]="'resposta-aceita-' + i">Resposta aceita {{ i + 1 }}</label>
+      <input
+        [id]="'resposta-aceita-' + i"
+        type="text"
+        [ngModel]="respostas[i]"
+        (ngModelChange)="aoEditar(i, $event)"
+        [class.invalido]="!!erro(i)"
+        placeholder="Ex: Good morning! How are you?"
+      />
+      <p class="mensagem-erro" *ngIf="erro(i) as motivo" [ngSwitch]="motivo">
+        <ng-container *ngSwitchCase="'vazia'">Preencha ou remova esta resposta.</ng-container>
+        <ng-container *ngSwitchCase="'duplicada'">Esta resposta já foi cadastrada.</ng-container>
+        <ng-container *ngSwitchCase="'principal'">Esta é a tradução principal — ela já é aceita automaticamente.</ng-container>
+      </p>
+    </div>
+
+    <button class="btn-icone btn-remove" (click)="remover(i)" type="button" title="Remover resposta" aria-label="Remover resposta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    </button>
+  </div>
+
+  <button
+    class="btn-icone btn-add"
+    (click)="adicionar()"
+    type="button"
+    *ngIf="respostas.length < limite"
+    [disabled]="!podeAdicionar"
+    title="Adicionar resposta aceita"
+    aria-label="Adicionar resposta aceita"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+</div>

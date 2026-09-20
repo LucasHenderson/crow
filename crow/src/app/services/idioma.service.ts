@@ -41,31 +41,31 @@ export class IdiomaService {
     };
   }
 
-  getIdiomaPorId(id: number | string): Observable<IdiomaAdm> {
-    return this.http.get<IdiomaAdm>(`${this.apiUrl}/idiomas/${id}`);
+  getIdiomaPorCodigo(codigo: string): Observable<IdiomaAdm> {
+    return this.http.get<IdiomaAdm>(`${this.apiUrl}/idiomas/${codigo}`);
   }
 
   criarIdioma(dados: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/idiomas`, dados);
   }
 
-  editarIdioma(id: number | string, dados: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/idiomas/${id}`, dados);
+  editarIdioma(codigo: string, dados: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/idiomas/${codigo}`, dados);
   }
 
-  excluirIdioma(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/idiomas/${id}`);
+  excluirIdioma(codigo: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/idiomas/${codigo}`);
   }
 
-  importarIdioma(idiomaId: number | string): Observable<IdiomaAdm> {
-    return this.http.post<IdiomaAdm>(`${this.apiUrl}/idiomas/${idiomaId}/importar`, {});
+  importarIdioma(codigo: string): Observable<IdiomaAdm> {
+    return this.http.post<IdiomaAdm>(`${this.apiUrl}/idiomas/${codigo}/importar`, {});
   }
 
-  avaliarIdioma(idiomaId: number | string, nota: number): Observable<{ novaMedia: number; totalAvaliacoes: number }> {
-    return this.http.post<{ novaMedia: number; totalAvaliacoes: number }>(`${this.apiUrl}/idiomas/${idiomaId}/avaliar`, { nota });
+  avaliarIdioma(codigo: string, nota: number): Observable<{ novaMedia: number; totalAvaliacoes: number }> {
+    return this.http.post<{ novaMedia: number; totalAvaliacoes: number }>(`${this.apiUrl}/idiomas/${codigo}/avaliar`, { nota });
   }
 
-  denunciarIdioma(idiomaId: number | string, dados: any): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/idiomas/${idiomaId}/denunciar`, dados);
+  denunciarIdioma(codigo: string, dados: any): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/idiomas/${codigo}/denunciar`, dados);
   }
 }

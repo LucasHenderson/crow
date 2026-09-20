@@ -1,6 +1,12 @@
 <main class="cadastro">
   <div class="cadastro-container">
 
+    <!-- TOPO -->
+    <button class="btn-voltar btn-voltar--topo" (click)="voltar()" title="Voltar" [disabled]="salvando">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      Voltar
+    </button>
+
     <!-- PROGRESS BAR -->
     <div class="progress-bar">
       <div class="progress-step" [class.active]="etapaAtual === 1" [class.completed]="etapaAtual > 1">
@@ -182,6 +188,11 @@
                 </div>
               </div>
               <button class="btn-icone btn-add" (click)="adicionarPalavra()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+
+              <app-respostas-aceitas
+                [respostas]="traducoesAlternativas"
+                [principal]="traducaoPrincipal"
+              ></app-respostas-aceitas>
 
               <div class="campo">
                 <label>Observações Gerais (opcional)</label>
@@ -389,7 +400,7 @@
     <div class="modal-container modal-cancelar" (click)="$event.stopPropagation()">
       
       <div class="modal-header">
-        <h2>Cancelar Cadastro</h2>
+        <h2>{{ destinoCancelamento === 'anterior' ? 'Sair do Cadastro' : 'Cancelar Cadastro' }}</h2>
         <button class="btn-fechar-modal" (click)="fecharModalCancelar()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -408,7 +419,7 @@
         </div>
         
         <p class="texto-confirmacao-cancelar">
-          Tem certeza que deseja cancelar o cadastro?
+          {{ destinoCancelamento === 'anterior' ? 'Tem certeza que deseja sair do cadastro?' : 'Tem certeza que deseja cancelar o cadastro?' }}
         </p>
         
         <div class="alerta-cancelar">
@@ -432,7 +443,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          Sim, Cancelar
+          {{ destinoCancelamento === 'anterior' ? 'Sim, Sair' : 'Sim, Cancelar' }}
         </button>
       </div>
 

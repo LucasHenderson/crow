@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
@@ -6,13 +6,18 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Modulo } from '../../models/modulo.model';
-import { IdiomaUsuario } from '../../models/idioma.model';
+import { IdiomaUsuario, OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
 import { IdiomaService } from '../../services/idioma.service';
 import { ModuloService } from '../../services/modulo.service';
 import { FraseService } from '../../services/frase.service';
 import { UploadService } from '../../services/upload.service';
 import { AuthService } from '../../services/auth.service';
+import {
+  DirecaoMovimento,
+  EstadoReordenacao,
+  ReordenacaoService
+} from '../../services/reordenacao.service';
 
 @Component({
   selector: 'app-visualizar-idioma',
@@ -21,13 +26,22 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './visualizar-idioma.html',
   styleUrl: './visualizar-idioma.css',
 })
-export class VisualizarIdioma implements OnInit {
+export class VisualizarIdioma implements OnInit, OnDestroy {
   idiomaNome = '';
   descricao = '';
-  idIdioma = '';
+  /** Código público do idioma (IDM-...): vem do query param e é o que circula na navegação. */
   codigoIdioma = '';
+  /**
+   * Id numérico do idioma, resolvido a partir do código depois de carregar os
+   * dados. Usado apenas nos endpoints de módulo, que seguem numéricos nesta fase.
+   */
+  idIdiomaNumerico = 0;
   idUsuarioCriador: number = 0;
   codigoCriador = '';
+  /** Tela de onde o usuário chegou aqui — define para onde o botão Voltar leva. */
+  origem: OrigemIdioma = 'home';
+  /** Última alteração de conteúdo (ISO), vinda do backend; nulo oculta a linha. */
+  atualizadoEm: string | null = null;
   isProprietario = false;
   carregando = true;
   avaliacao = 0;
@@ -142,6 +156,9 @@ export class VisualizarIdioma implements OnInit {
 
   modulos: Modulo[] = [];
 
+  /** Reordenação dos módulos por troca com o vizinho (otimista, com desfazer). */
+  readonly reordenacao: EstadoReordenacao<Modulo>;
+
   constructor(
     private sanitizer: DomSanitizer,
     private router: Router,
@@ -151,16 +168,33 @@ export class VisualizarIdioma implements OnInit {
     private moduloService: ModuloService,
     private fraseService: FraseService,
     private uploadService: UploadService,
-    private authService: AuthService
+    private authService: AuthService,
+    reordenacaoService: ReordenacaoService
   ) {
     this.carregarIcones();
+
+    this.reordenacao = reordenacaoService.criarEstado<Modulo>({
+      obterItens: () => this.modulos,
+      aplicarItens: (modulos) => {
+        this.modulos = modulos;
+        this.cdr.detectChanges();
+      },
+      extrairId: (modulo) => modulo.id,
+      persistir: (ids) => this.moduloService.reordenarModulos(this.idIdiomaNumerico, ids)
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Envia o que estiver pendente no debounce antes de a tela sair de cena.
+    this.reordenacao.destruir();
   }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.queryParamMap.get('id');
-    if (id) {
-      this.idIdioma = id;
-      this.carregarDadosIdioma(id);
+    this.origem = normalizarOrigem(this.route.snapshot.queryParamMap.get('origem'));
+    const codigo = this.route.snapshot.queryParamMap.get('id');
+    if (codigo) {
+      this.codigoIdioma = codigo;
+      this.carregarDadosIdioma(codigo);
     }
     try {
       const salva = sessionStorage.getItem('crow:ordem-jogo');
@@ -170,22 +204,24 @@ export class VisualizarIdioma implements OnInit {
     } catch { /* sessionStorage indisponível */ }
   }
 
-  carregarDadosIdioma(id: string): void {
+  carregarDadosIdioma(codigo: string): void {
     this.carregando = true;
     this.cdr.markForCheck();
-    this.idiomaService.getIdiomaPorId(id).subscribe({
+    this.idiomaService.getIdiomaPorCodigo(codigo).subscribe({
       next: (idioma) => {
         this.idiomaNome = idioma.nome;
         this.descricao = idioma.descricao;
         this.codigoIdioma = idioma.codigo;
+        this.idIdiomaNumerico = idioma.id;
         this.idUsuarioCriador = idioma.criadorId;
         this.codigoCriador = idioma.codigoCriador;
         this.avaliacao = idioma.avaliacao;
         this.totalAvaliacoes = idioma.totalAvaliacoes;
+        this.atualizadoEm = idioma.atualizadoEm ?? null;
         const user = this.authService.getCurrentUser();
         this.isProprietario = user?.id === idioma.criadorId;
         this.cdr.detectChanges();
-        this.carregarModulos(id);
+        this.carregarModulos(this.idIdiomaNumerico);
       },
       error: () => {
         this.carregando = false;
@@ -194,7 +230,7 @@ export class VisualizarIdioma implements OnInit {
     });
   }
 
-  carregarModulos(idiomaId: string): void {
+  carregarModulos(idiomaId: number): void {
     this.moduloService.getModulosPorIdioma(idiomaId).subscribe({
       next: (modulos) => {
         this.modulos = modulos.map((m: any) => {
@@ -256,6 +292,18 @@ export class VisualizarIdioma implements OnInit {
     this.modulos.forEach(m => m.selecionado = false);
   }
 
+  // ===== REORDENAÇÃO DOS MÓDULOS =====
+
+  /**
+   * Move o módulo uma posição. O clique não deve marcar/desmarcar o módulo, por
+   * isso interrompe a propagação para o `(click)` do card.
+   */
+  moverModulo(index: number, direcao: DirecaoMovimento, event?: MouseEvent): void {
+    event?.stopPropagation();
+    if (!this.isProprietario) return;
+    this.reordenacao.mover(index, direcao);
+  }
+
   get modulosSelecionados(): Modulo[] {
     return this.modulos.filter(m => m.selecionado);
   }
@@ -306,8 +354,9 @@ export class VisualizarIdioma implements OnInit {
     this.router.navigate(['/jogar'], {
       queryParams: {
         modulos: JSON.stringify(idsOrdenados),
-        idIdioma: this.idIdioma,
-        ordem
+        idIdioma: this.codigoIdioma,
+        ordem,
+        origem: this.origem
       }
     });
   }
@@ -460,7 +509,7 @@ export class VisualizarIdioma implements OnInit {
     const nome = this.nomeModuloAdicao.trim().substring(0, 80);
     const dadosModulo = { nome, icone: this.iconeModuloAdicaoSvg || '' };
 
-    this.moduloService.criarModulo(this.idIdioma, dadosModulo).subscribe({
+    this.moduloService.criarModulo(this.idIdiomaNumerico, dadosModulo).subscribe({
       next: (moduloCriado: any) => {
         this.fraseService.criarFrase(moduloCriado.id, this.getDadosFraseAdicao()).subscribe({
           next: () => {
@@ -667,12 +716,23 @@ export class VisualizarIdioma implements OnInit {
     this.mostrarModalAlertaMinimoModulos = false;
   }
 
+  /**
+   * Retorna para a tela de origem informada no query param. Substitui o antigo
+   * `window.history.back()`, que prendia o usuário em ciclo ao navegar entre o
+   * idioma e o módulo de outro usuário.
+   */
   voltar(): void {
-    if (this.isProprietario) {
-      this.router.navigate(['/home']);
+    if (this.origem === 'buscar-idioma') {
+      this.router.navigate(['/buscar-idioma']);
       return;
     }
-    window.history.back();
+    if (this.origem === 'visualizar-usuario' && this.codigoCriador) {
+      this.router.navigate(['/visualizar-usuario'], {
+        queryParams: { id: this.codigoCriador }
+      });
+      return;
+    }
+    this.router.navigate(['/home']);
   }
 
   visualizarModulo(mod: Modulo, event?: MouseEvent): void {
@@ -680,7 +740,7 @@ export class VisualizarIdioma implements OnInit {
       event.stopPropagation();
     }
     this.router.navigate(['/visualizar-modulo'], {
-      queryParams: { id: mod.id, idIdioma: this.idIdioma }
+      queryParams: { id: mod.id, idIdioma: this.codigoIdioma, origem: this.origem }
     });
   }
 
@@ -743,7 +803,7 @@ export class VisualizarIdioma implements OnInit {
     if (this.denunciaOutros) tipos.push('Outros');
 
     // O backend espera os tipos serializados em JSON (campo tiposJson).
-    this.idiomaService.denunciarIdioma(this.idIdioma, {
+    this.idiomaService.denunciarIdioma(this.codigoIdioma, {
       tiposJson: JSON.stringify(tipos),
       descricao: this.denunciaDescricao
     }).subscribe({
@@ -787,7 +847,7 @@ export class VisualizarIdioma implements OnInit {
   enviarAvaliacao(): void {
     if (this.notaAvaliacao === 0) return;
 
-    this.idiomaService.avaliarIdioma(this.idIdioma, this.notaAvaliacao).subscribe({
+    this.idiomaService.avaliarIdioma(this.codigoIdioma, this.notaAvaliacao).subscribe({
       next: (resultado) => {
         this.avaliacao = resultado.novaMedia;
         this.totalAvaliacoes = resultado.totalAvaliacoes;
@@ -811,6 +871,7 @@ export class VisualizarIdioma implements OnInit {
       next: (idiomas) => {
         this.idiomasUsuario = idiomas.map((i: any) => ({
           id: i.id,
+          codigo: i.codigo,
           nome: i.nome,
           bandeira: i.bandeira,
           selecionado: false
@@ -851,7 +912,7 @@ export class VisualizarIdioma implements OnInit {
   }
 
   confirmarImportacao(): void {
-    this.idiomaService.importarIdioma(this.idIdioma).subscribe({
+    this.idiomaService.importarIdioma(this.codigoIdioma).subscribe({
       next: () => {
         this.fecharModalImportacao();
         this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
@@ -869,11 +930,11 @@ export class VisualizarIdioma implements OnInit {
     // Exclui de fato os idiomas selecionados no backend e, só após a confirmação,
     // realiza a importação — garantindo persistência e respeito ao limite de 4.
     const exclusoes = this.idiomasSelecionadosParaExclusao.map(i =>
-      this.idiomaService.excluirIdioma(i.id));
+      this.idiomaService.excluirIdioma(i.codigo));
 
     forkJoin(exclusoes).subscribe({
       next: () => {
-        this.idiomaService.importarIdioma(this.idIdioma).subscribe({
+        this.idiomaService.importarIdioma(this.codigoIdioma).subscribe({
           next: () => {
             this.fecharModalImportacao();
             this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
@@ -936,7 +997,7 @@ export class VisualizarIdioma implements OnInit {
     this.salvandoEdicao = true;
     this.erroEdicao = '';
 
-    this.moduloService.editarModulo(this.idIdioma, modulo.id, { nome, icone: iconeSvg }).subscribe({
+    this.moduloService.editarModulo(this.idIdiomaNumerico, modulo.id, { nome, icone: iconeSvg }).subscribe({
       next: (atualizado: any) => {
         modulo.nome = atualizado?.nome || nome;
         modulo.iconeSvg = this.resolverIconeSvg(atualizado?.icone ?? iconeSvg, modulo.id);
@@ -981,7 +1042,7 @@ export class VisualizarIdioma implements OnInit {
     this.erroExclusao = '';
 
     // Persiste a exclusão no backend ANTES de remover da lista local.
-    this.moduloService.excluirModulo(this.idIdioma, modulo.id).subscribe({
+    this.moduloService.excluirModulo(this.idIdiomaNumerico, modulo.id).subscribe({
       next: () => {
         this.modulos = this.modulos.filter(m => m.id !== modulo.id);
         this.limparSelecao();
@@ -1019,9 +1080,9 @@ export class VisualizarIdioma implements OnInit {
   }
 
   navegarParaUsuario(): void {
-    if (!this.idUsuarioCriador) return;
+    if (!this.codigoCriador) return;
     this.router.navigate(['/visualizar-usuario'], {
-      queryParams: { id: this.idUsuarioCriador }
+      queryParams: { id: this.codigoCriador }
     });
   }
 }

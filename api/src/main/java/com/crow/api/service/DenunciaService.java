@@ -5,6 +5,7 @@ import com.crow.api.entity.Denuncia;
 import com.crow.api.entity.Idioma;
 import com.crow.api.entity.Usuario;
 import com.crow.api.repository.DenunciaRepository;
+import com.crow.api.util.CodigoPublico;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,23 @@ public class DenunciaService {
     public Denuncia buscarPorId(Long id) {
         return denunciaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Denúncia não encontrada"));
+    }
+
+    public Denuncia buscarPorCodigo(String codigo) {
+        return denunciaRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Denúncia não encontrada"));
+    }
+
+    /**
+     * Resolve a referência recebida na rota para a entidade: aceita o código
+     * público e, temporariamente, o id numérico.
+     */
+    public Denuncia resolver(String referencia) {
+        // TODO remover compatibilidade numérica após migração completa do frontend
+        if (CodigoPublico.ehNumerico(referencia)) {
+            return buscarPorId(Long.valueOf(referencia));
+        }
+        return buscarPorCodigo(referencia);
     }
 
     public Denuncia criar(Long idiomaId, DenunciaRequest dto, Usuario usuario) {

@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { PalavraTrad, Par } from '../../models/frase.model';
+import { RespostasAceitas, respostasAceitasValidas } from '../../components/respostas-aceitas/respostas-aceitas';
 import { FraseService } from '../../services/frase.service';
 import { UploadService } from '../../services/upload.service';
 import { forkJoin, Observable, of } from 'rxjs';
@@ -13,7 +14,7 @@ import { tap } from 'rxjs/operators';
 @Component({
   selector: 'app-cadastrar-frase',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RespostasAceitas],
   templateUrl: './cadastrar-frase.html',
   styleUrl: './cadastrar-frase.css',
 })
@@ -73,12 +74,18 @@ export class CadastrarFrase {
     return String.fromCharCode(65 + index);
   }
 
+  /** Ordem principal aceita pelo jogo: as traduções das palavras em sequência. */
+  get traducaoPrincipal(): string {
+    return this.palavrasTraducao.map(p => p.traducao.trim()).filter(t => t).join(' ');
+  }
+
   podeFinalizar(): boolean {
     if (!this.modoFrase) return false;
 
     if (this.modoFrase === 'traducao') {
       const palavrasValidas = this.palavrasTraducao.every(p => p.palavra.trim() && p.traducao.trim());
-      return !!(this.traducaoCompleta.trim() && palavrasValidas);
+      const alternativasValidas = respostasAceitasValidas(this.traducoesAlternativas, this.traducaoPrincipal);
+      return !!(this.traducaoCompleta.trim() && palavrasValidas && alternativasValidas);
     }
 
     if (this.modoFrase === 'pares') {
@@ -110,16 +117,6 @@ export class CadastrarFrase {
 
   removerLink(index: number): void {
     this.links.splice(index, 1);
-  }
-
-  adicionarTraducaoAlt(): void {
-    if (this.traducoesAlternativas.length < 5) {
-      this.traducoesAlternativas.push('');
-    }
-  }
-
-  removerTraducaoAlt(index: number): void {
-    this.traducoesAlternativas.splice(index, 1);
   }
 
   onImagemSelecionada(event: any): void {

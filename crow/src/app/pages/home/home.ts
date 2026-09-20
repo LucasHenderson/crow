@@ -156,13 +156,6 @@ export class Home implements OnInit, OnDestroy {
   }
 
   /**
-   * Gerar idioma com IA — funcionalidade futura; o botão fica desabilitado.
-   */
-  gerarIdiomaIA(): void {
-    // Intencionalmente vazio: reservado para evolução futura.
-  }
-
-  /**
    * Alterna o card de detalhes do idioma no toque (dispositivos sem hover)
    */
   toggleInfo(indice: number): void {
@@ -173,8 +166,10 @@ export class Home implements OnInit, OnDestroy {
    * Seleciona um idioma para visualização
    */
   selecionarIdioma(idioma: Idioma): void {
-    if (!idioma?.id) return;
-    this.router.navigate(['/visualizar-idioma'], { queryParams: { id: idioma.id } });
+    if (!idioma?.codigo) return;
+    this.router.navigate(['/visualizar-idioma'], {
+      queryParams: { id: idioma.codigo, origem: 'home' }
+    });
   }
 
   /**
@@ -212,7 +207,7 @@ export class Home implements OnInit, OnDestroy {
    */
   salvarEdicao(): void {
     if (this.salvandoEdicao) return;
-    if (!this.podeAvancarEdicao() || !this.idiomaEmEdicao?.id || !this.idiomaSelecionadoEdicao) {
+    if (!this.podeAvancarEdicao() || !this.idiomaEmEdicao?.codigo || !this.idiomaSelecionadoEdicao) {
       this.erroEdicao = 'Por favor, preencha todos os campos obrigatórios.';
       return;
     }
@@ -230,7 +225,7 @@ export class Home implements OnInit, OnDestroy {
       visibilidade: this.visibilidadeEdicao.toUpperCase()
     };
 
-    this.idiomaService.editarIdioma(this.idiomaEmEdicao.id, dados).subscribe({
+    this.idiomaService.editarIdioma(this.idiomaEmEdicao.codigo, dados).subscribe({
       next: () => {
         const nome = this.nomeEdicao;
         this.salvandoEdicao = false;
@@ -286,7 +281,7 @@ export class Home implements OnInit, OnDestroy {
    */
   confirmarExclusao(): void {
     if (this.excluindoIdioma) return;
-    if (!this.idiomaEmExclusao?.id) {
+    if (!this.idiomaEmExclusao?.codigo) {
       this.erroExclusao = 'Idioma inválido.';
       return;
     }
@@ -296,7 +291,7 @@ export class Home implements OnInit, OnDestroy {
     this.cdr.markForCheck();
     const nomeIdioma = this.idiomaEmExclusao.nome;
 
-    this.idiomaService.excluirIdioma(this.idiomaEmExclusao.id).subscribe({
+    this.idiomaService.excluirIdioma(this.idiomaEmExclusao.codigo).subscribe({
       next: () => {
         this.excluindoIdioma = false;
         this.fecharModalExclusao();

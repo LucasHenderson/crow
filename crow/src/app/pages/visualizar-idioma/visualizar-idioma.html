@@ -21,6 +21,9 @@
             <span class="id-usuario">ID Usuário: {{ idUsuarioFormatado }}</span>
           </div>
         </div>
+        <p class="ultima-atualizacao" *ngIf="atualizadoEm">
+          Última atualização: {{ atualizadoEm | date:'dd/MM/yyyy' }}
+        </p>
       </div>
     </div>
 
@@ -126,7 +129,7 @@
         </svg>
         Selecionar todos
       </button>
-      <button class="control-btn outline" (click)="limparSelecao()">
+      <button class="control-btn outline" *ngIf="modulosSelecionados.length > 0" (click)="limparSelecao()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -178,6 +181,43 @@
       <div class="info" (click)="visualizarModulo(mod, $event)">
         <h3 class="nome">{{ mod.nome }}</h3>
         <p class="descricao">Frases: {{ mod.frases }}/50</p>
+      </div>
+
+      <!-- Posição do módulo; as setas aparecem só para o proprietário -->
+      <div class="ordem-modulo">
+        <span class="modulo-numero">#{{ i + 1 }}</span>
+
+        <div class="ordem-controles" *ngIf="isProprietario">
+          <button
+            type="button"
+            class="btn-ordem"
+            [disabled]="i === 0 || reordenacao.salvando()"
+            [attr.aria-label]="'Mover para cima o módulo ' + mod.nome"
+            title="Mover para cima"
+            (click)="moverModulo(i, -1, $event)"
+            (keydown.enter)="$event.stopPropagation()"
+            (keydown.space)="$event.stopPropagation()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="19" x2="12" y2="5"/>
+              <polyline points="5 12 12 5 19 12"/>
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            class="btn-ordem"
+            [disabled]="i === modulos.length - 1 || reordenacao.salvando()"
+            [attr.aria-label]="'Mover para baixo o módulo ' + mod.nome"
+            title="Mover para baixo"
+            (click)="moverModulo(i, 1, $event)"
+            (keydown.enter)="$event.stopPropagation()"
+            (keydown.space)="$event.stopPropagation()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <polyline points="19 12 12 19 5 12"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="acoes-modulo" *ngIf="isProprietario">
@@ -997,6 +1037,24 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ========== MENSAGEM DE ERRO DA REORDENAÇÃO ========== -->
+  <div class="mensagem-erro" role="alert" *ngIf="reordenacao.erro()">
+    <div class="erro-content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <p>{{ reordenacao.erro() }}</p>
+      <button class="btn-fechar-erro" aria-label="Fechar aviso" (click)="reordenacao.limparErro()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
   </div>
 

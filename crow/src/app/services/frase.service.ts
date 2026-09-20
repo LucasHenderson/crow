@@ -26,6 +26,15 @@ export class FraseService {
     return this.http.delete<void>(`${this.apiUrl}/modulos/${moduloId}/frases/${id}`);
   }
 
+  /**
+   * Persiste a ordem das frases do módulo. O backend exige a lista **completa**
+   * de ids na ordem desejada e recusa listas parciais, com ids repetidos ou de
+   * outro módulo.
+   */
+  reordenarFrases(moduloId: number | string, ids: number[]): Observable<Frase[]> {
+    return this.http.put<Frase[]>(`${this.apiUrl}/modulos/${moduloId}/frases/ordem`, { ids });
+  }
+
   getFrasesParaJogo(moduloIds: string[], ordem: 'aleatoria' | 'cadastro' = 'aleatoria'): Observable<Frase[]> {
     return this.http.get<Frase[]>(`${this.apiUrl}/modulos/0/frases/jogar`, {
       params: { modulos: moduloIds.join(','), ordem }

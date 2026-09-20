@@ -1,5 +1,5 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NovoUsuario } from '../../models/usuario.model';
@@ -51,12 +51,22 @@ export class CadastrarUsuario {
     private router: Router,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private location: Location
   ) {}
 
   /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
   alternarTema(): void {
     this.themeService.toggle();
+  }
+
+  /** Volta para a página anterior (respeita o histórico) ou para o login. */
+  voltar(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/login']);
+    }
   }
 
   formularioValido(): boolean {

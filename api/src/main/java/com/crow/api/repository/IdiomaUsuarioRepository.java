@@ -1,5 +1,6 @@
 package com.crow.api.repository;
 
+import com.crow.api.entity.Idioma;
 import com.crow.api.entity.IdiomaUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,6 +18,9 @@ public interface IdiomaUsuarioRepository extends JpaRepository<IdiomaUsuario, Lo
     List<IdiomaUsuario> findByUsuarioIdFetchIdioma(@Param("usuarioId") Long usuarioId);
 
     int countByUsuarioId(Long usuarioId);
+
+    /** Contagem restrita aos idiomas visíveis publicamente (listagens públicas). */
+    int countByUsuarioIdAndIdioma_Visibilidade(Long usuarioId, Idioma.Visibilidade visibilidade);
 
     @Modifying
     void deleteByIdiomaId(Long idiomaId);

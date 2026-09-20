@@ -1,6 +1,7 @@
 package com.crow.api.dto.denuncia;
 
 public record DenunciaResponse(
+    // TODO Fase 21: remover os ids numéricos — mantidos enquanto o frontend depende deles
     Long id,
     String codigo,
     Long idiomaId,

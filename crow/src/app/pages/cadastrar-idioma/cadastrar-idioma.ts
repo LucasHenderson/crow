@@ -1,10 +1,11 @@
 import { ChangeDetectorRef, Component, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
+import { RespostasAceitas, respostasAceitasValidas } from '../../components/respostas-aceitas/respostas-aceitas';
 import { IdiomaService } from '../../services/idioma.service';
 import { ModuloService } from '../../services/modulo.service';
 import { FraseService } from '../../services/frase.service';
@@ -15,7 +16,7 @@ import { tap } from 'rxjs/operators';
 @Component({
   selector: 'app-cadastrar-idioma',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RespostasAceitas],
   templateUrl: './cadastrar-idioma.html',
   styleUrl: './cadastrar-idioma.css',
 })
@@ -25,6 +26,8 @@ export class CadastrarIdioma {
 
   // Controle do modal de cancelamento
   mostrarModalCancelar = false;
+  /** Para onde ir ao confirmar: 'home' (Cancelar) ou 'anterior' (Voltar). */
+  destinoCancelamento: 'home' | 'anterior' = 'home';
 
   // ETAPA 1: Dados do Idioma
   idiomaSelecionado: IdiomaOpcao | null = null;
@@ -53,6 +56,8 @@ export class CadastrarIdioma {
   imagemFile: File | null = null;
   traducaoCompleta = '';
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
+  /** Respostas/ordens alternativas aceitas como corretas. */
+  traducoesAlternativas: string[] = [];
   observacoes = '';
   links: string[] = [''];
 
@@ -82,6 +87,7 @@ export class CadastrarIdioma {
 
   constructor(
     private router: Router,
+    private location: Location,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private idiomaService: IdiomaService,
@@ -184,6 +190,11 @@ export class CadastrarIdioma {
     return String.fromCharCode(65 + index);
   }
 
+  /** Ordem principal aceita pelo jogo: as traduções das palavras em sequência. */
+  get traducaoPrincipal(): string {
+    return this.palavrasTraducao.map(p => p.traducao.trim()).filter(t => t).join(' ');
+  }
+
   podeAvancarEtapa2(): boolean {
     return !!(this.iconeModuloSelecionado && this.nomeModulo.trim());
   }
@@ -193,7 +204,8 @@ export class CadastrarIdioma {
 
     if (this.modoFrase === 'traducao') {
       const palavrasValidas = this.palavrasTraducao.every(p => p.palavra.trim() && p.traducao.trim());
-      return !!(this.traducaoCompleta.trim() && palavrasValidas);
+      const alternativasValidas = respostasAceitasValidas(this.traducoesAlternativas, this.traducaoPrincipal);
+      return !!(this.traducaoCompleta.trim() && palavrasValidas && alternativasValidas);
     }
 
     if (this.modoFrase === 'pares') {
@@ -366,8 +378,39 @@ export class CadastrarIdioma {
     this.videoQuizEmbed = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
   }
 
-  // MODAL DE CANCELAMENTO
+  // NAVEGAÇÃO / MODAL DE CANCELAMENTO
+  /** True quando qualquer campo do fluxo (idioma, módulo ou frase) foi tocado. */
+  temDadosPreenchidos(): boolean {
+    const etapa1 = !!(this.idiomaSelecionado || this.nomeIdioma.trim() ||
+      this.descricaoIdioma.trim() || this.proficiencia);
+    const etapa2 = !!(this.iconeModuloSelecionado || this.nomeModulo.trim());
+    const frase = !!(this.modoFrase || this.imagemPreview || this.traducaoCompleta.trim() ||
+      this.observacoes.trim() || this.perguntaQuiz.trim() || this.videoQuiz.trim() ||
+      this.imagemQuiz ||
+      this.palavrasTraducao.some(p => p.palavra.trim() || p.traducao.trim()) ||
+      this.traducoesAlternativas.some(t => t.trim()) ||
+      this.links.some(l => l.trim()) ||
+      this.pares.some(p => p.palavra.trim() || p.traducao.trim() || p.imagem) ||
+      this.alternativas.some(a => a.trim()));
+
+    return etapa1 || etapa2 || frase;
+  }
+
+  /** Botão Voltar do topo: sai da página, confirmando se houver dados. */
+  voltar(): void {
+    if (this.salvando) return;
+
+    if (this.temDadosPreenchidos()) {
+      this.destinoCancelamento = 'anterior';
+      this.mostrarModalCancelar = true;
+      return;
+    }
+
+    this.sairDaPagina('anterior');
+  }
+
   cancelar(): void {
+    this.destinoCancelamento = 'home';
     this.mostrarModalCancelar = true;
   }
 
@@ -377,6 +420,14 @@ export class CadastrarIdioma {
 
   confirmarCancelamento(): void {
     this.mostrarModalCancelar = false;
+    this.sairDaPagina(this.destinoCancelamento);
+  }
+
+  private sairDaPagina(destino: 'home' | 'anterior'): void {
+    if (destino === 'anterior' && window.history.length > 1) {
+      this.location.back();
+      return;
+    }
     this.router.navigate(['/home']);
   }
 
@@ -477,6 +528,7 @@ export class CadastrarIdioma {
         ...base,
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
+        traducoesAlternativasJson: JSON.stringify(this.traducoesAlternativas.map(t => t.trim()).filter(t => t)),
         palavrasJson: JSON.stringify(this.palavrasTraducao),
         observacoes: this.observacoes,
         linksJson: JSON.stringify(this.links.filter(l => l.trim()))

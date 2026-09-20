@@ -24,6 +24,15 @@ public class Modulo {
     @Column(columnDefinition = "TEXT")
     private String icone;
 
+    /**
+     * Posição do módulo dentro do idioma, começando em 1. Fica nullable no
+     * mapeamento porque o ddl-auto=update cria a coluna vazia nas linhas já
+     * existentes — elas são preenchidas por OrdemBackfill na subida da
+     * aplicação. Módulos novos recebem a posição em {@code ModuloService.criar}.
+     */
+    @Column
+    private Integer ordem;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idioma_id", nullable = false)
     private Idioma idioma;
