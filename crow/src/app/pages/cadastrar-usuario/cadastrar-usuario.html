@@ -20,6 +20,11 @@
     </svg>
   </button>
 
+  <button class="btn-voltar" (click)="voltar()" title="Voltar">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    Voltar
+  </button>
+
   <div class="page-header">
     <div class="header-content">
       <div class="icon-title">
@@ -36,60 +41,6 @@
   </div>
 
   <div class="cadastro-grid">
-
-    <!-- Info Card -->
-    <div class="info-card">
-      <div class="card-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-        <h2>Benefícios da Conta</h2>
-      </div>
-
-      <div class="benefits-content">
-        <div class="benefit-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <div class="benefit-text">
-            <h4>Acesso Total</h4>
-            <p>Acesse todos os idiomas e módulos disponíveis</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <div class="benefit-text">
-            <h4>Progresso Salvo</h4>
-            <p>Seu progresso é sincronizado automaticamente</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <div class="benefit-text">
-            <h4>Conteúdo Personalizado</h4>
-            <p>Crie e organize seu próprio material de estudo</p>
-          </div>
-        </div>
-
-        <div class="benefit-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <div class="benefit-text">
-            <h4>100% Gratuito</h4>
-            <p>Sem cobranças ou taxas ocultas</p>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Form Card -->
     <div class="form-card">
@@ -307,8 +258,8 @@
               required />
             <span class="checkmark"></span>
             <span class="checkbox-label">
-              Eu aceito os <a href="/termos" target="_blank">Termos de Uso</a> e a
-              <a href="/privacidade" target="_blank">Política de Privacidade</a>
+              Eu aceito os <a href="/termos-de-uso" target="_blank" rel="noopener">Termos de Uso</a> e a
+              <a href="/politica-de-privacidade" target="_blank" rel="noopener">Política de Privacidade</a>
             </span>
           </label>
         </div>
@@ -325,6 +276,12 @@
             <span *ngIf="!enviandoFormulario">Criar Conta</span>
             <span *ngIf="enviandoFormulario">Criando conta...</span>
           </button>
+
+          <p class="aceite-texto">
+            Ao criar sua conta, você concorda com os
+            <a href="/termos-de-uso" target="_blank" rel="noopener">Termos de Uso</a> e a
+            <a href="/politica-de-privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.
+          </p>
 
           <div class="login-link">
             <span>Já possui uma conta?</span>

@@ -2,6 +2,7 @@ package com.crow.api.controller;
 
 import com.crow.api.dto.frase.FraseRequest;
 import com.crow.api.dto.frase.FraseResponse;
+import com.crow.api.dto.frase.ReordenarFrasesRequest;
 import com.crow.api.entity.Frase;
 import com.crow.api.service.FraseService;
 import com.crow.api.service.ModuloService;
@@ -67,6 +68,23 @@ public class FraseController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Persiste a nova ordem das frases do módulo. Recebe a lista completa de
+     * ids na ordem desejada e devolve as frases já reordenadas.
+     */
+    @PutMapping("/ordem")
+    public ResponseEntity<List<FraseResponse>> reordenar(
+            @PathVariable Long moduloId,
+            Authentication authentication,
+            @Valid @RequestBody ReordenarFrasesRequest request) {
+        Long userId = Long.valueOf(authentication.getName());
+        return ResponseEntity.ok(
+                fraseService.reordenar(moduloId, request.ids(), userId).stream()
+                        .map(this::toResponse)
+                        .toList()
+        );
+    }
+
     @GetMapping("/jogar")
     public ResponseEntity<List<FraseResponse>> jogar(
             @PathVariable Long moduloId,
@@ -100,22 +118,6 @@ public class FraseController {
     }
 
     private FraseResponse toResponse(Frase frase) {
-        return new FraseResponse(
-                frase.getId(),
-                "FRS-" + frase.getId(),
-                frase.getModo() != null ? frase.getModo().name().toLowerCase() : null,
-                frase.getTraducaoCompleta(),
-                frase.getTraducoesAlternativasJson(),
-                frase.getPalavrasJson(),
-                frase.getImagem(),
-                frase.getObservacoes(),
-                frase.getLinksJson(),
-                frase.getParesJson(),
-                frase.getPergunta(),
-                frase.getAlternativasJson(),
-                frase.getRespostaCorreta(),
-                frase.getImagemQuiz(),
-                frase.getVideoQuiz()
-        );
+        return FraseResponse.from(frase);
     }
 }

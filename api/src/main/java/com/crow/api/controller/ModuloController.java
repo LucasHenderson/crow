@@ -2,6 +2,7 @@ package com.crow.api.controller;
 
 import com.crow.api.dto.modulo.ModuloRequest;
 import com.crow.api.dto.modulo.ModuloResponse;
+import com.crow.api.dto.modulo.ReordenarModulosRequest;
 import com.crow.api.entity.Modulo;
 import com.crow.api.repository.FraseRepository;
 import com.crow.api.service.IdiomaService;
@@ -13,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -68,19 +68,28 @@ public class ModuloController {
         return ResponseEntity.noContent().build();
     }
 
-    private ModuloResponse toResponse(Modulo modulo) {
-        return new ModuloResponse(
-                modulo.getId(),
-                "MOD-" + modulo.getId(),
-                modulo.getNome(),
-                modulo.getIcone(),
-                fraseRepository.countByModuloId(modulo.getId()),
-                modulo.getCriadoEm() != null
-                        ? modulo.getCriadoEm().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                        : null,
-                modulo.getAtualizadoEm() != null
-                        ? modulo.getAtualizadoEm().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                        : null
+    /**
+     * Persiste a nova ordem dos módulos do idioma. Recebe a lista completa de
+     * ids na ordem desejada e devolve os módulos já reordenados.
+     *
+     * <p>Diferente dos demais métodos desta classe, aceita o código público do
+     * idioma (além do id numérico) via {@code idiomaService.resolver}.</p>
+     */
+    @PutMapping("/ordem")
+    public ResponseEntity<List<ModuloResponse>> reordenar(
+            @PathVariable("idiomaId") String codigoIdioma,
+            Authentication authentication,
+            @Valid @RequestBody ReordenarModulosRequest request) {
+        Long userId = Long.valueOf(authentication.getName());
+        Long idiomaId = idiomaService.resolver(codigoIdioma).getId();
+        return ResponseEntity.ok(
+                moduloService.reordenar(idiomaId, request.ids(), userId).stream()
+                        .map(this::toResponse)
+                        .toList()
         );
+    }
+
+    private ModuloResponse toResponse(Modulo modulo) {
+        return ModuloResponse.from(modulo, fraseRepository.countByModuloId(modulo.getId()));
     }
 }

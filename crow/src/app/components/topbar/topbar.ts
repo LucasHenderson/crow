@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { SoundService } from '../../services/sound.service';
 
 @Component({
   selector: 'app-topbar',
@@ -16,12 +17,15 @@ export class Topbar implements OnInit, OnDestroy {
 
   menuAberto = false;
   nomeUsuario = '';
+  /** Administrador não tem perfil próprio na plataforma: o menu mostra só "Sair". */
+  isAdmin = false;
   private sub?: Subscription;
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    public soundService: SoundService
   ) {}
 
   /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
@@ -29,10 +33,33 @@ export class Topbar implements OnInit, OnDestroy {
     this.themeService.toggle();
   }
 
+  /**
+   * Liga/desliga os efeitos sonoros (persistido pelo SoundService). Ao ligar,
+   * toca uma amostra: é a única confirmação de que o áudio funciona neste
+   * navegador, e o clique garante o gesto exigido pela política de autoplay.
+   */
+  alternarSons(): void {
+    this.soundService.toggle();
+    if (this.soundService.ativo()) {
+      this.soundService.tocar('acerto');
+    }
+  }
+
   ngOnInit(): void {
     this.sub = this.authService.currentUser$.subscribe(user => {
-      this.nomeUsuario = user?.nome?.split(' ')[0] || '';
+      this.nomeUsuario = this.capitalizar(user?.nome?.trim().split(/\s+/)[0] || '');
+      this.isAdmin = user?.role === 'admin';
     });
+  }
+
+  /**
+   * Deixa apenas a primeira letra maiuscula ("lucas" e "LUCAS" viram "Lucas").
+   */
+  private capitalizar(nome: string): string {
+    if (!nome) {
+      return '';
+    }
+    return nome.charAt(0).toLocaleUpperCase('pt-BR') + nome.slice(1).toLocaleLowerCase('pt-BR');
   }
 
   ngOnDestroy(): void {

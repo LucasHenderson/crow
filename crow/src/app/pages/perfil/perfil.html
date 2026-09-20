@@ -41,7 +41,22 @@
           <span>{{ user.email }}</span>
         </div>
         <div class="identity-badges">
-          <span class="badge" *ngIf="user.codigo">{{ user.codigo }}</span>
+          <span
+            class="badge badge-codigo"
+            *ngIf="user.codigo"
+            [class.copiado]="estadoCopiaId.copiado()"
+            [class.falhou]="estadoCopiaId.falhou()"
+            role="button"
+            tabindex="0"
+            aria-live="polite"
+            [title]="'Clique para copiar o ID ' + user.codigo"
+            (click)="copiarId()"
+            (keydown.enter)="copiarId()"
+            (keydown.space)="$event.preventDefault(); copiarId()">
+            <ng-container *ngIf="estadoCopiaId.copiado()">ID copiado!</ng-container>
+            <ng-container *ngIf="estadoCopiaId.falhou()">Não foi possível copiar</ng-container>
+            <ng-container *ngIf="!estadoCopiaId.copiado() && !estadoCopiaId.falhou()">{{ user.codigo }}</ng-container>
+          </span>
           <span class="badge" *ngIf="user.dataEntrada">Desde {{ user.dataEntrada | date:'dd/MM/yyyy' }}</span>
         </div>
       </div>

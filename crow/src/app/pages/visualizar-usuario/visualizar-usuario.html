@@ -27,24 +27,31 @@
         <h3 class="usuario-nome">{{ usuario.nome }}</h3>
         
         <div class="usuario-info">
-          <div class="info-item id-item" (click)="copiarId()" title="Clique para copiar o ID">
+          <div
+            class="info-item id-item"
+            [class.copiado]="estadoCopiaId.copiado()"
+            [class.falhou]="estadoCopiaId.falhou()"
+            role="button"
+            tabindex="0"
+            aria-live="polite"
+            [title]="'Clique para copiar o ID ' + usuario.codigo"
+            (click)="copiarId()"
+            (keydown.enter)="copiarId()"
+            (keydown.space)="$event.preventDefault(); copiarId()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            <span>ID: {{ usuario.codigo }}</span>
-            <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <span *ngIf="estadoCopiaId.copiado()">ID copiado!</span>
+            <span *ngIf="estadoCopiaId.falhou()">Não foi possível copiar</span>
+            <span *ngIf="!estadoCopiaId.copiado() && !estadoCopiaId.falhou()">ID: {{ usuario.codigo }}</span>
+            <svg *ngIf="!estadoCopiaId.copiado()" class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
-          </div>
-
-          <div class="info-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
+            <svg *ngIf="estadoCopiaId.copiado()" class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>{{ usuario.email }}</span>
           </div>
 
           <div class="info-item">

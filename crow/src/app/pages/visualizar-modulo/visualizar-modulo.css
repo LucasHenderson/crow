@@ -301,6 +301,56 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* POSIÇÃO DA FRASE + SETAS DE REORDENAÇÃO */
+.frase-posicao {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ordem-controles {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn-ordem {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-base, all 0.25s ease);
+}
+
+.btn-ordem svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+.btn-ordem:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-ordem:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.btn-ordem:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* FRASE CONTEÚDO */
 .frase-conteudo {
   padding: 1.5rem;
@@ -1524,6 +1574,70 @@ textarea {
   height: 16px;
 }
 
+/* ===== MENSAGEM DE ERRO (reordenação) ===== */
+/* Mesmo posicionamento e animação da mensagem de sucesso, em tom de erro. */
+.mensagem-erro {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 2000;
+  animation: slideInRight 0.4s ease;
+}
+
+.erro-content {
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  padding: 1.2rem 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 320px;
+  max-width: 450px;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.erro-content svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.erro-content p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.btn-fechar-erro {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--color-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.btn-fechar-erro:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.btn-fechar-erro svg {
+  width: 16px;
+  height: 16px;
+}
+
 /* RESPONSIVO */
 @media (max-width: 1024px) {
   .visualizar-container {
@@ -1716,6 +1830,28 @@ textarea {
     min-width: auto;
     max-width: 100%;
   }
+
+  .mensagem-erro {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .erro-content {
+    min-width: auto;
+    max-width: 100%;
+  }
+
+  /* Alvo de toque de 44px, mínimo recomendado para dedo */
+  .btn-ordem {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn-ordem svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -1735,6 +1871,25 @@ textarea {
   }
 
   .sucesso-content p {
+    font-size: 0.9rem;
+  }
+
+  .mensagem-erro {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .erro-content {
+    padding: 1rem 1.2rem;
+  }
+
+  .erro-content svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .erro-content p {
     font-size: 0.9rem;
   }
 }

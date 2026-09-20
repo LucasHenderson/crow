@@ -349,25 +349,31 @@
   }
 }
 /* ========== TOGGLE DE TEMA (Fase 9) ========== */
-.theme-toggle {
+.theme-toggle,
+.sound-toggle {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid var(--border-color, rgba(148, 163, 184, 0.22));
+  border: 1px solid rgba(255, 255, 255, 0.15);
   background: transparent;
-  color: var(--color-text, var(--color-text));
+  /* A topbar e navy nos dois temas: os SVGs usam currentColor, entao o branco
+     garante contraste tanto no icone de lua quanto no de sol. */
+  color: #ffffff;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 
-.theme-toggle:hover {
-  background: rgba(148, 163, 184, 0.15);
+.theme-toggle:hover,
+.sound-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
 }
 
-.theme-toggle svg {
+.theme-toggle svg,
+.sound-toggle svg {
   width: 20px;
   height: 20px;
 }

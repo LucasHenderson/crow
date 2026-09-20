@@ -59,6 +59,14 @@
   height: 21px;
 }
 
+/* Botão voltar usa o padrão global (.btn-voltar em styles.css) —
+   aqui apenas o espaçamento em relação ao cabeçalho da página. */
+.content > .btn-voltar {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 1.5rem;
+}
+
 /* PAGE HEADER */
 .page-header {
   margin-bottom: 2rem;
@@ -100,33 +108,14 @@
   margin-left: 44px;
 }
 
-/* CADASTRO GRID */
+/* CADASTRO GRID — coluna única centralizada */
 .cadastro-grid {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: minmax(0, 720px);
+  justify-content: center;
   gap: 1.5rem;
   position: relative;
   z-index: 1;
-}
-
-/* INFO CARD */
-.info-card {
-  background: var(--surface-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-  height: fit-content;
-  transition: all 0.3s ease;
-  animation: crow-slide-up var(--transition-base) both;
-}
-
-.info-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-  border-color: var(--border-strong);
 }
 
 .card-header {
@@ -151,41 +140,6 @@
   color: var(--color-on-primary);
   margin: 0;
   letter-spacing: 0.02em;
-}
-
-.benefits-content {
-  padding: 2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.benefit-item {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.benefit-item > svg {
-  width: 24px;
-  height: 24px;
-  color: var(--color-success);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.benefit-text h4 {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0 0 0.3rem 0;
-}
-
-.benefit-text p {
-  font-size: 0.85rem;
-  color: var(--color-muted);
-  margin: 0;
-  line-height: 1.5;
 }
 
 /* FORM CARD */
@@ -752,6 +706,27 @@
   height: 20px;
 }
 
+/* Texto de aceite exibido junto ao botão de concluir cadastro */
+.aceite-texto {
+  text-align: center;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
+.aceite-texto a {
+  color: var(--color-primary-light);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.aceite-texto a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
 .login-link {
   text-align: center;
   padding: 0.5rem;
@@ -777,18 +752,6 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 1024px) {
-  .cadastro-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .info-card {
-    max-width: 700px;
-    margin: 0 auto;
-  }
-}
-
 @media (max-width: 768px) {
   .content {
     padding: 1.5rem 1rem;
@@ -820,9 +783,6 @@
     padding: 1.5rem;
   }
 
-  .benefits-content {
-    padding: 1.5rem 1.2rem;
-  }
 }
 
 @media (max-width: 600px) {
@@ -859,22 +819,6 @@
     gap: 1rem;
   }
 
-  .benefits-content {
-    padding: 1.2rem 1rem;
-    gap: 1.2rem;
-  }
-
-  .benefit-item {
-    gap: 0.8rem;
-  }
-
-  .benefit-text h4 {
-    font-size: 0.9rem;
-  }
-
-  .benefit-text p {
-    font-size: 0.82rem;
-  }
 
   .btn-cadastrar {
     padding: 0.9rem 1.5rem;
@@ -929,9 +873,6 @@
     font-size: 0.85rem;
   }
 
-  .benefits-content {
-    gap: 1rem;
-  }
 
   .form-group.email-field input {
     min-width: 100%;
@@ -963,9 +904,6 @@
     padding: 1rem;
   }
 
-  .benefits-content {
-    padding: 1rem 0.8rem;
-  }
 
   .btn-cadastrar {
     padding: 0.85rem 1.2rem;

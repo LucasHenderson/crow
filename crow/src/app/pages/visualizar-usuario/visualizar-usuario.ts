@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
 import { UsuarioVisualizar as Usuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
+import { ClipboardService, EstadoCopia } from '../../services/clipboard.service';
 
 @Component({
   selector: 'app-visualizar-usuario',
@@ -12,38 +13,46 @@ import { UsuarioService } from '../../services/usuario.service';
   templateUrl: './visualizar-usuario.html',
   styleUrl: './visualizar-usuario.css'
 })
-export class VisualizarUsuario implements OnInit {
+export class VisualizarUsuario implements OnInit, OnDestroy {
 
   usuario: Usuario = {
-    id: 0,
     codigo: '',
     nome: '',
-    email: '',
     dataEntrada: new Date()
   };
 
   idiomas: Idioma[] = [];
   carregando = true;
 
+  /** Confirmação temporária ao copiar o código público do usuário. */
+  readonly estadoCopiaId: EstadoCopia;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private usuarioService: UsuarioService,
     private cdr: ChangeDetectorRef,
-    private location: Location
-  ) {}
+    private location: Location,
+    clipboard: ClipboardService
+  ) {
+    this.estadoCopiaId = clipboard.criarEstado();
+  }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.queryParamMap.get('id');
-    if (id) {
-      this.carregarUsuario(id);
+    const codigo = this.route.snapshot.queryParamMap.get('id');
+    if (codigo) {
+      this.carregarUsuario(codigo);
     }
   }
 
-  private carregarUsuario(id: string): void {
+  ngOnDestroy(): void {
+    this.estadoCopiaId.destruir();
+  }
+
+  private carregarUsuario(codigo: string): void {
     this.carregando = true;
-    this.usuarioService.getUsuarioPorId(id).subscribe({
-      next: (data: any) => {
+    this.usuarioService.getUsuarioPorCodigo(codigo).subscribe({
+      next: (data) => {
         this.usuario = data;
         this.carregando = false;
         // App em modo zoneless: a atualização assíncrona não dispara
@@ -56,7 +65,7 @@ export class VisualizarUsuario implements OnInit {
       }
     });
 
-    this.usuarioService.getIdiomasPublicosDoUsuario(id).subscribe({
+    this.usuarioService.getIdiomasPublicosDoUsuario(codigo).subscribe({
       next: (idiomas) => {
         this.idiomas = idiomas;
         this.cdr.detectChanges();
@@ -69,12 +78,10 @@ export class VisualizarUsuario implements OnInit {
   }
 
   /**
-   * Copia o ID do usuário para a área de transferência
+   * Copia o ID do usuário e exibe a confirmação por alguns segundos.
    */
   copiarId(): void {
-    navigator.clipboard.writeText(this.usuario.codigo).catch(() => {
-      // Clipboard indisponível (ex.: contexto não seguro) — ação é opcional.
-    });
+    this.estadoCopiaId.copiar(this.usuario.codigo);
   }
 
   /**
@@ -124,9 +131,9 @@ export class VisualizarUsuario implements OnInit {
    * Abre a página de visualização do idioma selecionado.
    */
   selecionarIdioma(idioma: Idioma): void {
-    if (!idioma?.id) return;
+    if (!idioma?.codigo) return;
     this.router.navigate(['/visualizar-idioma'], {
-      queryParams: { id: idioma.id }
+      queryParams: { id: idioma.codigo, origem: 'visualizar-usuario' }
     });
   }
 

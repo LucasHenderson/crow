@@ -449,13 +449,15 @@
   stroke: currentColor;
 }
 
-.btn-acao.editar {
+.btn-acao.editar,
+.btn-acao.visualizar {
   background: color-mix(in srgb, var(--color-primary) 14%, transparent);
   color: var(--color-primary-light);
   border: 1px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
 }
 
-.btn-acao.editar:hover {
+.btn-acao.editar:hover,
+.btn-acao.visualizar:hover {
   background: var(--color-primary);
   color: var(--color-on-primary);
   transform: scale(1.1);
@@ -780,46 +782,6 @@
   opacity: 0.7;
 }
 
-.password-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-wrapper input {
-  padding-right: 48px;
-}
-
-.eye-icon {
-  position: absolute;
-  right: 10px;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.eye-icon:hover {
-  background: var(--surface-hover);
-}
-
-.eye-icon svg {
-  width: 20px;
-  height: 20px;
-  color: var(--color-primary-light);
-}
-.divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 1.5rem 0;
-}
-
 /* MODAL FOOTER */
 .modal-footer {
   display: flex;
@@ -860,7 +822,9 @@
   height: 20px;
 }
 
-.btn-salvar-modal {
+/* .btn-email-modal: ação "Enviar e-mail" do modal de consulta de usuário (Fase 17) */
+.btn-salvar-modal,
+.btn-email-modal {
   flex: 1;
   padding: 1rem 1.5rem;
   background: var(--color-primary);
@@ -878,7 +842,8 @@
   box-shadow: var(--shadow-md);
 }
 
-.btn-salvar-modal:hover:not(:disabled) {
+.btn-salvar-modal:hover:not(:disabled),
+.btn-email-modal:hover {
   background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
@@ -889,7 +854,8 @@
   cursor: not-allowed;
 }
 
-.btn-salvar-modal svg {
+.btn-salvar-modal svg,
+.btn-email-modal svg {
   width: 20px;
   height: 20px;
 }
@@ -971,7 +937,9 @@
   box-shadow: var(--shadow-md);
 }
 
-.btn-confirmar-acao {
+/* .btn-suspender-modal: ação "Suspender conta" do modal de consulta de usuário (Fase 16) */
+.btn-confirmar-acao,
+.btn-suspender-modal {
   flex: 1;
   padding: 1rem 1.5rem;
   background: var(--color-danger);
@@ -989,10 +957,16 @@
   box-shadow: var(--shadow-md);
 }
 
-.btn-confirmar-acao:hover {
+.btn-confirmar-acao:hover,
+.btn-suspender-modal:hover {
   background: color-mix(in srgb, var(--color-danger) 85%, black);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+}
+
+.btn-suspender-modal svg {
+  width: 20px;
+  height: 20px;
 }
 
 .btn-excluir-confirmar {
@@ -1024,8 +998,9 @@
   height: 20px;
 }
 
-/* DETALHES DA DENÚNCIA */
-.denuncia-detalhes {
+/* DETALHES DA DENÚNCIA / DO USUÁRIO (modais somente leitura) */
+.denuncia-detalhes,
+.usuario-detalhes {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -1240,11 +1215,6 @@
   width: 24px;
   height: 24px;
   stroke: white;
-}
-
-.filter-icon.all {
-  background: var(--color-muted);
-  box-shadow: var(--shadow-sm);
 }
 
 .filter-icon.pendente {
@@ -1654,66 +1624,6 @@
 .modal-footer-column .btn-status {
   width: 100%;
   padding: 1rem 1.2rem;
-}
-
-/* PASSWORD STRENGTH (Modal Editar Usuário) */
-.password-strength {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-top: 0.5rem;
-}
-
-.strength-bar {
-  flex: 1;
-  height: 6px;
-  background: var(--surface-hover);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.strength-fill {
-  height: 100%;
-  transition: all 0.3s ease;
-  border-radius: 3px;
-}
-
-.strength-fill.fraca {
-  background: var(--color-danger);
-}
-
-.strength-fill.media {
-  background: var(--color-warning);
-}
-
-.strength-fill.boa {
-  background: var(--color-primary);
-}
-
-.strength-fill.forte {
-  background: var(--color-success);
-}
-
-.strength-text {
-  font-size: 0.8rem;
-  font-weight: 600;
-  min-width: 50px;
-}
-
-.strength-text.fraca {
-  color: var(--color-danger);
-}
-
-.strength-text.media {
-  color: var(--color-warning);
-}
-
-.strength-text.boa {
-  color: var(--color-primary-light);
-}
-
-.strength-text.forte {
-  color: var(--color-success);
 }
 
 /* BANDEIRA SECTION (Modal Editar Idioma) */

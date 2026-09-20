@@ -85,6 +85,45 @@
   height: 20px;
 }
 
+/* BOTÃO CANCELAR RODADA */
+.btn-cancelar-rodada {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 2px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.btn-cancelar-rodada:hover {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-cancelar-rodada:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.btn-cancelar-rodada svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 /* JOGO CONTEÚDO */
 .jogo-conteudo {
   background: var(--bg-card);
@@ -93,6 +132,12 @@
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
   animation: crow-scale-in var(--transition-spring) both;
+}
+
+/* Congela as animações da rodada enquanto o modal de cancelamento está aberto */
+.jogo-conteudo.pausado,
+.jogo-conteudo.pausado * {
+  animation-play-state: paused !important;
 }
 
 /* MODO: TRADUÇÃO DIRETA */
@@ -783,6 +828,190 @@
   background: var(--color-primary-hover);
 }
 
+/* MODAL CANCELAR RODADA */
+.modal-container {
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  max-width: 550px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--color-primary);
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-cancelar-rodada .modal-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+}
+
+.modal-cancelar-rodada .modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.btn-fechar-modal {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-fechar-modal:hover {
+  background: var(--color-danger);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.modal-cancelar-rodada .modal-header svg {
+  width: 20px;
+  height: 20px;
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.icone-alerta {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.icone-alerta svg {
+  width: 64px;
+  height: 64px;
+  color: var(--color-warning);
+}
+
+.texto-confirmacao-cancelamento {
+  margin: 0 0 1.5rem;
+  color: var(--color-text);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.texto-confirmacao-cancelamento strong {
+  font-weight: 700;
+}
+
+.alerta-cancelamento {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 2px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+}
+
+.alerta-cancelamento svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-danger);
+}
+
+.alerta-cancelamento p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.alerta-cancelamento strong {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-voltar-rodada,
+.btn-confirmar-cancelamento {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.95rem 1.8rem;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-voltar-rodada {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 2px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-voltar-rodada:hover {
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-confirmar-cancelamento {
+  background: var(--color-danger);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-confirmar-cancelamento:hover {
+  background: color-mix(in srgb, var(--color-danger) 85%, black);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-voltar-rodada svg,
+.btn-confirmar-cancelamento svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 /* RESULTADOS FINAIS */
 .resultados-finais {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.7));
@@ -1084,6 +1313,11 @@
     gap: 1rem;
   }
 
+  .btn-cancelar-rodada {
+    width: 100%;
+    justify-content: center;
+  }
+
   .pares-container {
     grid-template-columns: 1fr;
   }
@@ -1126,6 +1360,19 @@
 @media (max-width: 600px) {
   .modal-overlay {
     padding: 1rem;
+  }
+
+  .modal-cancelar-rodada .modal-header {
+    padding: 1.2rem 1.5rem;
+  }
+
+  .modal-body,
+  .modal-footer {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
   }
 
   .modal-header svg {

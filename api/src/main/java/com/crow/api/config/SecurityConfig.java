@@ -28,6 +28,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Matriz de permissões:
+                //  - /api/admin/** (moderação: leitura de usuários/idiomas, status de contas
+                //    e denúncias, exclusão de idioma, logs) exige ROLE_ADMIN. Não há rota
+                //    administrativa de edição de conteúdo, papel ou senha.
+                //  - As rotas comuns de escrita (idiomas, módulos, frases) valem para
+                //    qualquer autenticado, mas dependem de propriedade do conteúdo — regra
+                //    de dado, não de URL — aplicada em IdiomaService.validarProprietario,
+                //    que também recusa e registra administradores em conteúdo alheio.
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()

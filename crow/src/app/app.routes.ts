@@ -24,6 +24,14 @@ export const routes: Routes = [{
         path: 'recuperar-senha',
         loadComponent: () => import('./pages/recuperar-senha/recuperar-senha').then((m) => m.RecuperarSenha),
       },
+      {
+        path: 'termos-de-uso',
+        loadComponent: () => import('./pages/termos-de-uso/termos-de-uso').then((m) => m.TermosDeUso),
+      },
+      {
+        path: 'politica-de-privacidade',
+        loadComponent: () => import('./pages/politica-de-privacidade/politica-de-privacidade').then((m) => m.PoliticaDePrivacidade),
+      },
     ],
   },
   // Rotas do Usuário Comum (bloqueadas para admin)

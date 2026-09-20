@@ -54,10 +54,54 @@
         </div>
       </div>
 
+      <!-- IDIOMA -->
+      <div class="idioma-wrapper">
+        <button
+          class="idioma-btn"
+          [class.filtro-ativo]="idiomasSelecionados.length > 0"
+          (click)="toggleIdioma()"
+          [attr.aria-expanded]="mostrarIdioma">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          Idioma
+          <span class="filtro-count" *ngIf="idiomasSelecionados.length > 0">
+            {{ idiomasSelecionados.length }}
+          </span>
+        </button>
+
+        <div class="idioma-menu" *ngIf="mostrarIdioma" role="listbox" aria-multiselectable="true">
+          <div
+            (click)="limparIdioma()"
+            [class.selected]="idiomasSelecionados.length === 0"
+            class="opcao-todos">
+            Todos os idiomas
+          </div>
+
+          <div
+            *ngFor="let opcao of opcoesIdioma"
+            class="opcao"
+            role="option"
+            [class.selected]="idiomaMarcado(opcao)"
+            [attr.aria-selected]="idiomaMarcado(opcao)"
+            (click)="alternarIdioma(opcao)">
+            <span class="opcao-check" aria-hidden="true"></span>
+            <span class="opcao-label">{{ opcao }}</span>
+          </div>
+
+          <div class="opcao-vazia" *ngIf="opcoesIdioma.length === 0">
+            Nenhum idioma disponível
+          </div>
+        </div>
+      </div>
+
       <!-- PROFICIÊNCIA -->
       <div class="proficiencia-wrapper">
         <button 
           class="proficiencia-btn" 
+          [class.filtro-ativo]="proficienciasSelecionadas.length > 0"
           (click)="toggleProficiencia()"
           [attr.aria-expanded]="mostrarProficiencia">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;" stroke-linecap="round" stroke-linejoin="round">
@@ -66,57 +110,46 @@
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
           Proficiência
+          <span class="filtro-count" *ngIf="proficienciasSelecionadas.length > 0">
+            {{ proficienciasSelecionadas.length }}
+          </span>
         </button>
 
-        <div class="proficiencia-menu" *ngIf="mostrarProficiencia">
+        <div class="proficiencia-menu" *ngIf="mostrarProficiencia" role="listbox" aria-multiselectable="true">
           <div 
-            (click)="filtrarPorProficiencia(null)"
-            [class.selected]="proficienciaSelecionada === null"
-            class="nivel-todos">
+            (click)="limparProficiencia()"
+            [class.selected]="proficienciasSelecionadas.length === 0"
+            class="opcao-todos">
             Todos os níveis
           </div>
 
-          <div 
-            (click)="filtrarPorProficiencia('iniciante')"
-            [class.selected]="proficienciaSelecionada === 'iniciante'"
-            class="nivel-iniciante">
-            Iniciante
-            <span class="proficiencia-indicator"></span>
-          </div>
-
-          <div 
-            (click)="filtrarPorProficiencia('basico')"
-            [class.selected]="proficienciaSelecionada === 'basico'"
-            class="nivel-basico">
-            Básico
-            <span class="proficiencia-indicator"></span>
-          </div>
-
-          <div 
-            (click)="filtrarPorProficiencia('intermediario')"
-            [class.selected]="proficienciaSelecionada === 'intermediario'"
-            class="nivel-intermediario">
-            Intermediário
-            <span class="proficiencia-indicator"></span>
-          </div>
-
-          <div 
-            (click)="filtrarPorProficiencia('avancado')"
-            [class.selected]="proficienciaSelecionada === 'avancado'"
-            class="nivel-avancado">
-            Avançado
-            <span class="proficiencia-indicator"></span>
-          </div>
-
-          <div 
-            (click)="filtrarPorProficiencia('fluente')"
-            [class.selected]="proficienciaSelecionada === 'fluente'"
-            class="nivel-fluente">
-            Fluente
+          <div
+            *ngFor="let nivel of niveis"
+            class="opcao"
+            role="option"
+            [ngClass]="'nivel-' + nivel"
+            [class.selected]="proficienciaMarcada(nivel)"
+            [attr.aria-selected]="proficienciaMarcada(nivel)"
+            (click)="alternarProficiencia(nivel)">
+            <span class="opcao-check" aria-hidden="true"></span>
+            <span class="opcao-label">{{ getNomeProficiencia(nivel) }}</span>
             <span class="proficiencia-indicator"></span>
           </div>
         </div>
       </div>
+
+      <!-- LIMPAR FILTROS -->
+      <button
+        class="limpar-filtros"
+        *ngIf="temFiltrosAtivos"
+        (click)="limparFiltros()"
+        title="Remover busca e filtros">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        Limpar filtros
+      </button>
     </div>
 
   </div>

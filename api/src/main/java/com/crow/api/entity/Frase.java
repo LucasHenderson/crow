@@ -60,6 +60,15 @@ public class Frase {
     @Column(name = "video_quiz")
     private String videoQuiz;
 
+    /**
+     * Posição da frase dentro do módulo, começando em 1. Fica nullable no
+     * mapeamento porque o ddl-auto=update cria a coluna vazia nas linhas já
+     * existentes — elas são preenchidas por OrdemBackfill na subida da
+     * aplicação. Frases novas recebem a posição em {@code FraseService.criar}.
+     */
+    @Column
+    private Integer ordem;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modulo_id", nullable = false)
     private Modulo modulo;

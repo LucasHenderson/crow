@@ -1,9 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Frase, PalavraTrad, Par } from '../../models/frase.model';
+import { OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { FraseService } from '../../services/frase.service';
+import { SoundService } from '../../services/sound.service';
+import { Subscription } from 'rxjs';
 
 interface HistoricoResposta {
   correto: boolean;
@@ -64,6 +67,8 @@ export class Jogar implements OnInit, OnDestroy {
   modulosSelecionados: string[] = [];
   idIdioma: string = '';
   ordem: 'aleatoria' | 'cadastro' = 'aleatoria';
+  /** Origem da navegação, só repassada ao voltar para o idioma. */
+  origem: OrigemIdioma = 'home';
 
   // Timer
   tempoInicio: number = 0;
@@ -73,17 +78,29 @@ export class Jogar implements OnInit, OnDestroy {
 
   carregando = true;
 
+  // Cancelamento da rodada
+  mostrarModalCancelar: boolean = false;
+
+  /** Assinaturas ativas da página — encerradas em ngOnDestroy. */
+  private subs = new Subscription();
+  /** Último estado conhecido do player do quiz (1 = tocando). */
+  private videoTocando = false;
+  /** Marca que fomos nós que pausamos o vídeo ao abrir o modal. */
+  private videoPausadoPeloModal = false;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
     private fraseService: FraseService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private host: ElementRef<HTMLElement>,
+    private soundService: SoundService
   ) {}
 
   ngOnInit(): void {
     // Recebe os módulos selecionados da rota
-    this.route.queryParams.subscribe(params => {
+    this.subs.add(this.route.queryParams.subscribe(params => {
       if (params['modulos']) {
         this.modulosSelecionados = JSON.parse(params['modulos']);
       }
@@ -91,14 +108,22 @@ export class Jogar implements OnInit, OnDestroy {
         this.idIdioma = params['idIdioma'];
       }
       this.ordem = params['ordem'] === 'cadastro' ? 'cadastro' : 'aleatoria';
-    });
+      this.origem = normalizarOrigem(params['origem']);
+    }));
+
+    // Escuta o player do quiz fora do Angular: a mensagem chega várias vezes
+    // por segundo e não deve disparar detecção de mudanças.
+    window.addEventListener('message', this.aoReceberMensagemDoPlayer);
     
     // Carrega e sorteia as frases (o jogo inicia quando elas chegam)
     this.carregarFrases();
   }
 
   ngOnDestroy(): void {
-    // Limpa recursos se necessário
+    // Nenhuma assinatura ou listener pode sobreviver à saída da página.
+    this.subs.unsubscribe();
+    window.removeEventListener('message', this.aoReceberMensagemDoPlayer);
+    this.limparEstadoRodada();
   }
 
   carregarFrases(): void {
@@ -109,7 +134,7 @@ export class Jogar implements OnInit, OnDestroy {
 
     this.carregando = true;
     this.cdr.markForCheck();
-    this.fraseService.getFrasesParaJogo(this.modulosSelecionados, this.ordem).subscribe({
+    this.subs.add(this.fraseService.getFrasesParaJogo(this.modulosSelecionados, this.ordem).subscribe({
       next: (frases) => {
         // O backend já entrega na ordem correta (embaralhada e limitada no modo
         // aleatório; na ordem de cadastro no modo "cadastro"). Apenas preparamos.
@@ -127,7 +152,7 @@ export class Jogar implements OnInit, OnDestroy {
         this.carregando = false;
         this.cdr.detectChanges();
       }
-    });
+    }));
   }
 
   private prepararFraseBackend(f: any): Frase {
@@ -166,19 +191,28 @@ export class Jogar implements OnInit, OnDestroy {
 
   private toEmbedUrl(url: string): string {
     if (!url) return '';
-    if (url.includes('youtube.com/embed/')) return url;
+    if (url.includes('youtube.com/embed/')) return this.comJsApi(url);
     if (url.includes('youtube.com/watch')) {
       const m = url.match(/[?&]v=([^&]+)/);
-      if (m?.[1]) return `https://www.youtube.com/embed/${m[1]}`;
+      if (m?.[1]) return this.comJsApi(`https://www.youtube.com/embed/${m[1]}`);
     }
     if (url.includes('youtu.be/')) {
       const m = url.match(/youtu\.be\/([^?]+)/);
       if (m?.[1]) {
         const params = url.includes('?') ? url.substring(url.indexOf('?')) : '';
-        return `https://www.youtube.com/embed/${m[1]}${params}`;
+        return this.comJsApi(`https://www.youtube.com/embed/${m[1]}${params}`);
       }
     }
     return url;
+  }
+
+  /**
+   * Liga a JS API do embed do YouTube para que o vídeo possa ser pausado
+   * enquanto o modal de cancelamento estiver aberto.
+   */
+  private comJsApi(url: string): string {
+    if (url.includes('enablejsapi=')) return url;
+    return `${url}${url.includes('?') ? '&' : '?'}enablejsapi=1`;
   }
 
   carregarFrase(index: number): void {
@@ -317,7 +351,8 @@ export class Jogar implements OnInit, OnDestroy {
     } else if (this.fraseAtual.modo === 'quiz') {
       this.verificarQuiz();
     }
-    
+
+    this.soundService.tocar(this.respostaCorreta ? 'acerto' : 'erro');
     this.mostrarResultado = true;
   }
 
@@ -434,6 +469,7 @@ export class Jogar implements OnInit, OnDestroy {
     if (this.etapaAtual < this.totalEtapas) {
       this.etapaAtual++;
       this.carregarFrase(this.etapaAtual - 1);
+      this.soundService.tocar('avanco');
     } else {
       this.finalizarJogo();
     }
@@ -451,6 +487,7 @@ export class Jogar implements OnInit, OnDestroy {
     
     this.jogoFinalizado = true;
     this.calcularResultadosFinais();
+    this.soundService.tocar('conclusao');
   }
 
   formatarTempo(segundos: number): string {
@@ -490,12 +527,136 @@ export class Jogar implements OnInit, OnDestroy {
   voltarAoIdioma(): void {
     if (this.idIdioma) {
       this.router.navigate(['/visualizar-idioma'], {
-        queryParams: { id: this.idIdioma }
+        queryParams: { id: this.idIdioma, origem: this.origem }
       });
     } else {
       this.router.navigate(['/home']);
     }
   }
+
+  /**
+   * Abre a confirmação de cancelamento. Nada do estado da rodada é alterado
+   * aqui: apenas pausamos mídia e animações enquanto o modal estiver visível.
+   */
+  abrirModalCancelar(): void {
+    if (this.mostrarModalCancelar) return;
+    this.mostrarModalCancelar = true;
+    this.pausarMidia();
+  }
+
+  /**
+   * Fecha a confirmação sem cancelar — a rodada continua exatamente como
+   * estava (pontuação, seleções e marcação de tempo intactas).
+   */
+  fecharModalCancelar(): void {
+    if (!this.mostrarModalCancelar) return;
+    this.mostrarModalCancelar = false;
+    this.retomarMidia();
+  }
+
+  /** ESC equivale a fechar o modal sem cancelar a rodada. */
+  @HostListener('document:keydown.escape')
+  aoApertarEsc(): void {
+    this.fecharModalCancelar();
+  }
+
+  /**
+   * Confirma o cancelamento: encerra o que estiver pendente, zera o estado da
+   * rodada e volta para a tela do idioma correspondente.
+   */
+  confirmarCancelamento(): void {
+    this.mostrarModalCancelar = false;
+    this.videoPausadoPeloModal = false;
+    this.videoTocando = false;
+
+    // Descarta o carregamento de frases em andamento para que nenhuma resposta
+    // atrasada reinicie uma rodada já cancelada.
+    this.subs.unsubscribe();
+    this.subs = new Subscription();
+
+    this.limparEstadoRodada();
+    this.voltarAoIdioma();
+  }
+
+  /**
+   * Zera pontuação, índice da frase, respostas, seleções e temporizadores.
+   */
+  private limparEstadoRodada(): void {
+    this.etapaAtual = 1;
+    this.frases = [];
+    this.fraseAtual = null;
+    this.acertos = 0;
+    this.erros = 0;
+    this.historicoRespostas = [];
+    this.palavrasEmbaralhadas = [];
+    this.palavrasSelecionadas = [];
+    this.paresEmbaralhados = [];
+    this.traducoesEmbaralhadas = [];
+    this.paresSelecionados = {};
+    this.mensagemErro = '';
+    this.respostaCorretaTexto = '';
+    this.respostaCorreta = false;
+    this.jogoFinalizado = false;
+    this.carregando = false;
+    this.tempoInicio = 0;
+    this.tempoFim = 0;
+    this.tempoTotalSegundos = 0;
+    this.tempoFormatado = '';
+    this.porcentagemAcertos = 0;
+    this.progressOffset = this.circumference;
+    this.resetarEstados();
+  }
+
+  /** Pausa o vídeo do quiz enquanto o modal de cancelamento estiver aberto. */
+  private pausarMidia(): void {
+    this.videoPausadoPeloModal = this.videoTocando;
+    if (this.videoPausadoPeloModal) {
+      this.comandarPlayer('pauseVideo');
+    }
+  }
+
+  /** Retoma o vídeo apenas se fomos nós que o pausamos. */
+  private retomarMidia(): void {
+    if (this.videoPausadoPeloModal) {
+      this.videoPausadoPeloModal = false;
+      this.comandarPlayer('playVideo');
+    }
+  }
+
+  /**
+   * Pede ao embed do YouTube que avise mudanças de estado. Chamado no (load)
+   * do iframe; se a JS API não responder, apenas nunca saberemos o estado e o
+   * vídeo nunca é tocado por nós.
+   */
+  registrarListenerVideo(): void {
+    this.postarNoPlayer({ event: 'listening', id: 1, channel: 'widget' });
+  }
+
+  private comandarPlayer(func: 'pauseVideo' | 'playVideo'): void {
+    this.postarNoPlayer({ event: 'command', func, args: [] });
+  }
+
+  private postarNoPlayer(mensagem: unknown): void {
+    const iframe = this.host.nativeElement.querySelector('.quiz-midia iframe') as HTMLIFrameElement | null;
+    iframe?.contentWindow?.postMessage(JSON.stringify(mensagem), 'https://www.youtube.com');
+  }
+
+  /**
+   * Guarda o último estado do player (1 = tocando). Arrow function para que a
+   * mesma referência possa ser removida em ngOnDestroy.
+   */
+  private aoReceberMensagemDoPlayer = (event: MessageEvent): void => {
+    if (typeof event.data !== 'string' || !event.origin.includes('youtube.com')) return;
+    try {
+      const dados = JSON.parse(event.data);
+      const estado = dados?.info?.playerState;
+      if (typeof estado === 'number') {
+        this.videoTocando = estado === 1;
+      }
+    } catch {
+      // Mensagem que não é do player — ignora.
+    }
+  };
 
   toggleInfo(): void {
     this.mostrarInfo = !this.mostrarInfo;

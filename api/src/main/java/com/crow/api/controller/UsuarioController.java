@@ -2,6 +2,7 @@ package com.crow.api.controller;
 
 import com.crow.api.dto.idioma.IdiomaResponse;
 import com.crow.api.dto.usuario.AlterarSenhaRequest;
+import com.crow.api.dto.usuario.UsuarioPublicoResponse;
 import com.crow.api.dto.usuario.UsuarioResponse;
 import com.crow.api.dto.usuario.UsuarioUpdateRequest;
 import com.crow.api.entity.Usuario;
@@ -29,18 +30,20 @@ public class UsuarioController {
     private final EmailVerificationService emailVerificationService;
     private final IdiomaService idiomaService;
 
+    /** Listagem pública: dados reduzidos e sem contas administrativas. */
     @GetMapping
-    public ResponseEntity<List<UsuarioResponse>> listarTodos() {
+    public ResponseEntity<List<UsuarioPublicoResponse>> listarTodos() {
         return ResponseEntity.ok(
-                usuarioService.buscarTodos().stream()
-                        .map(authService::toUsuarioResponse)
+                usuarioService.buscarPublicos(null).stream()
+                        .map(usuarioService::toPublicoResponse)
                         .toList()
         );
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(authService.toUsuarioResponse(usuarioService.buscarPorId(id)));
+    /** Perfil público de outro usuário — sem email, telefone, papel ou status. */
+    @GetMapping("/{codigo}")
+    public ResponseEntity<UsuarioPublicoResponse> buscarPorCodigo(@PathVariable String codigo) {
+        return ResponseEntity.ok(usuarioService.toPublicoResponse(usuarioService.resolver(codigo)));
     }
 
     @GetMapping("/me")
@@ -82,24 +85,25 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Busca da tela pública de usuários: exclui administradores e devolve
+     * apenas os campos públicos. A área administrativa usa /api/admin/usuarios.
+     */
     @GetMapping("/buscar")
-    public ResponseEntity<List<UsuarioResponse>> buscar(@RequestParam(required = false) String q) {
-        List<Usuario> usuarios = (q == null || q.isBlank())
-                ? usuarioService.buscarTodos()
-                : usuarioService.buscarPorNome(q);
+    public ResponseEntity<List<UsuarioPublicoResponse>> buscar(@RequestParam(required = false) String q) {
         return ResponseEntity.ok(
-                usuarios.stream()
-                        .map(authService::toUsuarioResponse)
+                usuarioService.buscarPublicos(q).stream()
+                        .map(usuarioService::toPublicoResponse)
                         .toList()
         );
     }
 
     /** Idiomas públicos criados pelo usuário — exibidos no perfil público dele. */
-    @GetMapping("/{id}/idiomas")
-    public ResponseEntity<List<IdiomaResponse>> idiomasPublicos(@PathVariable Long id) {
-        usuarioService.buscarPorId(id);
+    @GetMapping("/{codigo}/idiomas")
+    public ResponseEntity<List<IdiomaResponse>> idiomasPublicos(@PathVariable String codigo) {
+        Usuario usuario = usuarioService.resolver(codigo);
         return ResponseEntity.ok(
-                idiomaService.buscarPublicosPorCriador(id).stream()
+                idiomaService.buscarPublicosPorCriador(usuario.getId()).stream()
                         .map(IdiomaResponse::from)
                         .toList()
         );

@@ -24,4 +24,13 @@ export class ModuloService {
   excluirModulo(idiomaId: number | string, id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/idiomas/${idiomaId}/modulos/${id}`);
   }
+
+  /**
+   * Persiste a ordem dos módulos do idioma. O backend exige a lista **completa**
+   * de ids na ordem desejada e recusa listas parciais, com ids repetidos ou de
+   * outro idioma.
+   */
+  reordenarModulos(idiomaId: number | string, ids: number[]): Observable<any[]> {
+    return this.http.put<any[]>(`${this.apiUrl}/idiomas/${idiomaId}/modulos/ordem`, { ids });
+  }
 }

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Denuncia } from '../models/denuncia.model';
-import { Usuario } from '../models/usuario.model';
+import { UsuarioModeracao } from '../models/usuario.model';
 import { IdiomaAdm } from '../models/idioma.model';
 import { Log } from '../models/log.model';
 
@@ -17,32 +17,29 @@ export class AdminService {
     return this.http.get<Denuncia[]>(`${this.apiUrl}/admin/denuncias`);
   }
 
-  alterarStatusDenuncia(id: number, status: string): Observable<Denuncia> {
-    return this.http.put<Denuncia>(`${this.apiUrl}/admin/denuncias/${id}/status`, { status });
+  alterarStatusDenuncia(codigo: string, status: string): Observable<Denuncia> {
+    return this.http.put<Denuncia>(`${this.apiUrl}/admin/denuncias/${codigo}/status`, { status });
   }
 
-  getUsuariosAdmin(): Observable<Usuario[]> {
-    return this.http.get<Usuario[]>(`${this.apiUrl}/admin/usuarios`);
+  /** Contas sujeitas à moderação — o backend já exclui administradores. */
+  getUsuariosAdmin(): Observable<UsuarioModeracao[]> {
+    return this.http.get<UsuarioModeracao[]>(`${this.apiUrl}/admin/usuarios`);
   }
 
-  editarUsuarioAdmin(id: number | string, dados: any): Observable<Usuario> {
-    return this.http.put<Usuario>(`${this.apiUrl}/admin/usuarios/${id}`, dados);
-  }
-
-  alterarStatusUsuario(id: number | string, novoStatus: string): Observable<Usuario> {
-    return this.http.put<Usuario>(`${this.apiUrl}/admin/usuarios/${id}/status`, { status: novoStatus });
+  alterarStatusUsuario(codigo: string, novoStatus: string): Observable<UsuarioModeracao> {
+    return this.http.put<UsuarioModeracao>(`${this.apiUrl}/admin/usuarios/${codigo}/status`, { status: novoStatus });
   }
 
   getIdiomasAdmin(): Observable<IdiomaAdm[]> {
     return this.http.get<IdiomaAdm[]>(`${this.apiUrl}/admin/idiomas`);
   }
 
-  editarIdiomaAdmin(id: number | string, dados: any): Observable<IdiomaAdm> {
-    return this.http.put<IdiomaAdm>(`${this.apiUrl}/admin/idiomas/${id}`, dados);
+  editarIdiomaAdmin(codigo: string, dados: any): Observable<IdiomaAdm> {
+    return this.http.put<IdiomaAdm>(`${this.apiUrl}/admin/idiomas/${codigo}`, dados);
   }
 
-  excluirIdiomaAdmin(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/idiomas/${id}`);
+  excluirIdiomaAdmin(codigo: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/admin/idiomas/${codigo}`);
   }
 
   getLogs(): Observable<Log[]> {

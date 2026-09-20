@@ -7,12 +7,14 @@ import com.crow.api.dto.usuario.UsuarioResponse;
 import com.crow.api.entity.Usuario;
 import com.crow.api.repository.IdiomaUsuarioRepository;
 import com.crow.api.repository.UsuarioRepository;
+import com.crow.api.util.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -50,18 +52,40 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou senha incorretos");
         }
 
+        // Só depois de conferir a senha: a situação da conta não pode servir
+        // para descobrir se um e-mail está cadastrado.
         if (usuario.getStatus() == Usuario.Status.INATIVO) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário inativo");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, mensagemContaIndisponivel(usuario));
         }
 
         String token = jwtService.gerarToken(usuario.getId(), usuario.getEmail(), usuario.getRole().name());
         return new AuthResponse(token, toUsuarioResponse(usuario));
     }
 
+    /**
+     * Situação de uma conta INATIVO para a tela de login: diz se é desativação
+     * ou suspensão e, na suspensão, quando a conta volta. Não expõe a
+     * justificativa nem qualquer outro dado do cadastro — o detalhe foi enviado
+     * por e-mail ao próprio usuário.
+     */
+    private String mensagemContaIndisponivel(Usuario usuario) {
+        LocalDateTime suspensoAte = usuario.getSuspensoAte();
+        if (suspensoAte == null) {
+            return "Conta desativada. Entre em contato com a equipe de moderação.";
+        }
+        if (suspensoAte.isAfter(LocalDateTime.now())) {
+            return "Conta suspensa temporariamente. Previsão de reativação: "
+                    + EmailTemplates.FORMATO_DATA.format(suspensoAte) + ".";
+        }
+        // Prazo vencido, mas o agendador (a cada 5 minutos) ainda não passou.
+        return "Conta suspensa temporariamente. A reativação automática está em andamento; "
+                + "tente novamente em alguns minutos.";
+    }
+
     public UsuarioResponse toUsuarioResponse(Usuario usuario) {
         return new UsuarioResponse(
                 usuario.getId(),
-                "USR-" + usuario.getId(),
+                usuario.getCodigo(),
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.getTelefone(),

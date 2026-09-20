@@ -1062,7 +1062,7 @@ textarea {
 /* GRID DE OPÇÕES */
 .opcoes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
 }
 
@@ -1083,14 +1083,14 @@ textarea {
   box-shadow: var(--shadow-md);
 }
 
-.opcao-card:hover:not(.disabled) {
+.opcao-card:hover {
   background: color-mix(in srgb, var(--color-primary) 18%, transparent);
   border-color: var(--color-primary);
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
 }
 
-.opcao-card:active:not(.disabled) {
+.opcao-card:active {
   transform: translateY(-3px);
 }
 
@@ -1107,7 +1107,7 @@ textarea {
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
 }
 
-.opcao-card:hover:not(.disabled) .opcao-icon {
+.opcao-card:hover .opcao-icon {
   background: color-mix(in srgb, var(--color-primary) 25%, transparent);
   transform: scale(1.1);
   box-shadow: var(--shadow-md);
@@ -1134,50 +1134,6 @@ textarea {
   font-size: 0.88rem;
   color: var(--color-muted);
   line-height: 1.5;
-}
-
-/* OPÇÃO DESABILITADA */
-.opcao-card.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  position: relative;
-}
-
-.opcao-card.disabled:hover {
-  transform: none;
-  background: var(--surface-hover);
-  border-color: var(--border-color);
-  box-shadow: var(--shadow-md);
-}
-
-.opcao-card.disabled .opcao-icon {
-  background: var(--surface-hover);
-  box-shadow: none;
-}
-
-.opcao-card.disabled .opcao-icon svg {
-  color: var(--color-muted);
-}
-
-.opcao-card.disabled h3,
-.opcao-card.disabled p {
-  color: var(--color-muted);
-}
-
-/* BADGE "EM BREVE" */
-.badge-breve {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
 }
 
 /* RESPONSIVIDADE PARA MENSAGEM DE SUCESSO */
@@ -1255,11 +1211,6 @@ textarea {
     font-size: 0.9rem;
     margin-bottom: 1.5rem;
   }
-  
-  .badge-breve {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.6rem;
-  }
 }
 .erro-inline {
   margin: 0 1.5rem 1rem;
@@ -1270,4 +1221,85 @@ textarea {
   color: var(--color-danger);
   font-size: 0.9rem;
   text-align: center;
+}
+
+/* ========== RESPONSIVIDADE DOS CARDS DE IDIOMA (MOBILE) ==========
+   Em telas até 768px não há hover: o info-box passa a fazer parte do
+   fluxo do card (sempre visível) e as ações viram uma barra tocável. */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: 0;
+  }
+
+  /* Sem hover não há razão para elevar o card */
+  .card-wrapper,
+  .card-wrapper:hover {
+    transform: none;
+  }
+
+  /* Bandeira e nome no topo */
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem;
+  }
+
+  .card img {
+    max-width: 200px;
+    height: 120px;
+  }
+
+  .card span {
+    margin-top: 0.9rem;
+    min-height: 0;
+  }
+
+  /* Ações: barra horizontal sempre visível, alvo de toque de 44x44 */
+  .acoes-card {
+    position: static;
+    transform: none;
+    opacity: 1;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .mini-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .mini-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .info-mini {
+    display: flex;
+  }
+
+  /* Informações abaixo do card, sem depender de hover nem de toque */
+  .info-box,
+  .card-wrapper:hover .info-box,
+  .card-wrapper.info-aberta .info-box {
+    position: static;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0.6rem;
+  }
+
+  /* A seta só faz sentido quando o info-box flutua sobre o card */
+  .info-box::before {
+    display: none;
+  }
 }

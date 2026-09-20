@@ -5,6 +5,7 @@ import com.crow.api.entity.Denuncia;
 import com.crow.api.entity.Frase;
 import com.crow.api.entity.Idioma;
 import com.crow.api.entity.IdiomaUsuario;
+import com.crow.api.entity.LogAdmin;
 import com.crow.api.entity.Modulo;
 import com.crow.api.entity.Usuario;
 import com.crow.api.repository.AvaliacaoRepository;
@@ -13,6 +14,8 @@ import com.crow.api.repository.FraseRepository;
 import com.crow.api.repository.IdiomaRepository;
 import com.crow.api.repository.IdiomaUsuarioRepository;
 import com.crow.api.repository.ModuloRepository;
+import com.crow.api.repository.UsuarioRepository;
+import com.crow.api.util.CodigoPublico;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -32,6 +36,8 @@ public class IdiomaService {
     private final FraseRepository fraseRepository;
     private final AvaliacaoRepository avaliacaoRepository;
     private final DenunciaRepository denunciaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final LogAdminService logAdminService;
 
     /** Limite máximo de idiomas que um usuário pode possuir. */
     private static final int LIMITE_IDIOMAS_POR_USUARIO = 4;
@@ -51,6 +57,28 @@ public class IdiomaService {
         Hibernate.initialize(idioma.getCriador());
         atualizarContagemModulos(idioma);
         return idioma;
+    }
+
+    @Transactional(readOnly = true)
+    public Idioma buscarPorCodigo(String codigo) {
+        Idioma idioma = idiomaRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
+        Hibernate.initialize(idioma.getCriador());
+        atualizarContagemModulos(idioma);
+        return idioma;
+    }
+
+    /**
+     * Resolve a referência recebida na rota para a entidade: aceita o código
+     * público e, temporariamente, o id numérico.
+     */
+    @Transactional(readOnly = true)
+    public Idioma resolver(String referencia) {
+        // TODO remover compatibilidade numérica após migração completa do frontend
+        if (CodigoPublico.ehNumerico(referencia)) {
+            return buscarPorId(Long.valueOf(referencia));
+        }
+        return buscarPorCodigo(referencia);
     }
 
     /** Idiomas públicos criados por um usuário — exibidos no perfil público dele. */
@@ -94,17 +122,38 @@ public class IdiomaService {
 
     /**
      * Garante que o usuário informado é o proprietário (criador) do idioma.
-     * Lança 403 caso contrário. Usado para proteger operações de escrita.
+     * Lança 403 caso contrário. É o ponto único de proteção das operações de
+     * escrita em idioma, módulos e frases.
+     *
+     * <p>Administradores não editam conteúdo alheio — o papel deles é de
+     * moderação. Quando o não-proprietário é um admin, a tentativa é gravada
+     * no log administrativo e recusada com mensagem específica.</p>
+     *
+     * @param acao descrição curta da operação recusada (ex.: "criar módulo"),
+     *             usada apenas no log.
      */
     @Transactional(readOnly = true)
-    public void validarProprietario(Long idiomaId, Long usuarioId) {
+    public void validarProprietario(Long idiomaId, Long usuarioId, String acao) {
         Idioma idioma = idiomaRepository.findById(idiomaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
         Long criadorId = idioma.getCriador() != null ? idioma.getCriador().getId() : null;
-        if (criadorId == null || !criadorId.equals(usuarioId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Você não tem permissão para modificar este idioma");
+        if (criadorId != null && criadorId.equals(usuarioId)) {
+            return;
         }
+
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+        if (usuario != null && usuario.getRole() == Usuario.Role.ADMIN) {
+            String criador = idioma.getCriador() != null ? idioma.getCriador().getCodigo() : "desconhecido";
+            logAdminService.registrarTentativaBloqueada(usuario, LogAdmin.TipoLog.IDIOMA,
+                    acao + " em idioma de outro usuário",
+                    "Idioma: " + idioma.getNome() + " (" + idioma.getCodigo() + ") — criador: " + criador);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Administradores não podem alterar conteúdo de outros usuários: "
+                            + "o papel administrativo é de moderação, não de edição");
+        }
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Você não tem permissão para modificar este idioma");
     }
 
     /**
@@ -159,14 +208,9 @@ public class IdiomaService {
 
     @Transactional
     public Idioma editar(Long id, IdiomaRequest dto, Long usuarioId) {
+        validarProprietario(id, usuarioId, "editar idioma");
         Idioma idioma = idiomaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
-
-        Long criadorId = idioma.getCriador() != null ? idioma.getCriador().getId() : null;
-        if (criadorId == null || !criadorId.equals(usuarioId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Você não tem permissão para editar este idioma");
-        }
 
         aplicarEdicao(idioma, dto);
         Idioma salvo = idiomaRepository.save(idioma);
@@ -208,17 +252,6 @@ public class IdiomaService {
         Idioma idioma = buscarPorId(id);
         removerVinculosDoIdioma(id);
         idiomaRepository.delete(idioma);
-    }
-
-    /** Edição administrativa: mesmos campos da edição comum, sem exigir propriedade. */
-    @Transactional
-    public Idioma editarComoAdmin(Long id, IdiomaRequest dto) {
-        Idioma idioma = idiomaRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Idioma não encontrado"));
-        aplicarEdicao(idioma, dto);
-        Idioma salvo = idiomaRepository.save(idioma);
-        Hibernate.initialize(salvo.getCriador());
-        return salvo;
     }
 
     /**
@@ -286,17 +319,22 @@ public class IdiomaService {
         copia = idiomaRepository.save(copia);
 
         // 2. Clona cada módulo e, dentro dele, cada frase — todos com novos IDs
-        //    e vinculados exclusivamente à cópia.
-        List<Modulo> modulosOriginais = moduloRepository.findByIdiomaId(idiomaOriginalId);
+        //    e vinculados exclusivamente à cópia. A ordem é reatribuída como
+        //    1..n para acompanhar a sequência do original sem herdar buracos.
+        List<Modulo> modulosOriginais = moduloRepository.findByIdiomaIdOrderByOrdemAscIdAsc(idiomaOriginalId);
+        int ordemModulo = 1;
         for (Modulo moduloOriginal : modulosOriginais) {
             Modulo moduloCopia = moduloRepository.save(Modulo.builder()
                     .nome(moduloOriginal.getNome())
                     .icone(moduloOriginal.getIcone())
+                    .ordem(ordemModulo++)
                     .idioma(copia)
                     .build());
 
-            for (Frase fraseOriginal : fraseRepository.findByModuloIdOrderByIdAsc(moduloOriginal.getId())) {
+            int ordemFrase = 1;
+            for (Frase fraseOriginal : fraseRepository.findByModuloIdOrderByOrdemAscIdAsc(moduloOriginal.getId())) {
                 fraseRepository.save(Frase.builder()
+                        .ordem(ordemFrase++)
                         .modo(fraseOriginal.getModo())
                         .traducaoCompleta(fraseOriginal.getTraducaoCompleta())
                         .traducoesAlternativasJson(fraseOriginal.getTraducoesAlternativasJson())
@@ -347,6 +385,21 @@ public class IdiomaService {
     public void sincronizarContagemModulos(Long idiomaId) {
         idiomaRepository.findById(idiomaId).ifPresent(idioma -> {
             idioma.setModulos(moduloRepository.countByIdiomaId(idiomaId));
+            idiomaRepository.save(idioma);
+        });
+    }
+
+    /**
+     * Marca o idioma como atualizado agora. Alterações de módulos e frases não
+     * passam pela entidade Idioma e, por isso, não disparam o {@code @PreUpdate}
+     * dela — este método é o ponto único que propaga essas mudanças para o campo
+     * {@code atualizadoEm} exibido como "última atualização".
+     */
+    @Transactional
+    public void registrarAtualizacao(Long idiomaId) {
+        if (idiomaId == null) return;
+        idiomaRepository.findById(idiomaId).ifPresent(idioma -> {
+            idioma.setAtualizadoEm(LocalDateTime.now());
             idiomaRepository.save(idioma);
         });
     }

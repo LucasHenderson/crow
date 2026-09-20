@@ -246,7 +246,7 @@ export class BuscarUsuario implements OnInit {
    */
   selecionarUsuario(usuario: Usuario): void {
     this.router.navigate(['/visualizar-usuario'], {
-      queryParams: { id: usuario.id }
+      queryParams: { id: usuario.codigo }
     });
   }
 }

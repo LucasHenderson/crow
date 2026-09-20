@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Denuncia } from '../../models/denuncia.model';
-import { Usuario } from '../../models/usuario.model';
+import { UsuarioModeracao } from '../../models/usuario.model';
 import { IdiomaAdm as Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
 import { Log } from '../../models/log.model';
 import { AdminService } from '../../services/admin.service';
@@ -26,13 +26,14 @@ export class ControleAdm implements OnInit {
 
   // Dados
   denuncias: Denuncia[] = [];
-  usuarios: Usuario[] = [];
+  usuarios: UsuarioModeracao[] = [];
   idiomas: Idioma[] = [];
   logs: Log[] = [];
 
   // Filtros
   filtroDenunciaStatus: string[] = [];
-  filtroUsuarioStatus = 'todos';
+  /** Vazio = sem filtro (todos os usuários); segue o padrão das outras abas. */
+  filtroUsuarioStatus: string[] = [];
   buscaUsuario = '';
   buscaIdioma = '';
   filtroLogTipo: string[] = [];
@@ -61,31 +62,19 @@ export class ControleAdm implements OnInit {
   
   // Modais
   mostrarModalDenuncia = false;
-  mostrarModalEditarUsuario = false;
+  mostrarModalVisualizarUsuario = false;
   mostrarModalDesativarUsuario = false;
   mostrarModalEditarIdioma = false;
   mostrarModalExcluirIdioma = false;
   mostrarMensagemSucesso = false;
-  
+
   // Dados dos modais
   denunciaSelecionada: Denuncia | null = null;
-  usuarioEmEdicao: Usuario | null = null;
-  usuarioEmDesativacao: Usuario | null = null;
+  usuarioEmVisualizacao: UsuarioModeracao | null = null;
+  usuarioEmDesativacao: UsuarioModeracao | null = null;
   idiomaEmEdicao: Idioma | null = null;
   idiomaEmExclusao: Idioma | null = null;
-  
-  // Campos de edição de usuário
-  nomeUsuarioEdicao = '';
-  emailUsuarioEdicao = '';
-  telefoneUsuarioEdicao = '';
-  roleUsuarioEdicao: 'comum' | 'admin' = 'comum';
-  novaSenhaUsuario = '';
-  confirmarSenhaUsuario = '';
-  camposVisiveis = {
-    novaSenha: false,
-    confirmarSenha: false
-  };
-  
+
   // Campos de edição de idioma
   nomeIdiomaEdicao = '';
   descricaoIdiomaEdicao = '';
@@ -162,10 +151,16 @@ export class ControleAdm implements OnInit {
     return { ...d, tipos };
   }
 
+  /**
+   * Único ponto de entrada de registros em `usuarios`. O backend já omite
+   * administradores; o filtro aqui garante que nenhum deles chegue à lista
+   * mesmo que a resposta mude (a troca de status só substitui itens já
+   * presentes, então não reintroduz ninguém).
+   */
   carregarUsuarios(): void {
     this.adminService.getUsuariosAdmin().subscribe({
       next: (usuarios) => {
-        this.usuarios = usuarios;
+        this.usuarios = usuarios.filter(u => u.role !== 'admin');
         this.cdr.detectChanges();
       },
       error: () => this.cdr.detectChanges()
@@ -276,7 +271,7 @@ export class ControleAdm implements OnInit {
   alterarStatusDenuncia(status: Denuncia['status']): void {
     if (!this.denunciaSelecionada) return;
 
-    this.adminService.alterarStatusDenuncia(this.denunciaSelecionada.id, status).subscribe({
+    this.adminService.alterarStatusDenuncia(this.denunciaSelecionada.codigo, status).subscribe({
       next: (denunciaAtualizada) => {
         const normalizada = this.normalizarDenuncia(denunciaAtualizada);
         const index = this.denuncias.findIndex(d => d.id === normalizada.id);
@@ -327,14 +322,28 @@ export class ControleAdm implements OnInit {
   }
 
   // ===== USUÁRIOS =====
-  
-  get usuariosFiltrados(): Usuario[] {
-    let usuarios = this.usuarios;
-    
-    if (this.filtroUsuarioStatus !== 'todos') {
-      usuarios = usuarios.filter(u => u.status === this.filtroUsuarioStatus);
+
+  toggleFiltroUsuarioStatus(status: string): void {
+    const index = this.filtroUsuarioStatus.indexOf(status);
+    if (index > -1) {
+      this.filtroUsuarioStatus.splice(index, 1);
+    } else {
+      this.filtroUsuarioStatus.push(status);
     }
-    
+    this.paginaAtualUsuarios = 1;
+  }
+
+  isStatusUsuarioSelecionado(status: string): boolean {
+    return this.filtroUsuarioStatus.includes(status);
+  }
+
+  get usuariosFiltrados(): UsuarioModeracao[] {
+    let usuarios = this.usuarios;
+
+    if (this.filtroUsuarioStatus.length > 0) {
+      usuarios = usuarios.filter(u => this.filtroUsuarioStatus.includes(u.status));
+    }
+
     if (this.buscaUsuario.trim()) {
       const termo = this.buscaUsuario.toLowerCase();
       usuarios = usuarios.filter(u =>
@@ -347,7 +356,7 @@ export class ControleAdm implements OnInit {
     return usuarios;
   }
 
-  get usuariosPaginados(): Usuario[] {
+  get usuariosPaginados(): UsuarioModeracao[] {
     const inicio = (this.paginaAtualUsuarios - 1) * this.itensPorPaginaUsuarios;
     const fim = inicio + this.itensPorPaginaUsuarios;
     return this.usuariosFiltrados.slice(inicio, fim);
@@ -379,83 +388,26 @@ export class ControleAdm implements OnInit {
     return nome.substring(0, 2).toUpperCase();
   }
 
-  editarUsuario(usuario: Usuario): void {
-    this.usuarioEmEdicao = { ...usuario };
-    this.nomeUsuarioEdicao = usuario.nome;
-    this.emailUsuarioEdicao = usuario.email;
-    this.telefoneUsuarioEdicao = usuario.telefone;
-    this.roleUsuarioEdicao = usuario.role || 'comum';
-    this.novaSenhaUsuario = '';
-    this.confirmarSenhaUsuario = '';
-    this.mostrarModalEditarUsuario = true;
+  /** O administrador apenas consulta os dados do usuário — não há edição. */
+  abrirModalVisualizarUsuario(usuario: UsuarioModeracao): void {
+    this.usuarioEmVisualizacao = usuario;
+    this.mostrarModalVisualizarUsuario = true;
   }
 
-  fecharModalEditarUsuario(): void {
-    this.mostrarModalEditarUsuario = false;
-    this.usuarioEmEdicao = null;
-    this.limparCamposUsuario();
+  fecharModalVisualizarUsuario(): void {
+    this.mostrarModalVisualizarUsuario = false;
+    this.usuarioEmVisualizacao = null;
   }
 
-  limparCamposUsuario(): void {
-    this.nomeUsuarioEdicao = '';
-    this.emailUsuarioEdicao = '';
-    this.telefoneUsuarioEdicao = '';
-    this.roleUsuarioEdicao = 'comum';
-    this.novaSenhaUsuario = '';
-    this.confirmarSenhaUsuario = '';
-    this.camposVisiveis = { novaSenha: false, confirmarSenha: false };
+  suspenderUsuario(): void {
+    // TODO Fase 16: desativar/suspender a conta a partir do modal de consulta
   }
 
-  get podeConfirmarEdicaoUsuario(): boolean {
-    if (!this.usuarioEmEdicao) return false;
-    
-    const nomeValido = this.nomeUsuarioEdicao.trim().length >= 8;
-    const emailValido = this.validarEmail(this.emailUsuarioEdicao);
-    const telefoneValido = this.telefoneUsuarioEdicao.replace(/\D/g, '').length >= 10;
-    const roleValido = !!this.roleUsuarioEdicao;
-    
-    const dadosAlterados = 
-      this.nomeUsuarioEdicao !== this.usuarioEmEdicao.nome ||
-      this.emailUsuarioEdicao !== this.usuarioEmEdicao.email ||
-      this.telefoneUsuarioEdicao !== this.usuarioEmEdicao.telefone ||
-      this.roleUsuarioEdicao !== this.usuarioEmEdicao.role;
-    
-    const senhaValida = !this.novaSenhaUsuario || (
-      this.novaSenhaUsuario.length >= 6 &&
-      this.novaSenhaUsuario === this.confirmarSenhaUsuario
-    );
-    
-    return nomeValido && emailValido && telefoneValido && roleValido && senhaValida && (dadosAlterados || !!this.novaSenhaUsuario);
+  enviarEmailUsuario(): void {
+    // TODO Fase 17: enviar e-mail ao usuário a partir do modal de consulta
   }
 
-  confirmarEdicaoUsuario(): void {
-    if (!this.podeConfirmarEdicaoUsuario || !this.usuarioEmEdicao) return;
-
-    const dados: any = {
-      nome: this.nomeUsuarioEdicao.trim(),
-      email: this.emailUsuarioEdicao.trim(),
-      telefone: this.telefoneUsuarioEdicao.trim(),
-      role: this.roleUsuarioEdicao
-    };
-    if (this.novaSenhaUsuario) {
-      dados.novaSenha = this.novaSenhaUsuario;
-    }
-
-    this.adminService.editarUsuarioAdmin(this.usuarioEmEdicao.id, dados).subscribe({
-      next: (updated) => {
-        const index = this.usuarios.findIndex(u => u.id === updated.id);
-        if (index >= 0) this.usuarios[index] = updated;
-        this.fecharModalEditarUsuario();
-        this.exibirMensagemSucesso(`Usuário "${updated.nome}" atualizado com sucesso!`);
-        this.carregarLogs();
-      },
-      error: () => {
-        this.exibirMensagemSucesso('Erro ao editar usuário.');
-      }
-    });
-  }
-
-  abrirModalDesativarUsuario(usuario: Usuario): void {
+  abrirModalDesativarUsuario(usuario: UsuarioModeracao): void {
     this.usuarioEmDesativacao = usuario;
     this.mostrarModalDesativarUsuario = true;
   }
@@ -470,7 +422,7 @@ export class ControleAdm implements OnInit {
 
     const novoStatus = this.usuarioEmDesativacao.status === 'ativo' ? 'inativo' : 'ativo';
 
-    this.adminService.alterarStatusUsuario(this.usuarioEmDesativacao.id, novoStatus).subscribe({
+    this.adminService.alterarStatusUsuario(this.usuarioEmDesativacao.codigo, novoStatus).subscribe({
       next: (updated) => {
         const index = this.usuarios.findIndex(u => u.id === updated.id);
         if (index >= 0) this.usuarios[index] = updated;
@@ -483,98 +435,6 @@ export class ControleAdm implements OnInit {
         this.exibirMensagemSucesso('Erro ao alterar status do usuário.');
       }
     });
-  }
-
-  togglePassword(field: 'novaSenha' | 'confirmarSenha'): void {
-    this.camposVisiveis[field] = !this.camposVisiveis[field];
-  }
-
-  validarEmail(email: string): boolean {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  }
-
-  permitirApenasNumeros(event: KeyboardEvent): boolean {
-    const tecla = event.key;
-    
-    if (
-      tecla === 'Backspace' || 
-      tecla === 'Delete' || 
-      tecla === 'Tab' || 
-      tecla === 'ArrowLeft' || 
-      tecla === 'ArrowRight' ||
-      tecla === 'Home' ||
-      tecla === 'End'
-    ) {
-      return true;
-    }
-    
-    if (!/^\d$/.test(tecla)) {
-      event.preventDefault();
-      return false;
-    }
-    
-    return true;
-  }
-
-  aplicarMascaraTelefone(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    
-    if (valor.length > 11) {
-      valor = valor.substring(0, 11);
-    }
-    
-    if (valor.length > 6) {
-      valor = valor.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
-    } else if (valor.length > 2) {
-      valor = valor.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-    } else if (valor.length > 0) {
-      valor = valor.replace(/^(\d*)/, '($1');
-    }
-    
-    this.telefoneUsuarioEdicao = valor;
-  }
-
-  getForcaSenha(): number {
-    const senha = this.novaSenhaUsuario;
-    
-    if (!senha) return 0;
-    
-    let forca = 0;
-    
-    if (senha.length >= 6) forca++;
-    if (senha.length >= 10) forca++;
-    
-    if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
-    if (/[0-9]/.test(senha)) forca++;
-    if (/[^a-zA-Z0-9]/.test(senha)) forca++;
-    
-    return Math.min(forca, 4);
-  }
-
-  getTextoForcaSenha(): string {
-    const forca = this.getForcaSenha();
-    
-    switch(forca) {
-      case 0: return '';
-      case 1: return 'Fraca';
-      case 2: return 'Média';
-      case 3: return 'Boa';
-      case 4: return 'Forte';
-      default: return '';
-    }
-  }
-
-  getClasseForcaSenha(): string {
-    const forca = this.getForcaSenha();
-    
-    switch(forca) {
-      case 1: return 'fraca';
-      case 2: return 'media';
-      case 3: return 'boa';
-      case 4: return 'forte';
-      default: return '';
-    }
   }
 
   // ===== IDIOMAS =====
@@ -716,7 +576,7 @@ export class ControleAdm implements OnInit {
   confirmarEdicaoIdioma(): void {
     if (!this.podeConfirmarEdicaoIdioma || !this.idiomaEmEdicao || !this.idiomaSelecionadoEdicao) return;
 
-    const id = this.idiomaEmEdicao.id;
+    const codigo = this.idiomaEmEdicao.codigo;
     const dados = {
       nome: this.nomeIdiomaEdicao.trim(),
       idioma: this.idiomaSelecionadoEdicao.nome,
@@ -726,9 +586,9 @@ export class ControleAdm implements OnInit {
       visibilidade: this.visibilidadeIdiomaEdicao.toUpperCase()
     };
 
-    this.adminService.editarIdiomaAdmin(id, dados).subscribe({
+    this.adminService.editarIdiomaAdmin(codigo, dados).subscribe({
       next: (atualizado) => {
-        const index = this.idiomas.findIndex(i => i.id === id);
+        const index = this.idiomas.findIndex(i => i.codigo === codigo);
         if (index >= 0) this.idiomas[index] = atualizado;
         this.fecharModalEditarIdioma();
         this.exibirMensagemSucesso(`Idioma "${atualizado.nome}" atualizado com sucesso!`);
@@ -755,9 +615,9 @@ export class ControleAdm implements OnInit {
 
     const nomeIdioma = this.idiomaEmExclusao.nome;
 
-    this.adminService.excluirIdiomaAdmin(this.idiomaEmExclusao.id).subscribe({
+    this.adminService.excluirIdiomaAdmin(this.idiomaEmExclusao.codigo).subscribe({
       next: () => {
-        this.idiomas = this.idiomas.filter(i => i.id !== this.idiomaEmExclusao!.id);
+        this.idiomas = this.idiomas.filter(i => i.codigo !== this.idiomaEmExclusao!.codigo);
         this.fecharModalExcluirIdioma();
         this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído com sucesso!`);
         this.carregarLogs();

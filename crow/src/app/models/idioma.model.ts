@@ -10,6 +10,19 @@ export interface Idioma {
   visibilidade?: 'publico' | 'privado';
 }
 
+/**
+ * Tela de onde o usuário abriu a página de um idioma. Viaja no query param
+ * `origem` por toda a cadeia (visualizar-idioma → visualizar-modulo → jogar)
+ * para que o botão Voltar retorne ao ponto de partida em vez de cair no
+ * histórico do navegador, que gerava ciclos em idiomas de outros usuários.
+ */
+export type OrigemIdioma = 'home' | 'buscar-idioma' | 'visualizar-usuario';
+
+/** Valida o query param recebido; qualquer valor desconhecido vira `home`. */
+export function normalizarOrigem(valor: string | null | undefined): OrigemIdioma {
+  return valor === 'buscar-idioma' || valor === 'visualizar-usuario' ? valor : 'home';
+}
+
 export interface IdiomaAdm {
   id: number;
   codigo: string;
@@ -26,6 +39,8 @@ export interface IdiomaAdm {
   totalAvaliacoes: number;
   proficiencia?: string;
   visibilidade?: 'publico' | 'privado';
+  /** Última alteração de conteúdo (ISO); ausente em idiomas sem registro. */
+  atualizadoEm?: string | null;
 }
 
 export interface IdiomaBusca {
@@ -47,6 +62,7 @@ export interface IdiomaOpcao {
 
 export interface IdiomaUsuario {
   id: number;
+  codigo: string;
   nome: string;
   bandeira: string;
   selecionado: boolean;

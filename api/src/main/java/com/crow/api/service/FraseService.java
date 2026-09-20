@@ -4,6 +4,7 @@ import com.crow.api.dto.frase.FraseRequest;
 import com.crow.api.entity.Frase;
 import com.crow.api.entity.Modulo;
 import com.crow.api.repository.FraseRepository;
+import com.crow.api.util.Reordenacao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,21 @@ public class FraseService {
 
     private final FraseRepository fraseRepository;
     private final ModuloService moduloService;
+    private final IdiomaService idiomaService;
 
+    /**
+     * Sobe a alteração da frase até o idioma: o módulo registra a mudança e o
+     * idioma dono dele também, para que a "última atualização" da página do
+     * idioma reflita edições feitas em frases.
+     */
+    private void propagarAtualizacao(Modulo modulo) {
+        moduloService.registrarAtualizacao(modulo);
+        idiomaService.registrarAtualizacao(modulo.getIdioma().getId());
+    }
+
+    /** Frases do módulo na ordem definida pelo criador. */
     public List<Frase> buscarPorModulo(Long moduloId) {
-        return fraseRepository.findByModuloIdOrderByIdAsc(moduloId);
+        return fraseRepository.findByModuloIdOrderByOrdemAscIdAsc(moduloId);
     }
 
     public Frase buscarPorId(Long id) {
@@ -32,7 +45,7 @@ public class FraseService {
 
     @Transactional
     public Frase criar(Long moduloId, FraseRequest dto, Long usuarioId) {
-        moduloService.validarProprietarioDoModulo(moduloId, usuarioId);
+        moduloService.validarProprietarioDoModulo(moduloId, usuarioId, "criar frase");
         Modulo modulo = moduloService.buscarPorId(moduloId);
 
         Frase frase = Frase.builder()
@@ -49,18 +62,19 @@ public class FraseService {
                 .respostaCorreta(dto.respostaCorreta())
                 .imagemQuiz(dto.imagemQuiz())
                 .videoQuiz(dto.videoQuiz())
+                .ordem(Reordenacao.proximaPosicao(fraseRepository.maiorOrdemDoModulo(moduloId)))
                 .modulo(modulo)
                 .build();
 
         frase = fraseRepository.save(frase);
-        moduloService.registrarAtualizacao(modulo);
+        propagarAtualizacao(modulo);
         return frase;
     }
 
     @Transactional
     public Frase editar(Long id, FraseRequest dto, Long usuarioId) {
         Frase frase = buscarPorId(id);
-        moduloService.validarProprietarioDoModulo(frase.getModulo().getId(), usuarioId);
+        moduloService.validarProprietarioDoModulo(frase.getModulo().getId(), usuarioId, "editar frase");
 
         if (dto.modo() != null) frase.setModo(Frase.ModoFrase.valueOf(dto.modo().toUpperCase()));
         if (dto.traducaoCompleta() != null) frase.setTraducaoCompleta(dto.traducaoCompleta());
@@ -77,7 +91,7 @@ public class FraseService {
         if (dto.videoQuiz() != null) frase.setVideoQuiz(dto.videoQuiz());
 
         Frase salva = fraseRepository.save(frase);
-        moduloService.registrarAtualizacao(frase.getModulo());
+        propagarAtualizacao(frase.getModulo());
         return salva;
     }
 
@@ -85,9 +99,45 @@ public class FraseService {
     public void excluir(Long id, Long usuarioId) {
         Frase frase = buscarPorId(id);
         Modulo modulo = frase.getModulo();
-        moduloService.validarProprietarioDoModulo(modulo.getId(), usuarioId);
+        moduloService.validarProprietarioDoModulo(modulo.getId(), usuarioId, "excluir frase");
         fraseRepository.delete(frase);
-        moduloService.registrarAtualizacao(modulo);
+
+        // Fecha o buraco deixado na sequência pelas frases restantes
+        renumerarFrasesDoModulo(modulo.getId());
+
+        propagarAtualizacao(modulo);
+    }
+
+    /**
+     * Persiste a nova ordem das frases do módulo. A lista precisa conter todas
+     * as frases do módulo exatamente uma vez; do contrário devolve 400. Só o
+     * proprietário do idioma dono do módulo pode reordenar (403 caso contrário).
+     *
+     * @return as frases já na nova ordem.
+     */
+    @Transactional
+    public List<Frase> reordenar(Long moduloId, List<Long> idsOrdenados, Long usuarioId) {
+        moduloService.validarProprietarioDoModulo(moduloId, usuarioId, "reordenar frases");
+
+        List<Frase> existentes = fraseRepository.findByModuloIdOrderByOrdemAscIdAsc(moduloId);
+        if (existentes.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Este módulo não possui frases para reordenar");
+        }
+
+        List<Frase> naNovaOrdem = Reordenacao.aplicar(
+                existentes, idsOrdenados, Frase::getId, Frase::setOrdem, "as frases deste módulo");
+
+        fraseRepository.saveAll(naNovaOrdem);
+        propagarAtualizacao(moduloService.buscarPorId(moduloId));
+        return naNovaOrdem;
+    }
+
+    /** Reescreve as posições das frases do módulo como 1..n, sem buracos. */
+    private void renumerarFrasesDoModulo(Long moduloId) {
+        List<Frase> restantes = fraseRepository.findByModuloIdOrderByOrdemAscIdAsc(moduloId);
+        fraseRepository.saveAll(
+                Reordenacao.renumerar(restantes, Frase::getOrdem, Frase::setOrdem));
     }
 
     /** Quantidade máxima de frases sorteadas no modo aleatório. */
@@ -97,7 +147,8 @@ public class FraseService {
      * Monta a lista de frases para uma sessão de jogo respeitando o modo de ordem:
      * <ul>
      *   <li><b>cadastro</b>: todas as frases na ordem definida pelo criador
-     *       (módulos na ordem selecionada, frases por id crescente), sem sorteio;</li>
+     *       (módulos na ordem selecionada, frases pelo campo {@code ordem}),
+     *       sem sorteio;</li>
      *   <li><b>aleatoria</b> (padrão): embaralha e limita a {@value #LIMITE_JOGO_ALEATORIO}.</li>
      * </ul>
      */
@@ -106,7 +157,7 @@ public class FraseService {
 
         List<Frase> todasFrases = new ArrayList<>();
         for (Long moduloId : moduloIds) {
-            todasFrases.addAll(fraseRepository.findByModuloIdOrderByIdAsc(moduloId));
+            todasFrases.addAll(fraseRepository.findByModuloIdOrderByOrdemAscIdAsc(moduloId));
         }
 
         if (ordemCadastro) {

@@ -723,7 +723,7 @@ textarea {
   flex-wrap: wrap;
 }
 
-.btn-voltar,
+.acoes .btn-voltar,
 .cancelar,
 .avancar,
 .finalizar {
@@ -743,14 +743,14 @@ textarea {
   white-space: nowrap;
 }
 
-.btn-voltar {
+.acoes .btn-voltar {
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
   color: var(--color-primary-light);
   box-shadow: var(--shadow-sm);
 }
 
-.btn-voltar:hover {
+.acoes .btn-voltar:hover {
   border-color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 22%, transparent);
   transform: translateY(-2px);
@@ -793,7 +793,7 @@ textarea {
   box-shadow: none;
 }
 
-.btn-voltar svg,
+.acoes .btn-voltar svg,
 .cancelar svg,
 .avancar svg,
 .finalizar svg {
@@ -1711,7 +1711,7 @@ textarea {
     border: 2px solid #000;
   }
   
-  .btn-voltar,
+  .acoes .btn-voltar,
   .cancelar,
   .avancar,
   .finalizar {
@@ -1727,4 +1727,22 @@ textarea {
   margin: 1rem 0;
   font-size: 0.9rem;
   text-align: center;
+}
+
+/* Botão voltar do topo usa o padrão global (.btn-voltar em styles.css) —
+   aqui apenas o espaçamento em relação à barra de progresso. */
+.btn-voltar--topo {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 1.5rem;
+}
+
+.btn-voltar--topo:disabled,
+.btn-voltar--topo:disabled:hover {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  background: var(--surface-hover);
+  border-color: var(--border-color);
+  color: var(--color-muted);
 }

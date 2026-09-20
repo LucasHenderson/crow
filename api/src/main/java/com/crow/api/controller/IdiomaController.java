@@ -36,13 +36,14 @@ public class IdiomaController {
         return ResponseEntity.ok(idiomas.stream().map(IdiomaResponse::from).toList());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<IdiomaResponse> buscarPorId(
-            @PathVariable Long id,
+    @GetMapping("/{codigo}")
+    public ResponseEntity<IdiomaResponse> buscarPorCodigo(
+            @PathVariable String codigo,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
-        idiomaService.validarAcessoLeitura(id, userId);
-        return ResponseEntity.ok(IdiomaResponse.from(idiomaService.buscarPorId(id)));
+        Idioma idioma = idiomaService.resolver(codigo);
+        idiomaService.validarAcessoLeitura(idioma.getId(), userId);
+        return ResponseEntity.ok(IdiomaResponse.from(idioma));
     }
 
     @GetMapping("/meus")
@@ -64,50 +65,55 @@ public class IdiomaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(IdiomaResponse.from(idioma));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigo}")
     public ResponseEntity<IdiomaResponse> editar(
-            @PathVariable Long id,
+            @PathVariable String codigo,
             Authentication authentication,
             @Valid @RequestBody IdiomaRequest request) {
         Long userId = Long.valueOf(authentication.getName());
-        return ResponseEntity.ok(IdiomaResponse.from(idiomaService.editar(id, request, userId)));
+        Idioma idioma = idiomaService.resolver(codigo);
+        return ResponseEntity.ok(IdiomaResponse.from(idiomaService.editar(idioma.getId(), request, userId)));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{codigo}")
     public ResponseEntity<Void> excluir(
-            @PathVariable Long id,
+            @PathVariable String codigo,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
-        idiomaService.excluir(id, userId);
+        Idioma idioma = idiomaService.resolver(codigo);
+        idiomaService.excluir(idioma.getId(), userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/importar")
+    @PostMapping("/{codigo}/importar")
     public ResponseEntity<IdiomaResponse> importar(
-            @PathVariable Long id,
+            @PathVariable String codigo,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
         Usuario usuario = usuarioService.buscarPorId(userId);
-        Idioma copia = idiomaService.importar(userId, id, usuario);
+        Idioma original = idiomaService.resolver(codigo);
+        Idioma copia = idiomaService.importar(userId, original.getId(), usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(IdiomaResponse.from(copia));
     }
 
-    @PostMapping("/{id}/avaliar")
+    @PostMapping("/{codigo}/avaliar")
     public ResponseEntity<AvaliacaoResponse> avaliar(
-            @PathVariable Long id,
+            @PathVariable String codigo,
             Authentication authentication,
             @Valid @RequestBody AvaliacaoRequest request) {
         Long userId = Long.valueOf(authentication.getName());
-        return ResponseEntity.ok(avaliacaoService.avaliar(userId, id, request.nota()));
+        Idioma idioma = idiomaService.resolver(codigo);
+        return ResponseEntity.ok(avaliacaoService.avaliar(userId, idioma.getId(), request.nota()));
     }
 
-    @PostMapping("/{id}/denunciar")
+    @PostMapping("/{codigo}/denunciar")
     public ResponseEntity<Void> denunciar(
-            @PathVariable Long id,
+            @PathVariable String codigo,
             Authentication authentication,
             @Valid @RequestBody DenunciaRequest request) {
         Usuario usuario = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
-        denunciaService.criar(id, request, usuario);
+        Idioma idioma = idiomaService.resolver(codigo);
+        denunciaService.criar(idioma.getId(), request, usuario);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

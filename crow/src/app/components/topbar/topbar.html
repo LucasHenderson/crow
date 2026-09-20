@@ -2,7 +2,7 @@
   <div class="icon left"></div>
 
   <div class="logo">
-    <img routerLink="/home" src="../../../assets/imgs/logo-removebg.png" alt="Logo">
+    <img routerLink="/home" src="../../../assets/imgs/logo-branca.png" alt="Logo">
   </div>
 
   <div class="user-area">
@@ -27,6 +27,22 @@
       </svg>
     </button>
 
+    <button class="sound-toggle" (click)="alternarSons()"
+            [attr.aria-label]="soundService.ativo() ? 'Desativar sons' : 'Ativar sons'"
+            [attr.aria-pressed]="soundService.ativo()"
+            [title]="soundService.ativo() ? 'Desativar sons' : 'Ativar sons'">
+      <svg *ngIf="soundService.ativo()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+      <svg *ngIf="!soundService.ativo()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <line x1="23" y1="9" x2="17" y2="15"></line>
+        <line x1="17" y1="9" x2="23" y2="15"></line>
+      </svg>
+    </button>
+
     <button class="user-btn" (click)="toggleMenu()" [class.active]="menuAberto">
       <div class="user-avatar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -37,7 +53,7 @@
     </button>
 
     <div class="dropdown" *ngIf="menuAberto">
-      <button routerLink="/perfil" (click)="perfil()">
+      <button *ngIf="!isAdmin" routerLink="/perfil" (click)="perfil()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>

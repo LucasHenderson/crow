@@ -72,7 +72,38 @@
               <div class="tipo-icone" [innerHTML]="frase.modoIcone"></div>
               <span class="tipo-label">{{ frase.modoNome }}</span>
             </div>
-            <span class="frase-numero">#{{ getNumeroFrase(i) }}</span>
+            <div class="frase-posicao">
+              <span class="frase-numero">#{{ getNumeroFrase(i) }}</span>
+
+              <!-- Reordenação: só o proprietário pode alterar a ordem -->
+              <div class="ordem-controles" *ngIf="isProprietario">
+                <button
+                  type="button"
+                  class="btn-ordem"
+                  [disabled]="!podeSubirFrase(i) || reordenacao.salvando()"
+                  [attr.aria-label]="'Mover para cima a frase ' + getNumeroFrase(i)"
+                  title="Mover para cima"
+                  (click)="moverFrase(i, -1)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="19" x2="12" y2="5"/>
+                    <polyline points="5 12 12 5 19 12"/>
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-ordem"
+                  [disabled]="!podeDescerFrase(i) || reordenacao.salvando()"
+                  [attr.aria-label]="'Mover para baixo a frase ' + getNumeroFrase(i)"
+                  title="Mover para baixo"
+                  (click)="moverFrase(i, 1)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <polyline points="19 12 12 19 5 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- CONTEÚDO - TRADUÇÃO DIRETA -->
@@ -571,6 +602,24 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ========== MENSAGEM DE ERRO DA REORDENAÇÃO ========== -->
+  <div class="mensagem-erro" role="alert" *ngIf="reordenacao.erro()">
+    <div class="erro-content">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>{{ reordenacao.erro() }}</p>
+      <button class="btn-fechar-erro" aria-label="Fechar aviso" (click)="reordenacao.limparErro()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
   </div>
 
