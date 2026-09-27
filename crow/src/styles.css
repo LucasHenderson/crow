@@ -278,6 +278,35 @@ body {
   animation: crow-shimmer 1.4s infinite;
 }
 
+/* ====================================
+   TROCA DE TEMA ANIMADA (ThemeService.toggle)
+   O novo tema se expande em círculo a partir do botão clicado (View
+   Transitions API). O recorte é animado pelo serviço, por isso as animações
+   padrão do navegador (fade entre os retratos) ficam desligadas.
+   ==================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Durante a revelação o novo tema precisa nascer pronto: sem as transições
+   de cor dos componentes, que "correriam atrás" do círculo. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
+/* Navegadores sem View Transitions: transição curta de cores */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 320ms ease, color 320ms ease, border-color 320ms ease,
+              fill 320ms ease, stroke 320ms ease !important;
+}
+
 /* Respeita usuários que preferem menos movimento */
 @media (prefers-reduced-motion: reduce) {
   *,

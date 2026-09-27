@@ -1,13 +1,19 @@
 package com.crow.api.service;
 
+import com.crow.api.dto.auth.FinalidadeCodigo;
+import com.crow.api.util.CorpoEmail;
+import com.crow.api.util.EmailLayout;
+import com.crow.api.util.EmailTemplates;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +33,12 @@ public class EmailVerificationService {
     private static final int EXPIRACAO_MINUTOS = 10;
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    public void enviarCodigo(String email) {
+    /**
+     * Gera e envia um código de 6 dígitos. A finalidade só escolhe o texto do
+     * e-mail (verificação de e-mail ou redefinição de senha); nula vale como
+     * verificação. Síncrono de propósito: se o envio falhar, o usuário precisa saber.
+     */
+    public void enviarCodigo(String email, FinalidadeCodigo finalidade) {
         // Limpar códigos expirados
         codigos.entrySet().removeIf(entry ->
                 entry.getValue().criadoEm().plusMinutes(EXPIRACAO_MINUTOS).isBefore(LocalDateTime.now()));
@@ -38,20 +49,22 @@ public class EmailVerificationService {
         // Armazenar
         codigos.put(email.toLowerCase(), new CodigoVerificacao(codigo, LocalDateTime.now()));
 
-        // Enviar email
-        SimpleMailMessage mensagem = new SimpleMailMessage();
-        mensagem.setTo(email);
-        mensagem.setSubject("Crow - Código de Verificação");
-        mensagem.setText(
-                "Olá!\n\n" +
-                "Seu código de verificação para o Crow é:\n\n" +
-                "    " + codigo + "\n\n" +
-                "Este código expira em " + EXPIRACAO_MINUTOS + " minutos.\n\n" +
-                "Se você não solicitou este código, ignore este email.\n\n" +
-                "- Equipe Crow"
-        );
+        boolean redefinicao = finalidade == FinalidadeCodigo.REDEFINICAO_SENHA;
+        String assunto = EmailTemplates.assunto(redefinicao
+                ? EmailTemplates.ASSUNTO_CODIGO_REDEFINICAO
+                : EmailTemplates.ASSUNTO_CODIGO_VERIFICACAO);
+        CorpoEmail corpo = redefinicao
+                ? EmailTemplates.codigoRedefinicaoSenha(codigo, EXPIRACAO_MINUTOS)
+                : EmailTemplates.codigoVerificacaoEmail(codigo, EXPIRACAO_MINUTOS);
 
         try {
+            MimeMessage mensagem = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    mensagem, MimeMessageHelper.MULTIPART_MODE_RELATED, StandardCharsets.UTF_8.name());
+            helper.setTo(email);
+            helper.setSubject(assunto);
+            EmailLayout.preencher(helper, corpo);
+
             mailSender.send(mensagem);
         } catch (Exception e) {
             codigos.remove(email.toLowerCase());

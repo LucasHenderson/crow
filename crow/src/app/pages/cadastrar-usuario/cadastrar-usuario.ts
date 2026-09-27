@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { NovoUsuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { SoundService } from '../../services/sound.service';
 
 type CamposSenha = {
   senha: boolean;
@@ -52,12 +53,13 @@ export class CadastrarUsuario {
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
     public themeService: ThemeService,
-    private location: Location
+    private location: Location,
+    private soundService: SoundService
   ) {}
 
-  /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
-  alternarTema(): void {
-    this.themeService.toggle();
+  /** Alterna o tema (persistido pelo ThemeService); a animação parte do botão clicado. */
+  alternarTema(evento: Event): void {
+    this.themeService.toggle(evento.currentTarget as Element);
   }
 
   /** Volta para a página anterior (respeita o histórico) ou para o login. */
@@ -105,6 +107,7 @@ export class CadastrarUsuario {
     if (!this.validarEmail(this.novoUsuario.email)) {
       this.mensagemEmail = 'Informe um email válido.';
       this.erroEmail = true;
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -118,12 +121,14 @@ export class CadastrarUsuario {
         this.codigoEnviado = true;
         this.mensagemEmail = 'Código enviado! Verifique sua caixa de entrada.';
         this.erroEmail = false;
+        this.soundService.tocar('sucesso');
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.enviandoCodigo = false;
         this.mensagemEmail = err.error?.message || 'Erro ao enviar código. Tente novamente.';
         this.erroEmail = true;
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -133,6 +138,7 @@ export class CadastrarUsuario {
     if (!this.codigoDigitado || this.codigoDigitado.length !== 6) {
       this.mensagemEmail = 'Digite o código de 6 dígitos.';
       this.erroEmail = true;
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -148,9 +154,11 @@ export class CadastrarUsuario {
           this.emailVerificadoValor = this.novoUsuario.email;
           this.mensagemEmail = 'Email verificado com sucesso!';
           this.erroEmail = false;
+          this.soundService.tocar('sucesso');
         } else {
           this.mensagemEmail = 'Código inválido ou expirado. Tente novamente.';
           this.erroEmail = true;
+          this.soundService.tocar('erro');
         }
         this.cdr.detectChanges();
       },
@@ -158,6 +166,7 @@ export class CadastrarUsuario {
         this.verificandoCodigo = false;
         this.mensagemEmail = 'Erro ao verificar código. Tente novamente.';
         this.erroEmail = true;
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -181,25 +190,30 @@ export class CadastrarUsuario {
     this.erroCadastro = '';
 
     if (!this.validarCamposObrigatorios()) {
+      this.soundService.tocar('erro');
       return;
     }
 
     if (!this.validarEmail(this.novoUsuario.email)) {
       this.erroCadastro = 'Por favor, insira um email válido.';
+      this.soundService.tocar('erro');
       return;
     }
 
     if (!this.emailVerificado) {
       this.erroCadastro = 'Por favor, verifique seu email antes de continuar.';
+      this.soundService.tocar('erro');
       return;
     }
 
     if (!this.validarSenha()) {
+      this.soundService.tocar('erro');
       return;
     }
 
     if (!this.novoUsuario.aceitouTermos) {
       this.erroCadastro = 'Você precisa aceitar os termos de uso e política de privacidade.';
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -212,11 +226,13 @@ export class CadastrarUsuario {
     }).subscribe({
       next: () => {
         this.enviandoFormulario = false;
+        this.soundService.tocar('sucesso');
         this.router.navigate(['/home']);
       },
       error: (err) => {
         this.enviandoFormulario = false;
         this.erroCadastro = err.error?.message || 'Erro ao criar conta. Tente novamente.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });

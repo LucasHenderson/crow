@@ -9,20 +9,20 @@ export class ModuloService {
 
   constructor(private http: HttpClient) {}
 
-  getModulosPorIdioma(idiomaId: number | string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/idiomas/${idiomaId}/modulos`);
+  getModulosPorIdioma(codigoIdioma: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/idiomas/${codigoIdioma}/modulos`);
   }
 
-  criarModulo(idiomaId: number | string, dados: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/idiomas/${idiomaId}/modulos`, dados);
+  criarModulo(codigoIdioma: string, dados: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/idiomas/${codigoIdioma}/modulos`, dados);
   }
 
-  editarModulo(idiomaId: number | string, id: number, dados: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/idiomas/${idiomaId}/modulos/${id}`, dados);
+  editarModulo(codigoIdioma: string, id: number, dados: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/idiomas/${codigoIdioma}/modulos/${id}`, dados);
   }
 
-  excluirModulo(idiomaId: number | string, id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/idiomas/${idiomaId}/modulos/${id}`);
+  excluirModulo(codigoIdioma: string, id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/idiomas/${codigoIdioma}/modulos/${id}`);
   }
 
   /**
@@ -30,7 +30,7 @@ export class ModuloService {
    * de ids na ordem desejada e recusa listas parciais, com ids repetidos ou de
    * outro idioma.
    */
-  reordenarModulos(idiomaId: number | string, ids: number[]): Observable<any[]> {
-    return this.http.put<any[]>(`${this.apiUrl}/idiomas/${idiomaId}/modulos/ordem`, { ids });
+  reordenarModulos(codigoIdioma: string, ids: number[]): Observable<any[]> {
+    return this.http.put<any[]>(`${this.apiUrl}/idiomas/${codigoIdioma}/modulos/ordem`, { ids });
   }
 }

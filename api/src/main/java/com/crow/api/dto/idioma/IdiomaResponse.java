@@ -5,14 +5,11 @@ import com.crow.api.entity.Idioma;
 import java.time.format.DateTimeFormatter;
 
 public record IdiomaResponse(
-    // TODO Fase 21: remover id e criadorId — mantidos enquanto o frontend depende deles
-    Long id,
     String codigo,
     String nome,
     String idioma,
     String bandeira,
     String descricao,
-    Long criadorId,
     String codigoCriador,
     String criadorNome,
     int modulos,
@@ -31,13 +28,11 @@ public record IdiomaResponse(
      */
     public static IdiomaResponse from(Idioma idioma) {
         return new IdiomaResponse(
-                idioma.getId(),
                 idioma.getCodigo(),
                 idioma.getNome(),
                 idioma.getIdioma(),
                 idioma.getBandeira(),
                 idioma.getDescricao(),
-                idioma.getCriador() != null ? idioma.getCriador().getId() : null,
                 idioma.getCriador() != null ? idioma.getCriador().getCodigo() : null,
                 idioma.getCriador() != null ? idioma.getCriador().getNome() : null,
                 idioma.getModulos(),

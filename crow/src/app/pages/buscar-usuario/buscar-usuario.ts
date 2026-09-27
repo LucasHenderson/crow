@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UsuarioBusca as Usuario } from '../../models/usuario.model';
@@ -29,21 +29,20 @@ export class BuscarUsuario implements OnInit {
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
-    private cdr: ChangeDetectorRef,
-    private location: Location
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.carregarUsuarios();
   }
 
-  /** Volta para a página anterior (respeita o histórico) ou para a home. */
+  /**
+   * A busca só é aberta pela home, então o Voltar leva sempre para lá. O
+   * antigo `location.back()` prendia o usuário em ciclo: o Voltar do perfil
+   * empilha esta página de novo, e "voltar" daqui reabria o perfil visitado.
+   */
   voltar(): void {
-    if (window.history.length > 1) {
-      this.location.back();
-    } else {
-      this.router.navigate(['/home']);
-    }
+    this.router.navigate(['/home']);
   }
 
   carregarUsuarios(): void {

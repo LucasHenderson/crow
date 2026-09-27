@@ -3,7 +3,6 @@ package com.crow.api.service;
 import com.crow.api.config.SchedulingConfig;
 import com.crow.api.entity.LogAdmin;
 import com.crow.api.entity.Usuario;
-import com.crow.api.util.EmailTemplates;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -62,10 +61,12 @@ public class ReativacaoAutomaticaScheduler {
     /** E-mail e log de uma conta já reativada (transação da reativação já confirmada). */
     private void avisarReativacao(Usuario usuario, LocalDateTime prazo) {
         emailService.enviarAvisoContaReativada(usuario);
-        logAdminService.registrarAcaoSistema(LogAdmin.TipoLog.USUARIO,
-                "Reativou a conta do usuário " + usuario.getNome(),
-                "Código: " + usuario.getCodigo() + " — fim da suspensão temporária previsto para "
-                        + EmailTemplates.FORMATO_DATA.format(prazo));
+        logAdminService.registrarAcaoSistema(LogAdminService
+                .registroSistema(LogAdmin.TipoLog.MODERACAO, "Reativou conta de usuário")
+                .usuarioAfetado(usuario)
+                .detalhe("modalidade", "automática")
+                .detalhe("motivo", "fim da suspensão temporária")
+                .detalhe("prazo vencido em", prazo));
         log.info("Reativação automática: conta {} reativada", usuario.getCodigo());
     }
 }

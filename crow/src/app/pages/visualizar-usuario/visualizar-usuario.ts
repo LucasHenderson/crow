@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
-import { UsuarioVisualizar as Usuario } from '../../models/usuario.model';
+import { IdiomaBusca as Idioma, OrigemIdioma, Proficiencia, normalizarOrigem } from '../../models/idioma.model';
+import { OrigemUsuario, UsuarioVisualizar as Usuario, normalizarOrigemUsuario } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
 import { ClipboardService, EstadoCopia } from '../../services/clipboard.service';
 
@@ -24,6 +24,12 @@ export class VisualizarUsuario implements OnInit, OnDestroy {
   idiomas: Idioma[] = [];
   carregando = true;
 
+  /** Tela de onde o perfil foi aberto — define para onde o botão Voltar leva. */
+  origem: OrigemUsuario = 'buscar-usuario';
+  /** Código do idioma de partida e a origem que ele tinha, quando `origem` é `visualizar-idioma`. */
+  private idiomaDeOrigem = '';
+  private origemDoIdioma: OrigemIdioma = 'home';
+
   /** Confirmação temporária ao copiar o código público do usuário. */
   readonly estadoCopiaId: EstadoCopia;
 
@@ -32,14 +38,17 @@ export class VisualizarUsuario implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private usuarioService: UsuarioService,
     private cdr: ChangeDetectorRef,
-    private location: Location,
     clipboard: ClipboardService
   ) {
     this.estadoCopiaId = clipboard.criarEstado();
   }
 
   ngOnInit(): void {
-    const codigo = this.route.snapshot.queryParamMap.get('id');
+    const qp = this.route.snapshot.queryParamMap;
+    this.origem = normalizarOrigemUsuario(qp.get('origem'));
+    this.idiomaDeOrigem = qp.get('idioma') || '';
+    this.origemDoIdioma = normalizarOrigem(qp.get('origemIdioma'));
+    const codigo = qp.get('id');
     if (codigo) {
       this.carregarUsuario(codigo);
     }
@@ -138,14 +147,17 @@ export class VisualizarUsuario implements OnInit, OnDestroy {
   }
 
   /**
-   * Volta para a página de onde o usuário veio (respeita o histórico);
-   * sem histórico, cai na listagem de usuários.
+   * Retorna para a tela de origem informada na URL: o idioma de onde o perfil
+   * foi aberto (com a origem que ele tinha) ou a busca de usuários. Substitui
+   * o antigo `location.back()`, que fazia pingue-pongue com a tela do idioma.
    */
   voltar(): void {
-    if (window.history.length > 1) {
-      this.location.back();
-    } else {
-      this.router.navigate(['/buscar-usuario']);
+    if (this.origem === 'visualizar-idioma' && this.idiomaDeOrigem) {
+      this.router.navigate(['/visualizar-idioma'], {
+        queryParams: { id: this.idiomaDeOrigem, origem: this.origemDoIdioma }
+      });
+      return;
     }
+    this.router.navigate(['/buscar-usuario']);
   }
 }

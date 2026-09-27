@@ -43,7 +43,7 @@ public class UsuarioController {
     /** Perfil público de outro usuário — sem email, telefone, papel ou status. */
     @GetMapping("/{codigo}")
     public ResponseEntity<UsuarioPublicoResponse> buscarPorCodigo(@PathVariable String codigo) {
-        return ResponseEntity.ok(usuarioService.toPublicoResponse(usuarioService.resolver(codigo)));
+        return ResponseEntity.ok(usuarioService.toPublicoResponse(usuarioService.buscarPorCodigo(codigo)));
     }
 
     @GetMapping("/me")
@@ -101,7 +101,7 @@ public class UsuarioController {
     /** Idiomas públicos criados pelo usuário — exibidos no perfil público dele. */
     @GetMapping("/{codigo}/idiomas")
     public ResponseEntity<List<IdiomaResponse>> idiomasPublicos(@PathVariable String codigo) {
-        Usuario usuario = usuarioService.resolver(codigo);
+        Usuario usuario = usuarioService.buscarPorCodigo(codigo);
         return ResponseEntity.ok(
                 idiomaService.buscarPublicosPorCriador(usuario.getId()).stream()
                         .map(IdiomaResponse::from)

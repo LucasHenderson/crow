@@ -15,7 +15,6 @@ import com.crow.api.repository.IdiomaRepository;
 import com.crow.api.repository.IdiomaUsuarioRepository;
 import com.crow.api.repository.ModuloRepository;
 import com.crow.api.repository.UsuarioRepository;
-import com.crow.api.util.CodigoPublico;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
@@ -68,19 +67,6 @@ public class IdiomaService {
         return idioma;
     }
 
-    /**
-     * Resolve a referência recebida na rota para a entidade: aceita o código
-     * público e, temporariamente, o id numérico.
-     */
-    @Transactional(readOnly = true)
-    public Idioma resolver(String referencia) {
-        // TODO remover compatibilidade numérica após migração completa do frontend
-        if (CodigoPublico.ehNumerico(referencia)) {
-            return buscarPorId(Long.valueOf(referencia));
-        }
-        return buscarPorCodigo(referencia);
-    }
-
     /** Idiomas públicos criados por um usuário — exibidos no perfil público dele. */
     @Transactional(readOnly = true)
     public List<Idioma> buscarPublicosPorCriador(Long criadorId) {
@@ -129,8 +115,8 @@ public class IdiomaService {
      * moderação. Quando o não-proprietário é um admin, a tentativa é gravada
      * no log administrativo e recusada com mensagem específica.</p>
      *
-     * @param acao descrição curta da operação recusada (ex.: "criar módulo"),
-     *             usada apenas no log.
+     * @param acao infinitivo + objeto da operação recusada (ex.: "criar módulo"),
+     *             usado apenas no log ("Tentou criar módulo em idioma de outro usuário").
      */
     @Transactional(readOnly = true)
     public void validarProprietario(Long idiomaId, Long usuarioId, String acao) {
@@ -143,10 +129,15 @@ public class IdiomaService {
 
         Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
         if (usuario != null && usuario.getRole() == Usuario.Role.ADMIN) {
-            String criador = idioma.getCriador() != null ? idioma.getCriador().getCodigo() : "desconhecido";
-            logAdminService.registrarTentativaBloqueada(usuario, LogAdmin.TipoLog.IDIOMA,
-                    acao + " em idioma de outro usuário",
-                    "Idioma: " + idioma.getNome() + " (" + idioma.getCodigo() + ") — criador: " + criador);
+            // "editar idioma de outro usuário" / "criar módulo em idioma de outro usuário".
+            String complemento = acao.endsWith("idioma") ? " de outro usuário" : " em idioma de outro usuário";
+            // O proprietário do idioma é o usuário afetado pela tentativa; pode ser nulo em dados antigos.
+            logAdminService.registrarTentativaBloqueada(LogAdminService
+                    .registro(usuario, LogAdmin.TipoLog.IDIOMA, acao + complemento)
+                    .idiomaAfetado(idioma)
+                    .usuarioAfetado(idioma.getCriador())
+                    .detalheSe(idioma.getCriador() == null, "proprietário", "desconhecido")
+                    .detalhe("motivo", "administrador não edita conteúdo de outros usuários"));
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Administradores não podem alterar conteúdo de outros usuários: "
                             + "o papel administrativo é de moderação, não de edição");
@@ -154,6 +145,32 @@ public class IdiomaService {
 
         throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                 "Você não tem permissão para modificar este idioma");
+    }
+
+    /**
+     * Administradores não produzem nem interagem com conteúdo — só moderam.
+     * Criar, importar, avaliar e denunciar idiomas são ações de usuário comum;
+     * a interface não as expõe ao admin, então uma tentativa só chega aqui por
+     * chamada direta à API. Ela é registrada e recusada, no mesmo modelo de
+     * {@link #validarProprietario}.
+     *
+     * @param acao infinitivo + objeto (ex.: "avaliar idioma"), usado no log.
+     * @param alvo idioma envolvido; nulo quando a ação não tem alvo (criação).
+     */
+    public void exigirUsuarioComum(Usuario usuario, String acao, Idioma alvo) {
+        if (usuario == null || usuario.getRole() != Usuario.Role.ADMIN) {
+            return;
+        }
+        LogAdminService.Registro registro = LogAdminService
+                .registro(usuario, LogAdmin.TipoLog.IDIOMA, acao)
+                .detalhe("motivo", "administrador não cria nem interage com conteúdo");
+        if (alvo != null) {
+            registro.idiomaAfetado(alvo).usuarioAfetado(alvo.getCriador());
+        }
+        logAdminService.registrarTentativaBloqueada(registro);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Administradores não criam, importam, avaliam nem denunciam idiomas: "
+                        + "o papel administrativo é de moderação");
     }
 
     /**

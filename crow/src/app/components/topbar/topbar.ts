@@ -28,9 +28,9 @@ export class Topbar implements OnInit, OnDestroy {
     public soundService: SoundService
   ) {}
 
-  /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
-  alternarTema(): void {
-    this.themeService.toggle();
+  /** Alterna o tema (persistido pelo ThemeService); a animação parte do botão clicado. */
+  alternarTema(evento: Event): void {
+    this.themeService.toggle(evento.currentTarget as Element);
   }
 
   /**

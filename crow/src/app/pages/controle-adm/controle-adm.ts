@@ -1,15 +1,18 @@
 import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Denuncia } from '../../models/denuncia.model';
-import { UsuarioModeracao } from '../../models/usuario.model';
-import { IdiomaAdm as Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/idioma.model';
+import { AlterarStatusUsuario, EnviarEmailUsuario, UsuarioModeracao } from '../../models/usuario.model';
+import { IdiomaAdm as Idioma } from '../../models/idioma.model';
 import { Log } from '../../models/log.model';
 import { AdminService } from '../../services/admin.service';
-import { AuthService } from '../../services/auth.service';
+import { SoundService } from '../../services/sound.service';
 
 type AbaAtiva = 'denuncias' | 'usuarios' | 'idiomas' | 'logs';
+const ABAS: readonly AbaAtiva[] = ['denuncias', 'usuarios', 'idiomas', 'logs'];
+/** Modalidades do modal "Desativar / Suspender Conta" — espelham DESATIVAR e SUSPENDER do backend. */
+type TipoDesativacao = 'indeterminada' | 'temporaria';
 
 @Component({
   selector: 'app-controle-adm',
@@ -32,7 +35,11 @@ export class ControleAdm implements OnInit {
 
   // Filtros
   filtroDenunciaStatus: string[] = [];
-  /** Vazio = sem filtro (todos os usuários); segue o padrão das outras abas. */
+  /**
+   * Vazio = sem filtro (todos os usuários); segue o padrão das outras abas.
+   * Valores: `ativo`, `suspenso` e `inativo` (desativada por tempo indeterminado)
+   * — as mesmas situações que `getStatusUsuarioClass` distingue.
+   */
   filtroUsuarioStatus: string[] = [];
   buscaUsuario = '';
   buscaIdioma = '';
@@ -64,55 +71,70 @@ export class ControleAdm implements OnInit {
   mostrarModalDenuncia = false;
   mostrarModalVisualizarUsuario = false;
   mostrarModalDesativarUsuario = false;
-  mostrarModalEditarIdioma = false;
+  mostrarModalReativarUsuario = false;
+  mostrarModalEmailUsuario = false;
   mostrarModalExcluirIdioma = false;
   mostrarMensagemSucesso = false;
 
   // Dados dos modais
   denunciaSelecionada: Denuncia | null = null;
+  /**
+   * Código público vindo de `?usuario=` — o modal de denúncia abre o denunciante
+   * em nova aba por esse parâmetro. Consumido assim que a lista de usuários chega.
+   */
+  private codigoUsuarioSolicitado: string | null = null;
   usuarioEmVisualizacao: UsuarioModeracao | null = null;
   usuarioEmDesativacao: UsuarioModeracao | null = null;
-  idiomaEmEdicao: Idioma | null = null;
+  usuarioEmReativacao: UsuarioModeracao | null = null;
+  usuarioEmEmail: UsuarioModeracao | null = null;
+
+  // Campos do modal Desativar / Suspender Conta
+  readonly limiteJustificativa = 1000;
+  tipoDesativacao: TipoDesativacao = 'indeterminada';
+  /** Valor bruto do input datetime-local (yyyy-MM-ddTHH:mm), sempre no fuso do navegador. */
+  reativacaoEmDesativacao = '';
+  justificativaDesativacao = '';
+  salvandoDesativacao = false;
+  erroDesativacao = '';
+
+  // Modal Reativar Conta
+  salvandoReativacao = false;
+  erroReativacao = '';
+
+  // Campos do modal Enviar E-mail — limites iguais aos do EnviarEmailUsuarioRequest do backend
+  readonly limiteAssuntoEmail = 150;
+  readonly limiteMensagemEmail = 5000;
+  assuntoEmail = '';
+  mensagemEmail = '';
+  enviandoEmail = false;
+  erroEmail = '';
+
+  // Modal Excluir Idioma — limite igual ao do ExcluirIdiomaRequest do backend
   idiomaEmExclusao: Idioma | null = null;
+  readonly limiteMensagemExclusao = 1000;
+  mensagemExclusaoIdioma = '';
+  excluindoIdioma = false;
+  erroExclusaoIdioma = '';
 
-  // Campos de edição de idioma
-  nomeIdiomaEdicao = '';
-  descricaoIdiomaEdicao = '';
-  idiomaSelecionadoEdicao: IdiomaOpcao | null = null;
-  proficienciaIdiomaEdicao = '';
-  visibilidadeIdiomaEdicao: 'publico' | 'privado' = 'publico';
-  
-  // Dropdowns idioma
-  mostrarIdiomasEdicao = false;
-  mostrarProficienciaEdicao = false;
-  buscaIdiomaEdicao = '';
-  
-  // Opções disponíveis
-  idiomasDisponiveis = IDIOMAS_DISPONIVEIS;
-
-  proficiencias = PROFICIENCIAS;
-  
   // Mensagem de sucesso
   mensagemSucesso = '';
-  
-  // ID do admin logado
-  adminLogadoId: number = 0;
-  adminLogadoNome = 'Administrador Principal';
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private adminService: AdminService,
-    private authService: AuthService
-  ) {
-    const user = this.authService.getCurrentUser();
-    if (user) {
-      this.adminLogadoId = user.id;
-      this.adminLogadoNome = user.nome;
-    }
-  }
+    private soundService: SoundService
+  ) {}
 
   ngOnInit(): void {
+    // `?aba=idiomas` abre direto na aba pedida — é assim que a visualização de idioma volta para cá.
+    const aba = this.route.snapshot.queryParamMap.get('aba') as AbaAtiva | null;
+    if (aba && ABAS.includes(aba)) {
+      this.abaAtiva = aba;
+    }
+    this.codigoUsuarioSolicitado = this.route.snapshot.queryParamMap.get('usuario');
+
     this.carregarDenuncias();
     this.carregarUsuarios();
     this.carregarIdiomas();
@@ -161,6 +183,7 @@ export class ControleAdm implements OnInit {
     this.adminService.getUsuariosAdmin().subscribe({
       next: (usuarios) => {
         this.usuarios = usuarios.filter(u => u.role !== 'admin');
+        this.abrirUsuarioSolicitado();
         this.cdr.detectChanges();
       },
       error: () => this.cdr.detectChanges()
@@ -274,13 +297,15 @@ export class ControleAdm implements OnInit {
     this.adminService.alterarStatusDenuncia(this.denunciaSelecionada.codigo, status).subscribe({
       next: (denunciaAtualizada) => {
         const normalizada = this.normalizarDenuncia(denunciaAtualizada);
-        const index = this.denuncias.findIndex(d => d.id === normalizada.id);
+        const index = this.denuncias.findIndex(d => d.codigo === normalizada.codigo);
         if (index >= 0) this.denuncias[index] = normalizada;
         this.fecharModalDenuncia();
+        this.soundService.tocar('sucesso');
         this.exibirMensagemSucesso('Status da denúncia atualizado com sucesso!');
         this.carregarLogs();
       },
       error: () => {
+        this.soundService.tocar('erro');
         this.exibirMensagemSucesso('Erro ao alterar status da denúncia.');
       }
     });
@@ -321,6 +346,36 @@ export class ControleAdm implements OnInit {
     return this.denunciaSelecionada?.tipos.includes('Outros') || false;
   }
 
+  // ----- Acesso rápido aos envolvidos (abre em nova aba) -----
+
+  /** Falso quando o idioma foi excluído: o backend zera o vínculo e o código deixa de vir. */
+  get idiomaDenunciadoDisponivel(): boolean {
+    return !!this.denunciaSelecionada?.codigoIdioma;
+  }
+
+  /** Falso quando a conta do denunciante não existe mais. */
+  get denuncianteDisponivel(): boolean {
+    return !!this.denunciaSelecionada?.codigoUsuario;
+  }
+
+  /** Mesma rota que o botão de olho da aba Idiomas, pelo código público. */
+  get linkIdiomaDenunciado(): string | null {
+    const codigo = this.denunciaSelecionada?.codigoIdioma;
+    if (!codigo) return null;
+    return this.router.serializeUrl(
+      this.router.createUrlTree(['/visualizar-idioma-adm'], { queryParams: { id: codigo } })
+    );
+  }
+
+  /** Reabre este painel na aba Usuários com o modal de consulta do denunciante (ver `abrirUsuarioSolicitado`). */
+  get linkDenunciante(): string | null {
+    const codigo = this.denunciaSelecionada?.codigoUsuario;
+    if (!codigo) return null;
+    return this.router.serializeUrl(
+      this.router.createUrlTree(['/controle-adm'], { queryParams: { aba: 'usuarios', usuario: codigo } })
+    );
+  }
+
   // ===== USUÁRIOS =====
 
   toggleFiltroUsuarioStatus(status: string): void {
@@ -341,7 +396,7 @@ export class ControleAdm implements OnInit {
     let usuarios = this.usuarios;
 
     if (this.filtroUsuarioStatus.length > 0) {
-      usuarios = usuarios.filter(u => this.filtroUsuarioStatus.includes(u.status));
+      usuarios = usuarios.filter(u => this.filtroUsuarioStatus.includes(this.getStatusUsuarioClass(u)));
     }
 
     if (this.buscaUsuario.trim()) {
@@ -388,6 +443,26 @@ export class ControleAdm implements OnInit {
     return nome.substring(0, 2).toUpperCase();
   }
 
+  /**
+   * Atende ao `?usuario=CODIGO` (acesso rápido a partir da denúncia): abre a aba
+   * de usuários com a busca preenchida e o modal de consulta já aberto. Se o
+   * código não estiver na lista, a busca preenchida deixa claro que não há resultado.
+   */
+  private abrirUsuarioSolicitado(): void {
+    const codigo = this.codigoUsuarioSolicitado;
+    if (!codigo) return;
+    this.codigoUsuarioSolicitado = null;
+
+    this.abaAtiva = 'usuarios';
+    this.buscaUsuario = codigo;
+    this.paginaAtualUsuarios = 1;
+
+    const usuario = this.usuarios.find(u => u.codigo.toLowerCase() === codigo.toLowerCase());
+    if (usuario) {
+      this.abrirModalVisualizarUsuario(usuario);
+    }
+  }
+
   /** O administrador apenas consulta os dados do usuário — não há edição. */
   abrirModalVisualizarUsuario(usuario: UsuarioModeracao): void {
     this.usuarioEmVisualizacao = usuario;
@@ -399,42 +474,273 @@ export class ControleAdm implements OnInit {
     this.usuarioEmVisualizacao = null;
   }
 
-  suspenderUsuario(): void {
-    // TODO Fase 16: desativar/suspender a conta a partir do modal de consulta
+  /**
+   * Ação de moderação a partir do modal de consulta: fecha a consulta e abre
+   * o modal correspondente à situação atual da conta.
+   */
+  moderarUsuarioEmVisualizacao(): void {
+    const usuario = this.usuarioEmVisualizacao;
+    if (!usuario) return;
+    this.fecharModalVisualizarUsuario();
+    if (usuario.status === 'ativo') {
+      this.abrirModalDesativarUsuario(usuario);
+    } else {
+      this.abrirModalReativarUsuario(usuario);
+    }
   }
 
-  enviarEmailUsuario(): void {
-    // TODO Fase 17: enviar e-mail ao usuário a partir do modal de consulta
+  /** "Enviar e-mail" a partir do modal de consulta: fecha a consulta e abre o modal de e-mail. */
+  enviarEmailUsuarioEmVisualizacao(): void {
+    const usuario = this.usuarioEmVisualizacao;
+    if (!usuario) return;
+    this.fecharModalVisualizarUsuario();
+    this.abrirModalEmailUsuario(usuario);
   }
+
+  // ----- Situação da conta (ativa / suspensa / desativada) -----
+
+  /** Suspensa temporariamente: inativa com data de reativação automática. */
+  estaSuspenso(usuario: UsuarioModeracao): boolean {
+    return usuario.status === 'inativo' && !!usuario.suspensoAte;
+  }
+
+  /** Classe do badge de status: `ativo`, `suspenso` ou `inativo` (desativada por tempo indeterminado). */
+  getStatusUsuarioClass(usuario: UsuarioModeracao): string {
+    if (usuario.status === 'ativo') return 'ativo';
+    return this.estaSuspenso(usuario) ? 'suspenso' : 'inativo';
+  }
+
+  getStatusUsuarioTexto(usuario: UsuarioModeracao): string {
+    if (usuario.status === 'ativo') return 'Ativo';
+    return this.estaSuspenso(usuario) ? 'Suspenso' : 'Desativado';
+  }
+
+  /**
+   * "12/09/2026 às 14:30" — mesmo formato do e-mail e do log do backend
+   * (EmailTemplates.FORMATO_DATA). Aceita o ISO local devolvido pela API ou um Date.
+   */
+  formatarDataHora(valor: string | Date | null | undefined): string {
+    if (!valor) return '';
+    const data = valor instanceof Date ? valor : new Date(valor);
+    if (isNaN(data.getTime())) return '';
+    const dia = data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return `${dia} às ${hora}`;
+  }
+
+  // ----- Modal Desativar / Suspender Conta -----
 
   abrirModalDesativarUsuario(usuario: UsuarioModeracao): void {
     this.usuarioEmDesativacao = usuario;
+    this.tipoDesativacao = 'indeterminada';
+    this.reativacaoEmDesativacao = '';
+    this.justificativaDesativacao = '';
+    this.erroDesativacao = '';
+    this.salvandoDesativacao = false;
     this.mostrarModalDesativarUsuario = true;
+    this.soundService.tocar('alerta');
   }
 
   fecharModalDesativarUsuario(): void {
+    if (this.salvandoDesativacao) return;
     this.mostrarModalDesativarUsuario = false;
     this.usuarioEmDesativacao = null;
   }
 
-  confirmarAlteracaoStatusUsuario(): void {
-    if (!this.usuarioEmDesativacao) return;
+  selecionarTipoDesativacao(tipo: TipoDesativacao): void {
+    this.tipoDesativacao = tipo;
+    this.erroDesativacao = '';
+  }
 
-    const novoStatus = this.usuarioEmDesativacao.status === 'ativo' ? 'inativo' : 'ativo';
+  /** Menor valor aceito pelo datetime-local: o minuto atual, no fuso do navegador. */
+  get minimoReativacao(): string {
+    return this.paraDatetimeLocal(new Date());
+  }
 
-    this.adminService.alterarStatusUsuario(this.usuarioEmDesativacao.codigo, novoStatus).subscribe({
-      next: (updated) => {
-        const index = this.usuarios.findIndex(u => u.id === updated.id);
-        if (index >= 0) this.usuarios[index] = updated;
-        const acao = novoStatus === 'ativo' ? 'ativada' : 'desativada';
+  /** Data escolhida no datetime-local, ou null se vazia/inválida. */
+  get dataReativacao(): Date | null {
+    if (!this.reativacaoEmDesativacao) return null;
+    const data = new Date(this.reativacaoEmDesativacao);
+    return isNaN(data.getTime()) ? null : data;
+  }
+
+  get dataReativacaoFutura(): boolean {
+    const data = this.dataReativacao;
+    return !!data && data.getTime() > Date.now();
+  }
+
+  /** Só acusa erro depois que o campo foi preenchido — vazio é "ainda não escolheu". */
+  get reativacaoInvalida(): boolean {
+    return !!this.reativacaoEmDesativacao && !this.dataReativacaoFutura;
+  }
+
+  get resumoReativacao(): string {
+    return this.dataReativacaoFutura
+      ? `A conta será reativada automaticamente em ${this.formatarDataHora(this.dataReativacao)}.`
+      : '';
+  }
+
+  get podeConfirmarDesativacao(): boolean {
+    if (!this.usuarioEmDesativacao || this.salvandoDesativacao) return false;
+    if (this.justificativaDesativacao.length > this.limiteJustificativa) return false;
+    return this.tipoDesativacao === 'indeterminada' || this.dataReativacaoFutura;
+  }
+
+  confirmarDesativacaoUsuario(): void {
+    if (!this.podeConfirmarDesativacao || !this.usuarioEmDesativacao) return;
+
+    const temporaria = this.tipoDesativacao === 'temporaria';
+    const justificativa = this.justificativaDesativacao.trim();
+    const dados: AlterarStatusUsuario = {
+      acao: temporaria ? 'SUSPENDER' : 'DESATIVAR',
+      justificativa: justificativa || undefined,
+      reativacaoEm: temporaria ? this.paraIsoLocal(this.reativacaoEmDesativacao) : undefined,
+    };
+
+    this.salvandoDesativacao = true;
+    this.erroDesativacao = '';
+
+    this.adminService.alterarStatusUsuario(this.usuarioEmDesativacao.codigo, dados).subscribe({
+      next: (atualizado) => {
+        this.substituirUsuario(atualizado);
+        this.salvandoDesativacao = false;
         this.fecharModalDesativarUsuario();
-        this.exibirMensagemSucesso(`Conta de "${updated.nome}" ${acao} com sucesso!`);
+        this.soundService.tocar('exclusao');
+        this.exibirMensagemSucesso(temporaria
+          ? `Conta de "${atualizado.nome}" suspensa até ${this.formatarDataHora(atualizado.suspensoAte)}.`
+          : `Conta de "${atualizado.nome}" desativada por tempo indeterminado.`);
         this.carregarLogs();
       },
-      error: () => {
-        this.exibirMensagemSucesso('Erro ao alterar status do usuário.');
+      error: (err) => {
+        this.salvandoDesativacao = false;
+        this.erroDesativacao = err?.error?.message || 'Erro ao alterar o status da conta. Tente novamente.';
+        this.soundService.tocar('erro');
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  // ----- Modal Reativar Conta -----
+
+  abrirModalReativarUsuario(usuario: UsuarioModeracao): void {
+    this.usuarioEmReativacao = usuario;
+    this.erroReativacao = '';
+    this.salvandoReativacao = false;
+    this.mostrarModalReativarUsuario = true;
+  }
+
+  fecharModalReativarUsuario(): void {
+    if (this.salvandoReativacao) return;
+    this.mostrarModalReativarUsuario = false;
+    this.usuarioEmReativacao = null;
+  }
+
+  confirmarReativacaoUsuario(): void {
+    if (!this.usuarioEmReativacao || this.salvandoReativacao) return;
+
+    this.salvandoReativacao = true;
+    this.erroReativacao = '';
+
+    this.adminService.alterarStatusUsuario(this.usuarioEmReativacao.codigo, { acao: 'REATIVAR' }).subscribe({
+      next: (atualizado) => {
+        this.substituirUsuario(atualizado);
+        this.salvandoReativacao = false;
+        this.fecharModalReativarUsuario();
+        this.soundService.tocar('sucesso');
+        this.exibirMensagemSucesso(`Conta de "${atualizado.nome}" reativada com sucesso!`);
+        this.carregarLogs();
+      },
+      error: (err) => {
+        this.salvandoReativacao = false;
+        this.erroReativacao = err?.error?.message || 'Erro ao reativar a conta. Tente novamente.';
+        this.soundService.tocar('erro');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ----- Modal Enviar E-mail -----
+
+  abrirModalEmailUsuario(usuario: UsuarioModeracao): void {
+    this.usuarioEmEmail = usuario;
+    this.limparCamposEmail();
+    this.mostrarModalEmailUsuario = true;
+  }
+
+  /** Também limpa os campos: o próximo envio não pode herdar assunto ou mensagem deste. */
+  fecharModalEmailUsuario(): void {
+    if (this.enviandoEmail) return;
+    this.mostrarModalEmailUsuario = false;
+    this.usuarioEmEmail = null;
+    this.limparCamposEmail();
+  }
+
+  private limparCamposEmail(): void {
+    this.assuntoEmail = '';
+    this.mensagemEmail = '';
+    this.erroEmail = '';
+    this.enviandoEmail = false;
+  }
+
+  /** Assunto e mensagem preenchidos (sem contar espaços) e dentro dos limites do backend. */
+  get podeEnviarEmail(): boolean {
+    if (!this.usuarioEmEmail || this.enviandoEmail) return false;
+    const assunto = this.assuntoEmail.trim();
+    const mensagem = this.mensagemEmail.trim();
+    return assunto.length > 0 && assunto.length <= this.limiteAssuntoEmail
+      && mensagem.length > 0 && mensagem.length <= this.limiteMensagemEmail;
+  }
+
+  confirmarEnvioEmail(): void {
+    if (!this.podeEnviarEmail || !this.usuarioEmEmail) return;
+
+    const destinatario = this.usuarioEmEmail;
+    const dados: EnviarEmailUsuario = {
+      assunto: this.assuntoEmail.trim(),
+      mensagem: this.mensagemEmail.trim(),
+    };
+
+    this.enviandoEmail = true;
+    this.erroEmail = '';
+
+    this.adminService.enviarEmailUsuario(destinatario.codigo, dados).subscribe({
+      next: () => {
+        this.enviandoEmail = false;
+        this.fecharModalEmailUsuario();
+        this.soundService.tocar('sucesso');
+        this.exibirMensagemSucesso(`E-mail para "${destinatario.nome}" enviado com sucesso!`);
+        this.carregarLogs();
+      },
+      error: (err) => {
+        this.enviandoEmail = false;
+        this.erroEmail = err?.error?.message || 'Erro ao enviar o e-mail. Tente novamente.';
+        this.soundService.tocar('erro');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ----- Apoio -----
+
+  /** Troca o registro na lista pelo devolvido pela API — a lista nunca ganha itens por aqui. */
+  private substituirUsuario(atualizado: UsuarioModeracao): void {
+    const index = this.usuarios.findIndex(u => u.codigo === atualizado.codigo);
+    if (index >= 0) this.usuarios[index] = atualizado;
+  }
+
+  /** `yyyy-MM-ddTHH:mm` local, o formato que o datetime-local lê e escreve. */
+  private paraDatetimeLocal(data: Date): string {
+    const dois = (n: number) => String(n).padStart(2, '0');
+    return `${data.getFullYear()}-${dois(data.getMonth() + 1)}-${dois(data.getDate())}`
+      + `T${dois(data.getHours())}:${dois(data.getMinutes())}`;
+  }
+
+  /**
+   * O backend recebe LocalDateTime (sem fuso) e compara com o relógio do
+   * servidor, então o valor vai como digitado, só completando os segundos.
+   */
+  private paraIsoLocal(valorDatetimeLocal: string): string {
+    return valorDatetimeLocal.length === 16 ? `${valorDatetimeLocal}:00` : valorDatetimeLocal;
   }
 
   // ===== IDIOMAS =====
@@ -471,159 +777,55 @@ export class ControleAdm implements OnInit {
     }
   }
 
-  get idiomasFiltradosEdicao(): IdiomaOpcao[] {
-    if (!this.buscaIdiomaEdicao.trim()) return this.idiomasDisponiveis;
-    const termo = this.buscaIdiomaEdicao.toLowerCase();
-    return this.idiomasDisponiveis.filter(i => i.nome.toLowerCase().includes(termo));
-  }
-
-  toggleIdiomasEdicao(): void {
-    this.mostrarIdiomasEdicao = !this.mostrarIdiomasEdicao;
-    this.mostrarProficienciaEdicao = false;
-  }
-
-  toggleProficienciaEdicao(): void {
-    this.mostrarProficienciaEdicao = !this.mostrarProficienciaEdicao;
-    this.mostrarIdiomasEdicao = false;
-  }
-
-  selecionarIdiomaEdicao(idioma: IdiomaOpcao): void {
-    this.idiomaSelecionadoEdicao = idioma;
-    this.mostrarIdiomasEdicao = false;
-    this.buscaIdiomaEdicao = '';
-  }
-
-  selecionarProficienciaEdicao(nivel: string): void {
-    this.proficienciaIdiomaEdicao = nivel;
-    this.mostrarProficienciaEdicao = false;
-  }
-
-  fecharDropdownsEdicao(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.campo')) {
-      this.mostrarIdiomasEdicao = false;
-      this.mostrarProficienciaEdicao = false;
-    }
-  }
-
-  editarIdioma(idioma: Idioma): void {
-    this.idiomaEmEdicao = { ...idioma };
-    this.nomeIdiomaEdicao = idioma.nome;
-    this.descricaoIdiomaEdicao = idioma.descricao;
-    // O nome da linguagem (ex.: "Inglês (Estados Unidos)") vem no campo `idioma`.
-    const nomeLinguagem = idioma.idioma || idioma.nome;
-    this.idiomaSelecionadoEdicao = this.idiomasDisponiveis.find(i => i.nome === nomeLinguagem) || null;
-    this.proficienciaIdiomaEdicao = this.mapProficienciaParaLabel(idioma.proficiencia);
-    this.visibilidadeIdiomaEdicao = idioma.visibilidade || 'publico';
-    this.mostrarModalEditarIdioma = true;
-  }
-
-  private mapProficienciaParaLabel(valor: string | undefined): string {
-    if (!valor) return 'Básico';
-    const mapa: Record<string, string> = {
-      'iniciante': 'Iniciante',
-      'basico': 'Básico',
-      'intermediario': 'Intermediário',
-      'avancado': 'Avançado',
-      'fluente': 'Fluente'
-    };
-    return mapa[valor.toLowerCase()] || valor;
-  }
-
-  private mapProficienciaParaBackend(nivel: string): string {
-    const mapa: Record<string, string> = {
-      'Iniciante': 'INICIANTE',
-      'Básico': 'BASICO',
-      'Intermediário': 'INTERMEDIARIO',
-      'Avançado': 'AVANCADO',
-      'Fluente': 'FLUENTE'
-    };
-    return mapa[nivel] || nivel.toUpperCase();
-  }
-
-  fecharModalEditarIdioma(): void {
-    this.mostrarModalEditarIdioma = false;
-    this.idiomaEmEdicao = null;
-    this.nomeIdiomaEdicao = '';
-    this.descricaoIdiomaEdicao = '';
-    this.idiomaSelecionadoEdicao = null;
-    this.proficienciaIdiomaEdicao = '';
-    this.visibilidadeIdiomaEdicao = 'publico';
-    this.buscaIdiomaEdicao = '';
-    this.mostrarIdiomasEdicao = false;
-    this.mostrarProficienciaEdicao = false;
-  }
-
-  get podeConfirmarEdicaoIdioma(): boolean {
-    if (!this.idiomaEmEdicao) return false;
-
-    const nomeValido = this.nomeIdiomaEdicao.trim().length > 0;
-    const descricaoValida = this.descricaoIdiomaEdicao.trim().length > 0;
-    const idiomaValido = !!this.idiomaSelecionadoEdicao;
-    const proficienciaValida = !!this.proficienciaIdiomaEdicao;
-
-    const nomeLinguagemAtual = this.idiomaEmEdicao.idioma || this.idiomaEmEdicao.nome;
-    const dadosAlterados =
-      this.nomeIdiomaEdicao !== this.idiomaEmEdicao.nome ||
-      this.descricaoIdiomaEdicao !== this.idiomaEmEdicao.descricao ||
-      this.idiomaSelecionadoEdicao?.nome !== nomeLinguagemAtual ||
-      this.proficienciaIdiomaEdicao !== this.mapProficienciaParaLabel(this.idiomaEmEdicao.proficiencia) ||
-      this.visibilidadeIdiomaEdicao !== this.idiomaEmEdicao.visibilidade;
-
-    return nomeValido && descricaoValida && idiomaValido && proficienciaValida && dadosAlterados;
-  }
-
-  confirmarEdicaoIdioma(): void {
-    if (!this.podeConfirmarEdicaoIdioma || !this.idiomaEmEdicao || !this.idiomaSelecionadoEdicao) return;
-
-    const codigo = this.idiomaEmEdicao.codigo;
-    const dados = {
-      nome: this.nomeIdiomaEdicao.trim(),
-      idioma: this.idiomaSelecionadoEdicao.nome,
-      bandeira: this.idiomaSelecionadoEdicao.bandeira,
-      descricao: this.descricaoIdiomaEdicao.trim(),
-      proficiencia: this.mapProficienciaParaBackend(this.proficienciaIdiomaEdicao),
-      visibilidade: this.visibilidadeIdiomaEdicao.toUpperCase()
-    };
-
-    this.adminService.editarIdiomaAdmin(codigo, dados).subscribe({
-      next: (atualizado) => {
-        const index = this.idiomas.findIndex(i => i.codigo === codigo);
-        if (index >= 0) this.idiomas[index] = atualizado;
-        this.fecharModalEditarIdioma();
-        this.exibirMensagemSucesso(`Idioma "${atualizado.nome}" atualizado com sucesso!`);
-        this.carregarLogs();
-      },
-      error: (err) => {
-        this.exibirMensagemSucesso(err?.error?.message || 'Erro ao editar idioma.');
-      }
-    });
+  /** Abre a página administrativa do idioma (módulos e frases), somente leitura. */
+  visualizarIdioma(idioma: Idioma): void {
+    this.router.navigate(['/visualizar-idioma-adm'], { queryParams: { id: idioma.codigo } });
   }
 
   excluirIdioma(idioma: Idioma): void {
     this.idiomaEmExclusao = idioma;
+    this.mensagemExclusaoIdioma = '';
+    this.erroExclusaoIdioma = '';
+    this.excluindoIdioma = false;
     this.mostrarModalExcluirIdioma = true;
+    this.soundService.tocar('alerta');
   }
 
   fecharModalExcluirIdioma(): void {
+    if (this.excluindoIdioma) return;
     this.mostrarModalExcluirIdioma = false;
     this.idiomaEmExclusao = null;
+    this.mensagemExclusaoIdioma = '';
+    this.erroExclusaoIdioma = '';
   }
 
+  /**
+   * Exclui o idioma e avisa o proprietário por e-mail. A mensagem é opcional:
+   * em branco, o backend envia o aviso padrão da equipe de moderação.
+   */
   confirmarExclusaoIdioma(): void {
-    if (!this.idiomaEmExclusao) return;
+    if (!this.idiomaEmExclusao || this.excluindoIdioma) return;
 
+    const codigo = this.idiomaEmExclusao.codigo;
     const nomeIdioma = this.idiomaEmExclusao.nome;
+    const mensagem = this.mensagemExclusaoIdioma.trim();
+    this.excluindoIdioma = true;
+    this.erroExclusaoIdioma = '';
 
-    this.adminService.excluirIdiomaAdmin(this.idiomaEmExclusao.codigo).subscribe({
+    this.adminService.excluirIdiomaAdmin(codigo, mensagem ? { mensagem } : {}).subscribe({
       next: () => {
-        this.idiomas = this.idiomas.filter(i => i.codigo !== this.idiomaEmExclusao!.codigo);
+        this.idiomas = this.idiomas.filter(i => i.codigo !== codigo);
+        this.excluindoIdioma = false;
         this.fecharModalExcluirIdioma();
-        this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído com sucesso!`);
+        this.soundService.tocar('exclusao');
+        this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído. O proprietário foi avisado por e-mail.`);
         this.carregarLogs();
       },
-      error: () => {
-        this.exibirMensagemSucesso('Erro ao excluir idioma.');
+      error: (err) => {
+        this.excluindoIdioma = false;
+        this.erroExclusaoIdioma = err?.error?.message || 'Erro ao excluir idioma.';
+        this.soundService.tocar('erro');
+        this.cdr.detectChanges();
       }
     });
   }
@@ -658,11 +860,7 @@ export class ControleAdm implements OnInit {
     
     if (this.buscaLog.trim()) {
       const termo = this.buscaLog.toLowerCase();
-      logs = logs.filter(log =>
-        log.codigo.toLowerCase().includes(termo) ||
-        log.adminNome.toLowerCase().includes(termo) ||
-        log.codigoAdmin.toLowerCase().includes(termo)
-      );
+      logs = logs.filter(log => this.camposBuscaveisLog(log).some(campo => campo.includes(termo)));
     }
     
     if (this.filtroLogDataInicio) {
@@ -699,22 +897,57 @@ export class ControleAdm implements OnInit {
     }
   }
 
+  /**
+   * Texto pesquisável de um log: código, quem fez (ou "sistema"), a ação, os
+   * detalhes e quem foi afetado — nome e código de usuário e de idioma.
+   */
+  private camposBuscaveisLog(log: Log): string[] {
+    return [
+      log.codigo,
+      this.nomeResponsavelLog(log),
+      log.codigoAdmin,
+      log.acao,
+      log.detalhes,
+      log.usuarioAfetado?.nome,
+      log.usuarioAfetado?.codigo,
+      log.idiomaAfetado?.nome,
+      log.idiomaAfetado?.codigo
+    ].filter((campo): campo is string => !!campo).map(campo => campo.toLowerCase());
+  }
+
+  /** Quem responde pela ação: o administrador ou, sem ele, o próprio sistema. */
+  nomeResponsavelLog(log: Log): string {
+    if (log.acaoSistema || !log.adminNome) return 'Sistema';
+    return log.adminNome;
+  }
+
   getLogTipoClass(tipo: Log['tipo']): string {
     switch(tipo) {
       case 'denuncia': return 'log-denuncia';
       case 'usuario': return 'log-usuario';
       case 'idioma': return 'log-idioma';
+      case 'moderacao': return 'log-moderacao';
+      case 'email': return 'log-email';
       default: return '';
     }
   }
 
-  getLogTipoIcone(tipo: Log['tipo']): string {
+  getLogTipoNome(tipo: Log['tipo']): string {
     switch(tipo) {
-      case 'denuncia': return 'alert-triangle';
-      case 'usuario': return 'user';
-      case 'idioma': return 'globe';
-      default: return 'file-text';
+      case 'denuncia': return 'denúncia';
+      case 'usuario': return 'usuário';
+      case 'idioma': return 'idioma';
+      case 'moderacao': return 'moderação';
+      case 'email': return 'e-mail';
+      default: return tipo;
     }
+  }
+
+  /** Nome e código de quem foi afetado, no mesmo formato do rodapé do admin. */
+  descreverAfetado(afetado: Log['usuarioAfetado']): string {
+    if (!afetado) return '';
+    const nome = afetado.nome || 'Sem nome';
+    return afetado.codigo ? `${nome} (${afetado.codigo})` : nome;
   }
 
   // ===== MENSAGEM DE SUCESSO =====

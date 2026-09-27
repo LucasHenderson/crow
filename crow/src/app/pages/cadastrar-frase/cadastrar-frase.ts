@@ -5,9 +5,11 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { PalavraTrad, Par } from '../../models/frase.model';
+import { OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { RespostasAceitas, respostasAceitasValidas } from '../../components/respostas-aceitas/respostas-aceitas';
 import { FraseService } from '../../services/frase.service';
 import { UploadService } from '../../services/upload.service';
+import { SoundService } from '../../services/sound.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -55,6 +57,8 @@ export class CadastrarFrase {
 
   moduloId = '';
   idIdioma = '';
+  /** Origem da cadeia de navegação, repassada ao módulo para o Voltar de lá continuar correto. */
+  origem: OrigemIdioma = 'home';
   salvando = false;
   erroSalvar = '';
 
@@ -64,10 +68,12 @@ export class CadastrarFrase {
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef,
     private fraseService: FraseService,
-    private uploadService: UploadService
+    private uploadService: UploadService,
+    private soundService: SoundService
   ) {
     this.moduloId = this.route.snapshot.queryParamMap.get('moduloId') || '';
     this.idIdioma = this.route.snapshot.queryParamMap.get('idIdioma') || '';
+    this.origem = normalizarOrigem(this.route.snapshot.queryParamMap.get('origem'));
   }
 
   getLetraAlternativa(index: number): string {
@@ -247,6 +253,7 @@ export class CadastrarFrase {
   // MODAL DE CANCELAMENTO
   cancelar(): void {
     this.mostrarModalCancelar = true;
+    this.soundService.tocar('alerta');
   }
 
   fecharModalCancelar(): void {
@@ -261,7 +268,7 @@ export class CadastrarFrase {
   voltar(): void {
     if (this.moduloId) {
       this.router.navigate(['/visualizar-modulo'], {
-        queryParams: { id: this.moduloId, idIdioma: this.idIdioma }
+        queryParams: { id: this.moduloId, idIdioma: this.idIdioma, origem: this.origem }
       });
     } else {
       this.router.navigate(['/visualizar-modulo']);
@@ -272,6 +279,7 @@ export class CadastrarFrase {
     if (this.salvando) return;
     if (!this.moduloId) {
       this.erroSalvar = 'ID do módulo não encontrado.';
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -327,6 +335,7 @@ export class CadastrarFrase {
     this.fraseService.criarFrase(this.moduloId, dados).subscribe({
       next: () => {
         this.salvando = false;
+        this.soundService.tocar('sucesso');
         this.voltar();
       },
       error: (err) => this.tratarErro(err, 'Erro ao cadastrar frase.')
@@ -336,6 +345,7 @@ export class CadastrarFrase {
   private tratarErro(err: any, fallback: string): void {
     this.salvando = false;
     this.erroSalvar = err?.error?.message || fallback;
+    this.soundService.tocar('erro');
     // App zoneless: força a renderização da mensagem de erro.
     this.cdr.detectChanges();
   }

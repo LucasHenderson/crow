@@ -9,10 +9,10 @@ import java.util.List;
 public interface LogAdminRepository extends JpaRepository<LogAdmin, Long> {
 
     /**
-     * Todos os logs (mais recentes primeiro) com o admin já carregado —
-     * evita LazyInitializationException na montagem da resposta, já que
-     * open-in-view está desabilitado.
+     * Todos os logs (mais recentes primeiro) com o admin e o usuário afetado
+     * já carregados — evita LazyInitializationException na montagem da
+     * resposta, já que open-in-view está desabilitado.
      */
-    @Query("SELECT l FROM LogAdmin l LEFT JOIN FETCH l.admin ORDER BY l.data DESC")
+    @Query("SELECT l FROM LogAdmin l LEFT JOIN FETCH l.admin LEFT JOIN FETCH l.usuarioAfetado ORDER BY l.data DESC")
     List<LogAdmin> findAllComAdmin();
 }

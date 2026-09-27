@@ -1,7 +1,9 @@
 import { Injectable, signal } from '@angular/core';
+import { SoundService } from './sound.service';
 
 /**
- * Estado de confirmação temporária de uma cópia ("ID copiado!").
+ * Estado de confirmação temporária de uma cópia ("ID copiado!"), com o som
+ * de sucesso ou de erro junto da confirmação visual.
  *
  * Cada componente cria a sua instância via {@link ClipboardService.criarEstado}
  * e lê os signals no template — em modo zoneless a leitura de signal já dispara
@@ -19,7 +21,8 @@ export class EstadoCopia {
 
   constructor(
     private readonly clipboard: ClipboardService,
-    private readonly duracaoMs: number
+    private readonly duracaoMs: number,
+    private readonly soundService: SoundService
   ) {}
 
   /** Copia o texto e mantém a confirmação visível por alguns segundos. */
@@ -29,6 +32,7 @@ export class EstadoCopia {
     const copiou = await this.clipboard.copiar(texto);
     this.copiado.set(copiou);
     this.falhou.set(!copiou);
+    this.soundService.tocar(copiou ? 'sucesso' : 'erro');
 
     clearTimeout(this.timeout);
     this.timeout = setTimeout(() => {
@@ -53,6 +57,8 @@ export class EstadoCopia {
 @Injectable({ providedIn: 'root' })
 export class ClipboardService {
 
+  constructor(private readonly soundService: SoundService) {}
+
   async copiar(texto: string): Promise<boolean> {
     if (!texto) return false;
 
@@ -70,7 +76,7 @@ export class ClipboardService {
 
   /** Cria um estado de confirmação para exibir "copiado!" na interface. */
   criarEstado(duracaoMs = 2000): EstadoCopia {
-    return new EstadoCopia(this, duracaoMs);
+    return new EstadoCopia(this, duracaoMs, this.soundService);
   }
 
   private copiarComCampoTemporario(texto: string): boolean {

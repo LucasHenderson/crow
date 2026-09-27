@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IdiomaBusca as Idioma, Proficiencia } from '../../models/idioma.model';
@@ -42,21 +42,20 @@ export class BuscarIdioma implements OnInit {
   constructor(
     private router: Router,
     private idiomaService: IdiomaService,
-    private cdr: ChangeDetectorRef,
-    private location: Location
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.carregarIdiomas();
   }
 
-  /** Volta para a página anterior (respeita o histórico) ou para a home. */
+  /**
+   * A busca só é aberta pela home, então o Voltar leva sempre para lá. O
+   * antigo `location.back()` prendia o usuário em ciclo: o Voltar do idioma
+   * empilha esta página de novo, e "voltar" daqui reabria o idioma visitado.
+   */
   voltar(): void {
-    if (window.history.length > 1) {
-      this.location.back();
-    } else {
-      this.router.navigate(['/home']);
-    }
+    this.router.navigate(['/home']);
   }
 
   carregarIdiomas(): void {

@@ -1094,6 +1094,49 @@ textarea {
   transform: translateY(-3px);
 }
 
+/* "Novo Idioma" bloqueado no limite de idiomas: sem o realce do hover */
+.opcao-card:disabled,
+.opcao-card:disabled:hover {
+  cursor: not-allowed;
+  opacity: 0.55;
+  background: var(--surface-hover);
+  border-color: var(--border-color);
+  transform: none;
+  box-shadow: none;
+}
+
+.opcao-card:disabled:hover .opcao-icon {
+  transform: none;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+/* AVISO DE LIMITE — o modal segue abrindo para as buscas */
+.aviso-limite {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: -1rem 0 1.75rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+}
+
+.aviso-limite svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-warning);
+}
+
+.aviso-limite p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
 /* ÍCONE DA OPÇÃO */
 .opcao-icon {
   width: 64px;

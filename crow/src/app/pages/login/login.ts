@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { SoundService } from '../../services/sound.service';
 
 @Component({
   selector: 'app-login',
@@ -27,7 +28,8 @@ export class Login {
     private router: Router,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private soundService: SoundService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -35,9 +37,9 @@ export class Login {
     });
   }
 
-  /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
-  alternarTema(): void {
-    this.themeService.toggle();
+  /** Alterna o tema (persistido pelo ThemeService); a animação parte do botão clicado. */
+  alternarTema(evento: Event): void {
+    this.themeService.toggle(evento.currentTarget as Element);
   }
 
   togglePassword(campo: 'senha'): void {
@@ -47,6 +49,7 @@ export class Login {
   entrar(): void {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -57,12 +60,14 @@ export class Login {
     this.authService.login(email, senha).subscribe({
       next: () => {
         this.carregando = false;
+        this.soundService.tocar('sucesso');
         const role = this.authService.getRole();
         this.router.navigate([role === 'admin' ? '/controle-adm' : '/home']);
       },
       error: (err) => {
         this.carregando = false;
         this.erroLogin = err.error?.message || 'Email ou senha incorretos.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -84,7 +89,4 @@ export class Login {
     return this.loginForm.get('senha');
   }
 
-  get podeEnviar(): boolean {
-    return this.loginForm.valid && !this.carregando;
-  }
 }

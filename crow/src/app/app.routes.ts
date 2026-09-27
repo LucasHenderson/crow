@@ -91,6 +91,10 @@ export const routes: Routes = [{
       {
         path: 'controle-adm',
         loadComponent: () => import('./pages/controle-adm/controle-adm').then((m) => m.ControleAdm),
+      },
+      {
+        path: 'visualizar-idioma-adm',
+        loadComponent: () => import('./pages/visualizar-idioma-adm/visualizar-idioma-adm').then((m) => m.VisualizarIdiomaAdm),
       }
     ]
   }

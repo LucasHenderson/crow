@@ -41,7 +41,7 @@ public class IdiomaController {
             @PathVariable String codigo,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
-        Idioma idioma = idiomaService.resolver(codigo);
+        Idioma idioma = idiomaService.buscarPorCodigo(codigo);
         idiomaService.validarAcessoLeitura(idioma.getId(), userId);
         return ResponseEntity.ok(IdiomaResponse.from(idioma));
     }
@@ -61,6 +61,7 @@ public class IdiomaController {
             Authentication authentication,
             @Valid @RequestBody IdiomaRequest request) {
         Usuario criador = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
+        idiomaService.exigirUsuarioComum(criador, "criar idioma", null);
         Idioma idioma = idiomaService.criar(request, criador);
         return ResponseEntity.status(HttpStatus.CREATED).body(IdiomaResponse.from(idioma));
     }
@@ -71,7 +72,7 @@ public class IdiomaController {
             Authentication authentication,
             @Valid @RequestBody IdiomaRequest request) {
         Long userId = Long.valueOf(authentication.getName());
-        Idioma idioma = idiomaService.resolver(codigo);
+        Idioma idioma = idiomaService.buscarPorCodigo(codigo);
         return ResponseEntity.ok(IdiomaResponse.from(idiomaService.editar(idioma.getId(), request, userId)));
     }
 
@@ -80,7 +81,7 @@ public class IdiomaController {
             @PathVariable String codigo,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
-        Idioma idioma = idiomaService.resolver(codigo);
+        Idioma idioma = idiomaService.buscarPorCodigo(codigo);
         idiomaService.excluir(idioma.getId(), userId);
         return ResponseEntity.noContent().build();
     }
@@ -91,7 +92,8 @@ public class IdiomaController {
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
         Usuario usuario = usuarioService.buscarPorId(userId);
-        Idioma original = idiomaService.resolver(codigo);
+        Idioma original = idiomaService.buscarPorCodigo(codigo);
+        idiomaService.exigirUsuarioComum(usuario, "importar idioma", original);
         Idioma copia = idiomaService.importar(userId, original.getId(), usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(IdiomaResponse.from(copia));
     }
@@ -102,7 +104,8 @@ public class IdiomaController {
             Authentication authentication,
             @Valid @RequestBody AvaliacaoRequest request) {
         Long userId = Long.valueOf(authentication.getName());
-        Idioma idioma = idiomaService.resolver(codigo);
+        Idioma idioma = idiomaService.buscarPorCodigo(codigo);
+        idiomaService.exigirUsuarioComum(usuarioService.buscarPorId(userId), "avaliar idioma", idioma);
         return ResponseEntity.ok(avaliacaoService.avaliar(userId, idioma.getId(), request.nota()));
     }
 
@@ -112,7 +115,8 @@ public class IdiomaController {
             Authentication authentication,
             @Valid @RequestBody DenunciaRequest request) {
         Usuario usuario = usuarioService.buscarPorId(Long.valueOf(authentication.getName()));
-        Idioma idioma = idiomaService.resolver(codigo);
+        Idioma idioma = idiomaService.buscarPorCodigo(codigo);
+        idiomaService.exigirUsuarioComum(usuario, "denunciar idioma", idioma);
         denunciaService.criar(idioma.getId(), request, usuario);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

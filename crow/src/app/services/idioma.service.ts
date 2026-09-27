@@ -29,7 +29,6 @@ export class IdiomaService {
    */
   private toIdiomaBusca(i: any): IdiomaBusca {
     return {
-      id: i.id,
       codigo: i.codigo,
       nome: i.nome,
       idioma: i.idioma,
