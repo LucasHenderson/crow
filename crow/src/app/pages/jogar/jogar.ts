@@ -4,7 +4,9 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Frase, PalavraTrad, Par } from '../../models/frase.model';
 import { OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
+import { PlayerAudio } from '../../components/player-audio/player-audio';
 import { FraseService } from '../../services/frase.service';
+import { AudioService } from '../../services/audio.service';
 import { SoundService } from '../../services/sound.service';
 import { Subscription } from 'rxjs';
 
@@ -16,7 +18,7 @@ interface HistoricoResposta {
 @Component({
   selector: 'app-jogar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PlayerAudio],
   templateUrl: './jogar.html',
   styleUrl: './jogar.css',
 })
@@ -44,6 +46,11 @@ export class Jogar implements OnInit, OnDestroy {
   // Modo: Tradução Direta
   palavrasEmbaralhadas: PalavraTrad[] = [];
   palavrasSelecionadas: (PalavraTrad | null)[] = [];
+  /**
+   * Palavras com áudio, para ouvir durante a rodada. Embaralhadas à parte: na
+   * ordem cadastrada elas entregariam a ordem da resposta.
+   */
+  palavrasComAudio: PalavraTrad[] = [];
   
   // Modo: Selecionar Pares
   palavraSelecionada: number | null = null;
@@ -87,6 +94,8 @@ export class Jogar implements OnInit, OnDestroy {
   private videoTocando = false;
   /** Marca que fomos nós que pausamos o vídeo ao abrir o modal. */
   private videoPausadoPeloModal = false;
+  /** Marca que havia áudio de frase tocando quando o modal abriu. */
+  private audioPausadoPeloModal = false;
 
   constructor(
     private router: Router,
@@ -95,6 +104,7 @@ export class Jogar implements OnInit, OnDestroy {
     private fraseService: FraseService,
     private cdr: ChangeDetectorRef,
     private host: ElementRef<HTMLElement>,
+    private audioService: AudioService,
     private soundService: SoundService
   ) {}
 
@@ -114,15 +124,22 @@ export class Jogar implements OnInit, OnDestroy {
     // Escuta o player do quiz fora do Angular: a mensagem chega várias vezes
     // por segundo e não deve disparar detecção de mudanças.
     window.addEventListener('message', this.aoReceberMensagemDoPlayer);
-    
+
+    // Áudio de frase e vídeo do quiz não tocam juntos: o áudio pausa o vídeo
+    // (e o vídeo, ao começar, interrompe o áudio — ver aoReceberMensagemDoPlayer).
+    this.subs.add(this.audioService.inicioDeReproducao.subscribe(() => {
+      if (this.videoTocando) this.comandarPlayer('pauseVideo');
+    }));
+
     // Carrega e sorteia as frases (o jogo inicia quando elas chegam)
     this.carregarFrases();
   }
 
   ngOnDestroy(): void {
-    // Nenhuma assinatura ou listener pode sobreviver à saída da página.
+    // Nenhuma assinatura, listener ou áudio pode sobreviver à saída da página.
     this.subs.unsubscribe();
     window.removeEventListener('message', this.aoReceberMensagemDoPlayer);
+    this.audioService.pararTudo();
     this.limparEstadoRodada();
   }
 
@@ -162,6 +179,7 @@ export class Jogar implements OnInit, OnDestroy {
     const links = this.parseJson<string[]>(f.linksJson) || f.links;
     const pares = this.parseJson<Par[]>(f.paresJson) || f.pares;
     const alternativas = this.parseJson<string[]>(f.alternativasJson) || f.alternativas;
+    const audiosAlternativas = this.parseJson<(string | null)[]>(f.audiosAlternativasJson) || f.audiosAlternativas;
     const videoQuiz = f.videoQuiz
       ? this.sanitizer.bypassSecurityTrustResourceUrl(this.toEmbedUrl(f.videoQuiz))
       : undefined;
@@ -174,6 +192,7 @@ export class Jogar implements OnInit, OnDestroy {
       links,
       pares,
       alternativas,
+      audiosAlternativas,
       videoQuiz,
       respostaCorretaIndex: f.respostaCorreta ?? 0,
       respostaCorretaTexto: alternativas ? alternativas[f.respostaCorreta ?? 0] : ''
@@ -216,6 +235,8 @@ export class Jogar implements OnInit, OnDestroy {
   }
 
   carregarFrase(index: number): void {
+    // O áudio da frase anterior não continua na próxima.
+    this.audioService.pararTudo();
     this.fraseAtual = this.frases[index];
     this.resetarEstados();
     
@@ -230,15 +251,16 @@ export class Jogar implements OnInit, OnDestroy {
 
   prepararQuiz(): void {
     if (this.fraseAtual && this.fraseAtual.alternativas) {
-      const indicesOriginais = this.fraseAtual.alternativas.map((_, i) => i);
+      const frase = this.fraseAtual;
+      const indicesOriginais = frase.alternativas!.map((_, i) => i);
       const indicesEmbaralhados = [...indicesOriginais].sort(() => Math.random() - 0.5);
-      
-      this.fraseAtual.alternativasEmbaralhadas = indicesEmbaralhados.map(
-        i => this.fraseAtual!.alternativas![i]
-      );
-      
-      const respostaOriginal = this.fraseAtual.alternativas[this.fraseAtual.respostaCorretaIndex!];
-      this.fraseAtual.respostaCorretaIndex = this.fraseAtual.alternativasEmbaralhadas.indexOf(respostaOriginal);
+
+      // Texto e áudio saem do mesmo índice original, então continuam juntos.
+      frase.alternativasEmbaralhadas = indicesEmbaralhados.map(i => frase.alternativas![i]);
+      frase.audiosAlternativasEmbaralhados = indicesEmbaralhados.map(i => frase.audiosAlternativas?.[i] || null);
+
+      // Pelo índice, não pelo texto: duas alternativas iguais não confundem a correção.
+      frase.respostaCorretaIndex = indicesEmbaralhados.indexOf(frase.respostaCorretaIndex!);
     }
   }
 
@@ -247,8 +269,12 @@ export class Jogar implements OnInit, OnDestroy {
       this.palavrasEmbaralhadas = this.fraseAtual.palavras
         .map(p => ({ ...p, usado: false }))
         .sort(() => Math.random() - 0.5);
-      
+
       this.palavrasSelecionadas = new Array(this.fraseAtual.palavras.length).fill(null);
+
+      this.palavrasComAudio = this.fraseAtual.palavras
+        .filter(p => !!p.audioPalavra)
+        .sort(() => Math.random() - 0.5);
     }
   }
 
@@ -579,6 +605,8 @@ export class Jogar implements OnInit, OnDestroy {
     this.mostrarModalCancelar = false;
     this.videoPausadoPeloModal = false;
     this.videoTocando = false;
+    this.audioPausadoPeloModal = false;
+    this.audioService.pararTudo();
 
     // Descarta o carregamento de frases em andamento para que nenhuma resposta
     // atrasada reinicie uma rodada já cancelada.
@@ -601,6 +629,7 @@ export class Jogar implements OnInit, OnDestroy {
     this.historicoRespostas = [];
     this.palavrasEmbaralhadas = [];
     this.palavrasSelecionadas = [];
+    this.palavrasComAudio = [];
     this.paresEmbaralhados = [];
     this.traducoesEmbaralhadas = [];
     this.paresSelecionados = {};
@@ -618,19 +647,24 @@ export class Jogar implements OnInit, OnDestroy {
     this.resetarEstados();
   }
 
-  /** Pausa o vídeo do quiz enquanto o modal de cancelamento estiver aberto. */
+  /** Pausa o vídeo do quiz e o áudio da frase enquanto o modal de cancelamento estiver aberto. */
   private pausarMidia(): void {
     this.videoPausadoPeloModal = this.videoTocando;
     if (this.videoPausadoPeloModal) {
       this.comandarPlayer('pauseVideo');
     }
+    this.audioPausadoPeloModal = this.audioService.pausarParaModal();
   }
 
-  /** Retoma o vídeo apenas se fomos nós que o pausamos. */
+  /** Retoma vídeo e áudio apenas se fomos nós que os pausamos. */
   private retomarMidia(): void {
     if (this.videoPausadoPeloModal) {
       this.videoPausadoPeloModal = false;
       this.comandarPlayer('playVideo');
+    }
+    if (this.audioPausadoPeloModal) {
+      this.audioPausadoPeloModal = false;
+      this.audioService.retomarAposModal();
     }
   }
 
@@ -662,7 +696,10 @@ export class Jogar implements OnInit, OnDestroy {
       const dados = JSON.parse(event.data);
       const estado = dados?.info?.playerState;
       if (typeof estado === 'number') {
+        // Só na transição para "tocando": o player repete o estado em várias mensagens.
+        const videoComecou = estado === 1 && !this.videoTocando;
         this.videoTocando = estado === 1;
+        if (videoComecou) this.audioService.pararTudo();
       }
     } catch {
       // Mensagem que não é do player — ignora.

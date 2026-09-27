@@ -1,0 +1,124 @@
+/* Áudio opcional ao lado do rótulo de um campo. As duas formas (vazio e com
+   áudio) têm a mesma altura, para o rótulo não pular ao anexar. */
+:host {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.btn-anexar,
+.anexo {
+  height: 32px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* VAZIO */
+.btn-anexar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.75rem 0 0.6rem;
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 45%, transparent);
+  background: transparent;
+  color: var(--color-muted);
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast);
+}
+
+.btn-anexar:hover:not(:disabled) {
+  border-style: solid;
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+}
+
+.btn-anexar:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.btn-anexar svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* COM ÁUDIO */
+.anexo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.2rem 0 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.anexo-texto {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.btn-remover {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-remover:hover {
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
+  color: var(--color-danger);
+}
+
+.btn-remover svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ERRO DE VALIDAÇÃO */
+.erro {
+  max-width: 260px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-danger);
+  text-align: right;
+}
+
+@media (pointer: coarse) {
+  .btn-anexar,
+  .anexo {
+    height: 38px;
+  }
+
+  .btn-remover {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-anexar,
+  .btn-remover {
+    transition: none;
+  }
+}

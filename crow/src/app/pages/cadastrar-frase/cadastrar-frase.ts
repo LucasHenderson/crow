@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -7,8 +7,10 @@ import { ChangeDetectorRef } from '@angular/core';
 import { PalavraTrad, Par } from '../../models/frase.model';
 import { OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { RespostasAceitas, respostasAceitasValidas } from '../../components/respostas-aceitas/respostas-aceitas';
+import { CampoAudio } from '../../components/campo-audio/campo-audio';
 import { FraseService } from '../../services/frase.service';
 import { UploadService } from '../../services/upload.service';
+import { AudioService } from '../../services/audio.service';
 import { SoundService } from '../../services/sound.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -16,12 +18,12 @@ import { tap } from 'rxjs/operators';
 @Component({
   selector: 'app-cadastrar-frase',
   standalone: true,
-  imports: [CommonModule, FormsModule, RespostasAceitas],
+  imports: [CommonModule, FormsModule, RespostasAceitas, CampoAudio],
   templateUrl: './cadastrar-frase.html',
   styleUrl: './cadastrar-frase.css',
 })
-export class CadastrarFrase {
-  
+export class CadastrarFrase implements OnDestroy {
+
   // Controle do modal de cancelamento
   mostrarModalCancelar = false;
 
@@ -32,6 +34,7 @@ export class CadastrarFrase {
   imagemPreview: string | null = null;
   imagemFile: File | null = null;
   traducaoCompleta = '';
+  audioTraducaoCompleta: string | null = null;
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
   /** Respostas/ordens alternativas aceitas como corretas (Fase 5). */
   traducoesAlternativas: string[] = [];
@@ -52,7 +55,10 @@ export class CadastrarFrase {
   videoQuiz = '';
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
+  audioPergunta: string | null = null;
   alternativas: string[] = ['', ''];
+  /** Áudio de cada alternativa, sempre com o mesmo tamanho de `alternativas`. */
+  audiosAlternativas: (string | null)[] = [null, null];
   respostaCorreta: number = 0;
 
   moduloId = '';
@@ -69,11 +75,36 @@ export class CadastrarFrase {
     private cdr: ChangeDetectorRef,
     private fraseService: FraseService,
     private uploadService: UploadService,
+    private audioService: AudioService,
     private soundService: SoundService
   ) {
     this.moduloId = this.route.snapshot.queryParamMap.get('moduloId') || '';
     this.idIdioma = this.route.snapshot.queryParamMap.get('idIdioma') || '';
     this.origem = normalizarOrigem(this.route.snapshot.queryParamMap.get('origem'));
+  }
+
+  /** Libera os áudios escolhidos e não salvos, qualquer que seja a saída da página. */
+  ngOnDestroy(): void {
+    this.audioService.descartarTodos(this.audiosDoFormulario());
+  }
+
+  /**
+   * Áudios do formulário. Com `apenasModoAtual`, só os do modo escolhido — os
+   * que vão para o backend; sem ele, os de todos os modos, para descarte.
+   */
+  private audiosDoFormulario(apenasModoAtual = false): (string | null | undefined)[] {
+    const traducao = [
+      this.audioTraducaoCompleta,
+      ...this.palavrasTraducao.flatMap(p => [p.audioPalavra, p.audioTraducao])
+    ];
+    const pares = this.pares.flatMap(p => [p.audioPalavra, p.audioTraducao]);
+    const quiz = [this.audioPergunta, ...this.audiosAlternativas];
+
+    if (!apenasModoAtual) return [...traducao, ...pares, ...quiz];
+    if (this.modoFrase === 'traducao') return traducao;
+    if (this.modoFrase === 'pares') return pares;
+    if (this.modoFrase === 'quiz') return quiz;
+    return [];
   }
 
   getLetraAlternativa(index: number): string {
@@ -112,7 +143,8 @@ export class CadastrarFrase {
   }
 
   removerPalavra(index: number): void {
-    this.palavrasTraducao.splice(index, 1);
+    const [removida] = this.palavrasTraducao.splice(index, 1);
+    this.audioService.descartarTodos([removida?.audioPalavra, removida?.audioTraducao]);
   }
 
   adicionarLink(): void {
@@ -156,7 +188,8 @@ export class CadastrarFrase {
 
   removerPar(index: number): void {
     if (this.pares.length > 3) {
-      this.pares.splice(index, 1);
+      const [removido] = this.pares.splice(index, 1);
+      this.audioService.descartarTodos([removido?.audioPalavra, removido?.audioTraducao]);
     }
   }
 
@@ -180,12 +213,15 @@ export class CadastrarFrase {
   adicionarAlternativa(): void {
     if (this.alternativas.length < 5) {
       this.alternativas.push('');
+      this.audiosAlternativas.push(null);
     }
   }
 
   removerAlternativa(index: number): void {
     if (this.alternativas.length > 2) {
       this.alternativas.splice(index, 1);
+      const [audioRemovido] = this.audiosAlternativas.splice(index, 1);
+      this.audioService.descartar(audioRemovido);
       if (this.respostaCorreta === index) {
         this.respostaCorreta = 0;
       } else if (this.respostaCorreta > index) {
@@ -286,9 +322,12 @@ export class CadastrarFrase {
     this.salvando = true;
     this.erroSalvar = '';
 
-    this.uploadImagensPendentes().subscribe({
+    forkJoin([
+      this.uploadImagensPendentes(),
+      this.audioService.enviarPendentes(this.audiosDoFormulario(true))
+    ]).subscribe({
       next: () => this.enviarFrase(),
-      error: (err) => this.tratarErro(err, 'Erro ao enviar imagens.')
+      error: (err) => this.tratarErro(err, 'Erro ao enviar imagens ou áudios.')
     });
   }
 
@@ -350,13 +389,22 @@ export class CadastrarFrase {
     this.cdr.detectChanges();
   }
 
+  /** Corpo da requisição. Os áudios já foram enviados em `finalizar()`. */
   getDadosFrase(): any {
+    const audio = (url: string | null | undefined) => this.audioService.paraSalvar(url);
+
     if (this.modoFrase === 'traducao') {
       return {
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
+        audioTraducaoCompleta: audio(this.audioTraducaoCompleta),
         traducoesAlternativasJson: JSON.stringify(this.traducoesAlternativas.map(t => t.trim()).filter(t => t)),
-        palavrasJson: JSON.stringify(this.palavrasTraducao),
+        palavrasJson: JSON.stringify(this.palavrasTraducao.map(p => ({
+          palavra: p.palavra,
+          traducao: p.traducao,
+          audioPalavra: audio(p.audioPalavra),
+          audioTraducao: audio(p.audioTraducao)
+        }))),
         observacoes: this.observacoes,
         linksJson: JSON.stringify(this.links.filter(l => l.trim()))
       };
@@ -365,7 +413,9 @@ export class CadastrarFrase {
       const paresLimpos = this.pares.map(p => ({
         imagem: p.imagem,
         palavra: p.palavra,
-        traducao: p.traducao
+        traducao: p.traducao,
+        audioPalavra: audio(p.audioPalavra),
+        audioTraducao: audio(p.audioTraducao)
       }));
       return { paresJson: JSON.stringify(paresLimpos) };
     }
@@ -374,7 +424,9 @@ export class CadastrarFrase {
         imagemQuiz: this.tipoMidiaQuiz === 'imagem' ? this.imagemQuiz : null,
         videoQuiz: this.tipoMidiaQuiz === 'video' ? this.videoQuiz : null,
         pergunta: this.perguntaQuiz,
+        audioPergunta: audio(this.audioPergunta),
         alternativasJson: JSON.stringify(this.alternativas),
+        audiosAlternativasJson: JSON.stringify(this.audiosAlternativas.map(audio)),
         respostaCorreta: this.respostaCorreta
       };
     }

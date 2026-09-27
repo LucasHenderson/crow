@@ -8,10 +8,12 @@ import { tap } from 'rxjs/operators';
 import { ICONES_MODULO, Modulo, iconeModuloPadrao } from '../../models/modulo.model';
 import { IdiomaUsuario, OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
+import { CampoAudio } from '../../components/campo-audio/campo-audio';
 import { IdiomaService } from '../../services/idioma.service';
 import { ModuloService } from '../../services/modulo.service';
 import { FraseService } from '../../services/frase.service';
 import { UploadService } from '../../services/upload.service';
+import { AudioService } from '../../services/audio.service';
 import { AuthService } from '../../services/auth.service';
 import { SoundService } from '../../services/sound.service';
 import {
@@ -23,7 +25,7 @@ import {
 @Component({
   selector: 'app-visualizar-idioma',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CampoAudio],
   templateUrl: './visualizar-idioma.html',
   styleUrl: './visualizar-idioma.css',
 })
@@ -71,6 +73,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   imagemPreview: string | null = null;
   imagemFile: File | null = null;
   traducaoCompleta = '';
+  audioTraducaoCompleta: string | null = null;
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
   traducoesAlternativas: string[] = [];
   observacoes = '';
@@ -90,12 +93,16 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   videoQuiz = '';
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
+  audioPergunta: string | null = null;
   alternativas: string[] = ['', ''];
+  /** Áudio de cada alternativa, sempre com o mesmo tamanho de `alternativas`. */
+  audiosAlternativas: (string | null)[] = [null, null];
   respostaCorreta: number = 0;
-  
+
   // Dados de denúncia
   denunciaImagensInapropriadas = false;
   denunciaVideosInapropriados = false;
+  denunciaAudiosInapropriados = false;
   denunciaLinksInapropriados = false;
   denunciaFrasesInapropriadas = false;
   denunciaOutros = false;
@@ -138,6 +145,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     private moduloService: ModuloService,
     private fraseService: FraseService,
     private uploadService: UploadService,
+    private audioService: AudioService,
     private authService: AuthService,
     private soundService: SoundService,
     reordenacaoService: ReordenacaoService
@@ -159,6 +167,26 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Envia o que estiver pendente no debounce antes de a tela sair de cena.
     this.reordenacao.destruir();
+    this.audioService.descartarTodos(this.audiosDaFraseAdicao());
+  }
+
+  /**
+   * Áudios da frase do módulo em cadastro. Com `apenasModoAtual`, só os do modo
+   * escolhido — os que vão para o backend; sem ele, os de todos os modos.
+   */
+  private audiosDaFraseAdicao(apenasModoAtual = false): (string | null | undefined)[] {
+    const traducao = [
+      this.audioTraducaoCompleta,
+      ...this.palavrasTraducao.flatMap(p => [p.audioPalavra, p.audioTraducao])
+    ];
+    const pares = this.pares.flatMap(p => [p.audioPalavra, p.audioTraducao]);
+    const quiz = [this.audioPergunta, ...this.audiosAlternativas];
+
+    if (!apenasModoAtual) return [...traducao, ...pares, ...quiz];
+    if (this.modoFrase === 'traducao') return traducao;
+    if (this.modoFrase === 'pares') return pares;
+    if (this.modoFrase === 'quiz') return quiz;
+    return [];
   }
 
   ngOnInit(): void {
@@ -344,6 +372,12 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     this.salvandoAdicao = false;
     this.erroAdicao = '';
 
+    // Antes de trocar as listas: descarta os áudios escolhidos e não salvos.
+    this.audioService.descartarTodos(this.audiosDaFraseAdicao());
+    this.audioTraducaoCompleta = null;
+    this.audioPergunta = null;
+    this.audiosAlternativas = [null, null];
+
     this.modoFrase = null;
 
     this.revogarBlob(this.imagemPreview);
@@ -428,9 +462,12 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     this.salvandoAdicao = true;
     this.erroAdicao = '';
 
-    this.uploadImagensAdicaoPendentes().subscribe({
+    forkJoin([
+      this.uploadImagensAdicaoPendentes(),
+      this.audioService.enviarPendentes(this.audiosDaFraseAdicao(true))
+    ]).subscribe({
       next: () => this.criarModuloEFrase(),
-      error: (err) => this.tratarErroAdicao(err, 'Erro ao enviar imagens.')
+      error: (err) => this.tratarErroAdicao(err, 'Erro ao enviar imagens ou áudios.')
     });
   }
 
@@ -508,16 +545,24 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  /** Corpo da requisição da frase. Os áudios já foram enviados em `confirmarAdicaoModulo()`. */
   private getDadosFraseAdicao(): any {
     const base: any = { modo: (this.modoFrase || '').toUpperCase() };
+    const audio = (url: string | null | undefined) => this.audioService.paraSalvar(url);
 
     if (this.modoFrase === 'traducao') {
       return {
         ...base,
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
+        audioTraducaoCompleta: audio(this.audioTraducaoCompleta),
         traducoesAlternativasJson: JSON.stringify(this.traducoesAlternativas.map(t => t.trim()).filter(t => t)),
-        palavrasJson: JSON.stringify(this.palavrasTraducao),
+        palavrasJson: JSON.stringify(this.palavrasTraducao.map(p => ({
+          palavra: p.palavra,
+          traducao: p.traducao,
+          audioPalavra: audio(p.audioPalavra),
+          audioTraducao: audio(p.audioTraducao)
+        }))),
         observacoes: this.observacoes,
         linksJson: JSON.stringify(this.links.filter(l => l.trim()))
       };
@@ -526,7 +571,9 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
       const paresLimpos = this.pares.map(p => ({
         imagem: p.imagem,
         palavra: p.palavra,
-        traducao: p.traducao
+        traducao: p.traducao,
+        audioPalavra: audio(p.audioPalavra),
+        audioTraducao: audio(p.audioTraducao)
       }));
       return { ...base, paresJson: JSON.stringify(paresLimpos) };
     }
@@ -536,7 +583,9 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
         imagemQuiz: this.imagemQuiz,
         videoQuiz: this.videoQuiz,
         pergunta: this.perguntaQuiz,
+        audioPergunta: audio(this.audioPergunta),
         alternativasJson: JSON.stringify(this.alternativas),
+        audiosAlternativasJson: JSON.stringify(this.audiosAlternativas.map(audio)),
         respostaCorreta: this.respostaCorreta
       };
     }
@@ -565,7 +614,8 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   }
 
   removerPalavra(index: number): void {
-    this.palavrasTraducao.splice(index, 1);
+    const [removida] = this.palavrasTraducao.splice(index, 1);
+    this.audioService.descartarTodos([removida?.audioPalavra, removida?.audioTraducao]);
   }
 
   adicionarLink(): void {
@@ -607,7 +657,8 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   removerPar(index: number): void {
     if (this.pares.length > 3) {
       this.revogarBlob(this.pares[index].imagem);
-      this.pares.splice(index, 1);
+      const [removido] = this.pares.splice(index, 1);
+      this.audioService.descartarTodos([removido?.audioPalavra, removido?.audioTraducao]);
     }
   }
 
@@ -628,12 +679,17 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
 
   // Quiz
   adicionarAlternativa(): void {
-    if (this.alternativas.length < 5) this.alternativas.push('');
+    if (this.alternativas.length < 5) {
+      this.alternativas.push('');
+      this.audiosAlternativas.push(null);
+    }
   }
 
   removerAlternativa(index: number): void {
     if (this.alternativas.length > 2) {
       this.alternativas.splice(index, 1);
+      const [audioRemovido] = this.audiosAlternativas.splice(index, 1);
+      this.audioService.descartar(audioRemovido);
       if (this.respostaCorreta === index) this.respostaCorreta = 0;
       else if (this.respostaCorreta > index) this.respostaCorreta--;
     }
@@ -742,6 +798,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   limparCamposDenuncia(): void {
     this.denunciaImagensInapropriadas = false;
     this.denunciaVideosInapropriados = false;
+    this.denunciaAudiosInapropriados = false;
     this.denunciaLinksInapropriados = false;
     this.denunciaFrasesInapropriadas = false;
     this.denunciaOutros = false;
@@ -749,10 +806,11 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   }
 
   get podeEnviarDenuncia(): boolean {
-    const temDenuncia = this.denunciaImagensInapropriadas || 
-                        this.denunciaVideosInapropriados || 
-                        this.denunciaLinksInapropriados || 
-                        this.denunciaFrasesInapropriadas || 
+    const temDenuncia = this.denunciaImagensInapropriadas ||
+                        this.denunciaVideosInapropriados ||
+                        this.denunciaAudiosInapropriados ||
+                        this.denunciaLinksInapropriados ||
+                        this.denunciaFrasesInapropriadas ||
                         this.denunciaOutros;
     
     if (this.denunciaOutros) {
@@ -768,6 +826,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     const tipos: string[] = [];
     if (this.denunciaImagensInapropriadas) tipos.push('Imagens Inapropriadas');
     if (this.denunciaVideosInapropriados) tipos.push('Vídeos Inapropriados');
+    if (this.denunciaAudiosInapropriados) tipos.push('Áudios Inapropriados');
     if (this.denunciaLinksInapropriados) tipos.push('Links Inapropriados');
     if (this.denunciaFrasesInapropriadas) tipos.push('Frases Inapropriadas');
     if (this.denunciaOutros) tipos.push('Outros');

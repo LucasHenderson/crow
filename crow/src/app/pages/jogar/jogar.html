@@ -74,27 +74,65 @@
 
         <div class="traducao-completa">
           <h2>{{ fraseAtual.traducaoCompleta }}</h2>
+          <app-player-audio
+            *ngIf="fraseAtual.audioTraducaoCompleta"
+            class="audio-frase"
+            variante="barra"
+            [velocidade]="true"
+            [src]="fraseAtual.audioTraducaoCompleta"
+            rotulo="a tradução completa"
+          ></app-player-audio>
+        </div>
+
+        <!-- Áudios das palavras: ordem sorteada, para não entregar a resposta -->
+        <div class="palavras-audio" *ngIf="palavrasComAudio.length > 0">
+          <span class="palavras-audio-titulo">Ouça as palavras</span>
+          <div class="palavras-audio-lista">
+            <span class="palavra-audio" *ngFor="let item of palavrasComAudio">
+              <span>{{ item.palavra }}</span>
+              <app-player-audio tamanho="pequeno" [src]="item.audioPalavra" [rotulo]="item.palavra"></app-player-audio>
+            </span>
+          </div>
         </div>
 
         <div class="area-resposta">
           <div class="palavras-selecionadas">
-            <div 
-              class="palavra-slot" 
+            <div
+              class="palavra-slot"
               *ngFor="let palavra of palavrasSelecionadas; let i = index"
               (click)="removerPalavra(i)">
               <span *ngIf="palavra">{{ palavra.traducao }}</span>
+              <app-player-audio
+                *ngIf="palavra?.audioTraducao as audioPeca"
+                tamanho="pequeno"
+                [src]="audioPeca"
+                [rotulo]="palavra?.traducao || 'a palavra'"
+              ></app-player-audio>
             </div>
           </div>
 
           <div class="palavras-disponiveis">
-            <button 
-              class="palavra-btn" 
+            <span
+              class="peca"
               *ngFor="let palavra of palavrasEmbaralhadas; let i = index"
-              [class.usado]="palavra.usado"
-              [disabled]="palavra.usado"
-              (click)="selecionarPalavra(palavra, i)">
-              {{ palavra.traducao }}
-            </button>
+              [class.com-audio]="!!palavra.audioTraducao"
+              [class.usado]="palavra.usado">
+              <button
+                class="palavra-btn"
+                [class.usado]="palavra.usado"
+                [disabled]="palavra.usado"
+                (click)="selecionarPalavra(palavra, i)">
+                {{ palavra.traducao }}
+              </button>
+              <!-- Dentro da peça, abaixo da palavra. Depois de escolhida, a peça é ouvida na resposta, acima -->
+              <app-player-audio
+                *ngIf="palavra.audioTraducao && !palavra.usado"
+                class="audio-peca"
+                tamanho="pequeno"
+                [src]="palavra.audioTraducao"
+                [rotulo]="palavra.traducao"
+              ></app-player-audio>
+            </span>
           </div>
         </div>
       </div>
@@ -121,20 +159,26 @@
                   <polyline points="21 15 16 10 5 21"/>
                 </svg>
               </div>
-              <span>{{ par.palavra }}</span>
+              <div class="par-rotulo">
+                <span>{{ par.palavra }}</span>
+                <app-player-audio *ngIf="par.audioPalavra" tamanho="pequeno" [src]="par.audioPalavra" [rotulo]="par.palavra"></app-player-audio>
+              </div>
             </div>
           </div>
 
           <div class="coluna-traducoes">
             <h3>Traduções</h3>
-            <div 
+            <div
               class="par-item"
               *ngFor="let par of traducoesEmbaralhadas; let i = index"
               [class.selecionado]="traducaoSelecionada === i"
               [class.conectado]="paresSelecionados[i] !== undefined"
               [style.border-color]="getCorConexaoTraducao(i)"
               (click)="selecionarTraducaoColuna(i)">
-              <span>{{ par.traducao }}</span>
+              <div class="par-rotulo">
+                <span>{{ par.traducao }}</span>
+                <app-player-audio *ngIf="par.audioTraducao" tamanho="pequeno" [src]="par.audioTraducao" [rotulo]="par.traducao"></app-player-audio>
+              </div>
             </div>
           </div>
         </div>
@@ -182,16 +226,30 @@
 
         <div class="quiz-pergunta">
           <h2>{{ fraseAtual.pergunta }}</h2>
+          <app-player-audio
+            *ngIf="fraseAtual.audioPergunta"
+            class="audio-frase"
+            variante="barra"
+            [velocidade]="true"
+            [src]="fraseAtual.audioPergunta"
+            rotulo="a pergunta"
+          ></app-player-audio>
         </div>
 
         <div class="quiz-alternativas">
-          <div 
+          <div
             class="alternativa"
             *ngFor="let alt of fraseAtual.alternativasEmbaralhadas; let i = index"
             [class.selecionada]="alternativaSelecionada === i"
             (click)="selecionarAlternativa(i)">
             <div class="alternativa-letra">{{ getLetraAlternativa(i) }}</div>
             <span class="alternativa-texto">{{ alt }}</span>
+            <app-player-audio
+              *ngIf="fraseAtual.audiosAlternativasEmbaralhados?.[i] as audioAlternativa"
+              [velocidade]="true"
+              [src]="audioAlternativa"
+              [rotulo]="'a alternativa ' + getLetraAlternativa(i)"
+            ></app-player-audio>
           </div>
         </div>
       </div>

@@ -1762,6 +1762,86 @@ Arquivos: `crow/src/app/services/sound.service.ts`, `services/theme.service.ts`,
   interface e foi excluído ao final pela API. No painel do admin, o modal de exclusão foi só aberto
   e cancelado — nenhuma ação de moderação foi executada.
 
+### 8.27 Áudios nas frases e denúncia de áudio — **concluído** (backend + frontend)
+
+Pedido: áudios opcionais nos três modos — Tradução Direta (1 para a tradução completa, 1 por
+palavra e 1 por tradução; a tradução completa toca de 0,25x a 2x), Selecionar Pares (1 por
+palavra e 1 por tradução) e Quiz (1 para a pergunta e 1 por alternativa, todos de 0,25x a 2x) —,
+um tipo de denúncia para áudios e o tratamento de tudo o que a novidade afeta. `cd api && ./mvnw -q
+compile` → **exit 0**; build de produção do front (`CI=true npx ng build` com saída fora do
+repositório) → **exit 0**, com os mesmos dois avisos de orçamento de CSS (`controle-adm.css` e
+`visualizar-idioma.css`, nenhum dos dois alterado). **Backend por script** contra a API local:
+**43/43** (upload com assinaturas reais e forjadas, arquivos recusados, tipos servidos, `Range`,
+referências inválidas, edição parcial, visão do admin). **Navegador** (Chrome headless via CDP,
+`HTMLMediaElement.play/pause/playbackRate` instrumentados, arquivos escolhidos com
+`DOM.setFileInputFiles`): **98/98** em quatro roteiros — os quatro formulários, lista do módulo,
+modal de edição, rodada completa nos três modos (escuro em 1400 px e claro em 390 px com toque,
+incluindo a posição do botão de ouvir, medida por geometria em cada tipo de card), denúncia e visão
+do moderador —, nenhum erro de console. Os roteiros de denúncia/moderador e dos outros formulários
+rodaram antes do ajuste de posição do botão no Jogar, que não os afeta. API com o SMTP apontado para
+uma porta fechada; nenhum e-mail saiu.
+
+Arquivos: `api/.../util/FormatoAudio.java` (novo), `controller/UploadController.java`,
+`entity/Frase.java`, `dto/frase/FraseRequest.java`, `dto/frase/FraseResponse.java`,
+`service/FraseService.java`, `service/IdiomaService.java`; `crow/src/app/services/audio.service.ts`
+(novo), `components/player-audio/player-audio.{ts,html,css}` (novo),
+`components/campo-audio/campo-audio.{ts,html,css}` (novo), `services/upload.service.ts`,
+`models/frase.model.ts`, `pages/cadastrar-frase/cadastrar-frase.{ts,html}`,
+`pages/cadastrar-idioma/cadastrar-idioma.{ts,html}`, `pages/visualizar-idioma/visualizar-idioma.{ts,html}`,
+`pages/visualizar-modulo/visualizar-modulo.{ts,html,css}`, `pages/jogar/jogar.{ts,html,css}`,
+`pages/visualizar-idioma-adm/visualizar-idioma-adm.{ts,html,css}`, `pages/termos-de-uso/termos-de-uso.html`,
+`pages/politica-de-privacidade/politica-de-privacidade.html`, `src/styles.css`.
+
+| # | Item | Arquivos |
+|---|---|---|
+| 1 | **Dados:** três colunas novas e nulas em `frases` (`audio_traducao_completa`, `audio_pergunta` e `audios_alternativas_json`, lista paralela a `alternativasJson` com o caminho ou `null` em cada posição). Os áudios de palavras e pares são chaves `audioPalavra`/`audioTraducao` dentro de `palavrasJson`/`paresJson` — sem coluna nova e compatível com as frases existentes; áudio ausente não vira chave. Na edição, `null` mantém e `""` remove, como nos demais campos; lista de alternativas sem nenhum áudio vira `null` e as demais são regravadas em forma canônica. | `Frase.java`, `FraseRequest.java`, `FraseResponse.java`, `FraseService.java` |
+| 2 | **Upload de áudio:** `POST /api/uploads/audio` (autenticado). `FormatoAudio` reconhece o formato pelos primeiros bytes — ID3 ou quadro MPEG camada III (MP3), ADTS (AAC), `RIFF…WAVE`, `OggS`, `ftyp` (M4A) e EBML (WEBM) — e o arquivo é gravado com a extensão **do formato detectado**: nome e tipo enviados pelo navegador são ignorados (HTML, PNG e texto renomeados para `.mp3` são recusados). Limite de 5 MB. O endpoint de imagens não mudou. Os áudios saem pelo mesmo `/api/uploads/**` público das imagens, com `Range` (206), que o arrastar da barra e o Safari exigem. | `FormatoAudio.java`, `UploadController.java` |
+| 3 | **Referências validadas:** a frase só aceita `/api/uploads/<uuid>.<extensão de áudio>`, inclusive dentro dos JSONs de palavras e pares — URL externa (que rastrearia quem joga), `blob:`, imagem e `..` dão 400 com mensagem própria. Os JSONs de palavras e pares passam a ser lidos no backend: malformados, também 400. | `FraseService.java` |
+| 4 | **Importação:** a cópia profunda leva os três campos novos (os JSONs já levavam os áudios de palavras e pares). Como as imagens, a cópia aponta para os mesmos arquivos. | `IdiomaService.java` |
+| 5 | **`AudioService`:** um áudio por vez em toda a aplicação; `pausarParaModal`/`retomarAposModal`; `inicioDeReproducao` (o Jogar pausa o vídeo do quiz); velocidade escolhida vira a inicial dos próximos players — só em memória, sem nada novo no `localStorage`. Nos formulários, segue o modelo "envia ao salvar" das imagens: o arquivo fica numa URL `blob:` para ouvir antes de salvar, `enviarPendentes` sobe só os do modo escolhido (sem reenviar numa nova tentativa) e `paraSalvar` troca a URL local pelo caminho no corpo da requisição. Recusa no navegador formato fora da lista, arquivo vazio, acima de 5 MB ou ilegível. | `audio.service.ts`, `upload.service.ts` |
+| 6 | **`app-player-audio`:** `mini` (alto-falante) ou `barra` (play, progresso arrastável e tempo), seletor de velocidade opcional com 0,25x a 2x em pt-BR ("0,25x"). Estado em signals (app zoneless); os cliques não chegam ao card pai (pares e alternativas do Jogar); falha ao tocar mostra o ícone de alto-falante cortado e toca `erro`. Alvos maiores com `pointer: coarse`; só tokens do tema. | `player-audio.{ts,html,css}` |
+| 7 | **`app-campo-audio`:** "+ Áudio" quando vazio; com áudio, ouvir, duração e remover; erro de validação abaixo, com som `erro`. Fica à direita do rótulo pelo utilitário global `.campo-cabecalho` (no quiz, junto do "Resposta correta"). | `campo-audio.{ts,html,css}`, `styles.css` |
+| 8 | **Os quatro formulários de frase** (cadastro de idioma etapa 3, Cadastrar Nova Frase, primeira frase do "Adicionar Módulo" e modal de edição) ganharam os campos pedidos. A lista de áudios das alternativas acompanha adicionar e remover alternativa (conferido removendo a do meio); arquivos não salvos são descartados ao remover a linha, fechar o modal, limpar ou sair da página. O Voltar do cadastro de idioma considera áudio como dado preenchido. | `cadastrar-idioma.*`, `cadastrar-frase.*`, `visualizar-idioma.*`, `visualizar-modulo.*` |
+| 9 | **Jogar:** Tradução Direta com barra e velocidade na tradução completa, "Ouça as palavras" com os áudios das palavras **em ordem sorteada** (na ordem cadastrada entregariam a ordem da resposta) e botão de ouvir em cada peça, que acompanha a peça até a resposta sem devolvê-la; Selecionar Pares com botão em cada palavra e tradução, sem selecionar o card; Quiz com barra e velocidade na pergunta e botão + velocidade em cada alternativa, áudio embaralhado junto do texto. **Posição do botão (ajuste pedido pelo Lucas):** em todo card de palavra do Jogar — peça disponível, peça na resposta, cards das duas colunas de pares e "Ouça as palavras" — o botão fica **dentro do card, abaixo da palavra, centralizado**. A peça disponível continua um `<button>` só (botão dentro de botão não é HTML válido): o de ouvir é irmão dele, posicionado sobre o rodapé que a peça com áudio reserva (maior com `pointer: coarse`); a peça inteira sobe no hover. Peças sem áudio não esticam (`align-items: flex-start`), então as palavras ficam na mesma linha. O modal "Cancelar rodada" pausa e retoma o áudio (como o vídeo); trocar de frase e cancelar encerram; áudio e vídeo do quiz não tocam juntos. De passagem, a resposta correta do quiz passou a ser localizada pelo índice, não pelo texto (duas alternativas iguais confundiam a correção). | `jogar.{ts,html,css}` |
+| 10 | **Lista do módulo e visão do moderador:** botões de ouvir em todos os campos (barras com velocidade na tradução completa e na pergunta). O moderador vê "N áudios" no resumo do idioma e em cada módulo — para conferir uma denúncia de áudio sem abrir módulo por módulo. | `visualizar-modulo.*`, `visualizar-idioma-adm.*`, `frase.model.ts` (`contarAudiosDaFrase`) |
+| 11 | **Denúncia:** tipo "Áudios Inapropriados", depois de "Vídeos Inapropriados". O painel do admin já mostra os tipos de forma genérica (tag por tipo) — conferido com uma denúncia injetada só na resposta da listagem. | `visualizar-idioma.{ts,html}` |
+| 12 | **Termos e Política:** imagens e áudios passam a constar no conteúdo publicado (Termos, seção 3) e nos dados coletados (Política, seção 2), com menção a gravações da voz — dado pessoal pela LGPD. | `termos-de-uso.html`, `politica-de-privacidade.html` |
+
+**Em aberto nesta etapa:**
+
+- **Importação não exercitada de ponta a ponta:** exige um segundo usuário comum, e o banco local só
+  tem o `usuario@crow.com` e duas contas reais. Conferida pela leitura do código (os três campos
+  são copiados como os demais). Com a Conta A/B do roteiro de testes, basta importar um idioma com
+  áudios e abrir a cópia.
+- **Nenhum áudio foi ouvido**: a conferência foi pelos `play`/`pause`/velocidade registrados no
+  navegador headless. Safari (OGG/WEBM) e celular real não foram testados.
+- **Arquivos órfãos:** como as imagens, os áudios nunca são apagados do disco — nem ao excluir frase
+  ou idioma, nem ao trocar o áudio, nem quando o salvamento falha depois do envio. Áudios pesam mais
+  que imagens; apagar exigiria contar referências, porque a importação compartilha os arquivos.
+- **Risco pré-existente encontrado na análise (não alterado):** o upload de **imagens** confia no
+  tipo informado pelo navegador e grava a extensão do nome original — um `.html` ou `.svg` enviado
+  como `image/*` é aceito e servido publicamente em `/api/uploads` (XSS armazenado; em
+  desenvolvimento o proxy serve `/api` na mesma origem do front, onde fica o token). O endpoint de
+  áudio já nasce com detecção pelo conteúdo; o mesmo tratamento cabe às imagens.
+- **Tema claro do Jogar (pré-existente):** `jogar.css` usa cores fixas escuras — no claro, os cards
+  ficam cinza com texto branco. Os elementos novos usam só tokens e ficam legíveis nos dois temas.
+- WEBM gravado no navegador pode não informar a duração: o campo mostra "Áudio" e a barra, só o
+  tempo corrido. `.webm` sai como `video/webm` e `.aac` como `audio/x-aac` (tipos do Spring).
+- O `docs/roteiro-de-testes.md` não ganhou casos para os áudios.
+- **Efeitos dos testes no banco local:** idiomas descartáveis `IDM-8A50EA6DF974` e
+  `IDM-CE972B51326F` ("Teste de Áudios", pela API, uma vez por rodada) e `IDM-7123C60D01D7` ("Teste
+  Áudios Quiz", pela interface), todos do "Usuário Teste" e excluídos ao final; os 48 arquivos de
+  áudio de teste foram apagados de `api/uploads`. Nenhuma denúncia gravada (a do usuário foi
+  interceptada e abortada no navegador) e nenhuma linha nova em `logs_admin` (a mais recente segue
+  `LOG-53`).
+- ⚠️ **Arquivos do Lucas apagados por engano:** entre as duas rodadas, o Lucas criou pelo front de
+  teste o idioma "Japonês para viagem" (`IDM-2A0C131647AB`, módulo "cadeado") com 7 áudios `.ogg`, e
+  a segunda limpeza — feita por data ("áudios depois das 15:00"), não pela lista do que os scripts
+  criaram — os apagou. As frases seguem apontando para eles e mostram o ícone de falha ao tocar:
+  **FRS-46** (Tradução Direta: tradução completa, palavra 1, tradução 1 e palavra 2) e **FRS-47**
+  (Selecionar Pares: par 1 palavra, par 1 tradução e par 2 palavra). Para restaurar, reanexar os
+  arquivos originais pelo "Editar" de cada frase. As 3 imagens `.webp` do idioma não foram tocadas.
+
 ---
 
 ## Checklist do plano de ajustes
@@ -2017,3 +2097,19 @@ ou que, como os da 8.18 e 8.19, preparam uma fase sem fechá-la:
 - [x] Verificação no app real dos sons agendados por clique (55 passos, `AudioContext` instrumentado) e das capturas dos ícones — ver seção 8.26
 - [ ] Ouvir os sons novos e ajustar `RECEITAS`, sobretudo o volume do `clique` (seção 8.26)
 - [ ] Decidir se "Selecionar Pares" deve ter o mesmo ícone no seletor (grade) e na lista de frases (elos) (seção 8.26)
+- [x] Áudios opcionais nos três modos: tradução completa, palavras e traduções; palavras e traduções dos pares; pergunta e alternativas — ver seção 8.27
+- [x] `POST /api/uploads/audio` com formato reconhecido pelo conteúdo (`FormatoAudio`) e limite de 5 MB — ver seção 8.27
+- [x] Referências de áudio validadas no backend, inclusive dentro de `palavrasJson`/`paresJson` — ver seção 8.27
+- [x] Componentes compartilhados `app-player-audio` e `app-campo-audio` e `AudioService` (um áudio por vez, envio ao salvar) — ver seção 8.27
+- [x] Jogar: velocidades de 0,25x a 2x na tradução completa, na pergunta e nas alternativas; áudios pausados pelo modal de cancelar — ver seção 8.27
+- [x] Áudios copiados na importação e exibidos na lista do módulo e na visão do moderador — ver seção 8.27
+- [x] Tipo de denúncia "Áudios Inapropriados" — ver seção 8.27
+- [x] Imagens e áudios (gravações de voz) explícitos nos Termos e na Política de Privacidade — ver seção 8.27
+- [x] Botão de ouvir dentro do card da palavra no Jogar, abaixo da palavra e centralizado (peças, resposta, pares e "Ouça as palavras") — ver seção 8.27
+- [ ] **Reanexar os 7 áudios do "Japonês para viagem" (FRS-46 e FRS-47), apagados por engano na limpeza dos testes** (seção 8.27)
+- [ ] Importar um idioma com áudios usando uma segunda conta comum e conferir a cópia (seção 8.27)
+- [ ] Ouvir os áudios num navegador com som, inclusive Safari e celular (seção 8.27)
+- [ ] Aplicar ao upload de imagens a detecção pelo conteúdo, contra `.html`/`.svg` servidos em `/api/uploads` (seção 8.27)
+- [ ] Decidir se arquivos órfãos de `/api/uploads` (imagens e áudios) devem ser apagados, com contagem de referências (seção 8.27)
+- [ ] Tokenizar as cores do `jogar.css` para o tema claro (seção 8.27)
+- [ ] Acrescentar casos de áudio ao `docs/roteiro-de-testes.md` (seção 8.27)

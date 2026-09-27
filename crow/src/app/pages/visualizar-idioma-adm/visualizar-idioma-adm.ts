@@ -5,7 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { IdiomaAdm } from '../../models/idioma.model';
 import { ModuloAdm } from '../../models/modulo.model';
-import { Frase, PalavraTrad, Par } from '../../models/frase.model';
+import { Frase, PalavraTrad, Par, contarAudiosDaFrase } from '../../models/frase.model';
+import { PlayerAudio } from '../../components/player-audio/player-audio';
 import { AdminService } from '../../services/admin.service';
 import { SoundService } from '../../services/sound.service';
 
@@ -14,6 +15,8 @@ interface ModuloVisualizacao {
   modulo: ModuloAdm;
   icone: SafeHtml;
   frases: Frase[];
+  /** Áudios somados das frases — ajuda a conferir denúncias de áudio sem abrir módulo por módulo. */
+  audios: number;
   expandido: boolean;
 }
 
@@ -29,7 +32,7 @@ interface ModuloVisualizacao {
 @Component({
   selector: 'app-visualizar-idioma-adm',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PlayerAudio],
   templateUrl: './visualizar-idioma-adm.html',
   styleUrl: './visualizar-idioma-adm.css',
 })
@@ -97,14 +100,18 @@ export class VisualizarIdiomaAdm implements OnInit {
     this.adminService.getIdiomaCompletoAdmin(this.codigo).subscribe({
       next: (completo) => {
         this.idioma = completo.idioma;
-        this.modulos = completo.modulos.map(m => ({
-          modulo: m.modulo,
-          icone: this.sanitizer.bypassSecurityTrustHtml(
-            m.modulo.icone && m.modulo.icone.trim() ? m.modulo.icone : this.iconeModuloPadrao
-          ),
-          frases: m.frases.map(f => this.enriquecerFrase(f)),
-          expandido: false
-        }));
+        this.modulos = completo.modulos.map(m => {
+          const frases = m.frases.map(f => this.enriquecerFrase(f));
+          return {
+            modulo: m.modulo,
+            icone: this.sanitizer.bypassSecurityTrustHtml(
+              m.modulo.icone && m.modulo.icone.trim() ? m.modulo.icone : this.iconeModuloPadrao
+            ),
+            frases,
+            audios: frases.reduce((total, frase) => total + contarAudiosDaFrase(frase), 0),
+            expandido: false
+          };
+        });
         this.carregando = false;
         this.cdr.detectChanges();
       },
@@ -130,6 +137,7 @@ export class VisualizarIdiomaAdm implements OnInit {
     const links = this.parseJson<string[]>(f.linksJson) || f.links;
     const pares = this.parseJson<Par[]>(f.paresJson) || f.pares;
     const alternativas = this.parseJson<string[]>(f.alternativasJson) || f.alternativas;
+    const audiosAlternativas = this.parseJson<(string | null)[]>(f.audiosAlternativasJson) || f.audiosAlternativas;
 
     const videoQuiz = f.videoQuiz
       ? this.sanitizer.bypassSecurityTrustResourceUrl(this.toEmbedUrl(f.videoQuiz))
@@ -145,6 +153,7 @@ export class VisualizarIdiomaAdm implements OnInit {
       links,
       pares,
       alternativas,
+      audiosAlternativas,
       videoQuiz,
       videoQuizUrl: typeof f.videoQuiz === 'string' ? f.videoQuiz : undefined
     };
@@ -200,6 +209,10 @@ export class VisualizarIdiomaAdm implements OnInit {
 
   get totalFrases(): number {
     return this.modulos.reduce((total, m) => total + m.frases.length, 0);
+  }
+
+  get totalAudios(): number {
+    return this.modulos.reduce((total, m) => total + m.audios, 0);
   }
 
   // ===== APRESENTAÇÃO =====

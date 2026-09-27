@@ -309,6 +309,12 @@
             <span class="label-text">Vídeos Inapropriados</span>
           </label>
 
+          <label class="checkbox-denuncia" [class.checked]="denunciaAudiosInapropriados">
+            <input type="checkbox" [(ngModel)]="denunciaAudiosInapropriados" />
+            <span class="checkmark"></span>
+            <span class="label-text">Áudios Inapropriados</span>
+          </label>
+
           <label class="checkbox-denuncia" [class.checked]="denunciaLinksInapropriados">
             <input type="checkbox" [(ngModel)]="denunciaLinksInapropriados" />
             <span class="checkmark"></span>
@@ -800,18 +806,27 @@
             </div>
 
             <div class="campo">
-              <label>Tradução Completa *</label>
+              <div class="campo-cabecalho">
+                <label>Tradução Completa *</label>
+                <app-campo-audio [(audio)]="audioTraducaoCompleta" rotulo="da tradução completa"></app-campo-audio>
+              </div>
               <textarea [(ngModel)]="traducaoCompleta" placeholder="Ex: Bom dia! Como você está?"></textarea>
             </div>
 
             <div *ngFor="let item of palavrasTraducao; let i = index">
               <div class="linha-dinamica">
                 <div class="campo">
-                  <label>Palavra {{ i + 1 }} *</label>
+                  <div class="campo-cabecalho">
+                    <label>Palavra {{ i + 1 }} *</label>
+                    <app-campo-audio [(audio)]="item.audioPalavra" [rotulo]="'da palavra ' + (i + 1)"></app-campo-audio>
+                  </div>
                   <input type="text" [(ngModel)]="item.palavra" placeholder="Ex: Bom dia" />
                 </div>
                 <div class="campo">
-                  <label>Tradução *</label>
+                  <div class="campo-cabecalho">
+                    <label>Tradução *</label>
+                    <app-campo-audio [(audio)]="item.audioTraducao" [rotulo]="'da tradução ' + (i + 1)"></app-campo-audio>
+                  </div>
                   <input type="text" [(ngModel)]="item.traducao" placeholder="Ex: Good morning" />
                 </div>
                 <button *ngIf="palavrasTraducao.length > 1" class="btn-icone btn-remove" (click)="removerPalavra(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -876,11 +891,17 @@
                   </div>
                 </div>
                 <div class="campo">
-                  <label>Palavra {{ i + 1 }} *</label>
+                  <div class="campo-cabecalho">
+                    <label>Palavra {{ i + 1 }} *</label>
+                    <app-campo-audio [(audio)]="par.audioPalavra" [rotulo]="'da palavra ' + (i + 1)"></app-campo-audio>
+                  </div>
                   <input type="text" [(ngModel)]="par.palavra" placeholder="Palavra" />
                 </div>
                 <div class="campo">
-                  <label>Tradução {{ i + 1 }} *</label>
+                  <div class="campo-cabecalho">
+                    <label>Tradução {{ i + 1 }} *</label>
+                    <app-campo-audio [(audio)]="par.audioTraducao" [rotulo]="'da tradução ' + (i + 1)"></app-campo-audio>
+                  </div>
                   <input type="text" [(ngModel)]="par.traducao" placeholder="Tradução" />
                 </div>
                 <button *ngIf="pares.length > 3" class="btn-icone btn-remove btn-par-remove" (click)="removerPar(i)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -940,7 +961,10 @@
             </div>
 
             <div class="campo">
-              <label>Pergunta *</label>
+              <div class="campo-cabecalho">
+                <label>Pergunta *</label>
+                <app-campo-audio [(audio)]="audioPergunta" rotulo="da pergunta"></app-campo-audio>
+              </div>
               <textarea [(ngModel)]="perguntaQuiz" placeholder="Digite a pergunta"></textarea>
             </div>
 
@@ -949,6 +973,7 @@
                 <div class="campo-alternativa-com-checkbox">
                   <div class="alternativa-header">
                     <label>Alternativa {{ getLetraAlternativa(i) }} *</label>
+                    <app-campo-audio [(audio)]="audiosAlternativas[i]" [rotulo]="'da alternativa ' + getLetraAlternativa(i)"></app-campo-audio>
                     <div class="checkbox-resposta-correta">
                       <input
                         type="radio"

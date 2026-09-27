@@ -338,6 +338,8 @@ public class IdiomaService {
         // 2. Clona cada módulo e, dentro dele, cada frase — todos com novos IDs
         //    e vinculados exclusivamente à cópia. A ordem é reatribuída como
         //    1..n para acompanhar a sequência do original sem herdar buracos.
+        //    Imagens e áudios são caminhos em /api/uploads: a cópia aponta para
+        //    os mesmos arquivos, que nunca são apagados do disco.
         List<Modulo> modulosOriginais = moduloRepository.findByIdiomaIdOrderByOrdemAscIdAsc(idiomaOriginalId);
         int ordemModulo = 1;
         for (Modulo moduloOriginal : modulosOriginais) {
@@ -355,13 +357,16 @@ public class IdiomaService {
                         .modo(fraseOriginal.getModo())
                         .traducaoCompleta(fraseOriginal.getTraducaoCompleta())
                         .traducoesAlternativasJson(fraseOriginal.getTraducoesAlternativasJson())
+                        .audioTraducaoCompleta(fraseOriginal.getAudioTraducaoCompleta())
                         .palavrasJson(fraseOriginal.getPalavrasJson())
                         .imagem(fraseOriginal.getImagem())
                         .observacoes(fraseOriginal.getObservacoes())
                         .linksJson(fraseOriginal.getLinksJson())
                         .paresJson(fraseOriginal.getParesJson())
                         .pergunta(fraseOriginal.getPergunta())
+                        .audioPergunta(fraseOriginal.getAudioPergunta())
                         .alternativasJson(fraseOriginal.getAlternativasJson())
+                        .audiosAlternativasJson(fraseOriginal.getAudiosAlternativasJson())
                         .respostaCorreta(fraseOriginal.getRespostaCorreta())
                         .imagemQuiz(fraseOriginal.getImagemQuiz())
                         .videoQuiz(fraseOriginal.getVideoQuiz())
