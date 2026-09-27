@@ -16,8 +16,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Módulos de um idioma. O idioma é sempre identificado pelo código público
+ * ({@code IDM-...}) — o id numérico é resolvido aqui e nunca sai da API.
+ * O id do módulo em si segue numérico nesta fase.
+ */
 @RestController
-@RequestMapping("/api/idiomas/{idiomaId}/modulos")
+@RequestMapping("/api/idiomas/{codigoIdioma}/modulos")
 @RequiredArgsConstructor
 public class ModuloController {
 
@@ -27,9 +32,10 @@ public class ModuloController {
 
     @GetMapping
     public ResponseEntity<List<ModuloResponse>> listar(
-            @PathVariable Long idiomaId,
+            @PathVariable String codigoIdioma,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
+        Long idiomaId = idiomaService.buscarPorCodigo(codigoIdioma).getId();
         idiomaService.validarAcessoLeitura(idiomaId, userId);
         return ResponseEntity.ok(
                 moduloService.buscarPorIdioma(idiomaId).stream()
@@ -40,17 +46,18 @@ public class ModuloController {
 
     @PostMapping
     public ResponseEntity<ModuloResponse> criar(
-            @PathVariable Long idiomaId,
+            @PathVariable String codigoIdioma,
             Authentication authentication,
             @Valid @RequestBody ModuloRequest request) {
         Long userId = Long.valueOf(authentication.getName());
+        Long idiomaId = idiomaService.buscarPorCodigo(codigoIdioma).getId();
         Modulo modulo = moduloService.criar(idiomaId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(modulo));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ModuloResponse> editar(
-            @PathVariable Long idiomaId,
+            @PathVariable String codigoIdioma,
             @PathVariable Long id,
             Authentication authentication,
             @Valid @RequestBody ModuloRequest request) {
@@ -60,7 +67,7 @@ public class ModuloController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(
-            @PathVariable Long idiomaId,
+            @PathVariable String codigoIdioma,
             @PathVariable Long id,
             Authentication authentication) {
         Long userId = Long.valueOf(authentication.getName());
@@ -71,17 +78,14 @@ public class ModuloController {
     /**
      * Persiste a nova ordem dos módulos do idioma. Recebe a lista completa de
      * ids na ordem desejada e devolve os módulos já reordenados.
-     *
-     * <p>Diferente dos demais métodos desta classe, aceita o código público do
-     * idioma (além do id numérico) via {@code idiomaService.resolver}.</p>
      */
     @PutMapping("/ordem")
     public ResponseEntity<List<ModuloResponse>> reordenar(
-            @PathVariable("idiomaId") String codigoIdioma,
+            @PathVariable String codigoIdioma,
             Authentication authentication,
             @Valid @RequestBody ReordenarModulosRequest request) {
         Long userId = Long.valueOf(authentication.getName());
-        Long idiomaId = idiomaService.resolver(codigoIdioma).getId();
+        Long idiomaId = idiomaService.buscarPorCodigo(codigoIdioma).getId();
         return ResponseEntity.ok(
                 moduloService.reordenar(idiomaId, request.ids(), userId).stream()
                         .map(this::toResponse)

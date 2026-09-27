@@ -9,6 +9,9 @@ interface AuthResponse {
   usuario: Usuario;
 }
 
+/** Para que serve o código por e-mail — muda só o texto do e-mail enviado. */
+export type FinalidadeCodigo = 'VERIFICACAO_EMAIL' | 'REDEFINICAO_SENHA';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = environment.apiUrl;
@@ -37,8 +40,9 @@ export class AuthService {
     );
   }
 
-  enviarCodigoVerificacao(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/enviar-codigo`, { email });
+  /** Sem finalidade, o backend envia o e-mail de verificação (cadastro e troca de e-mail). */
+  enviarCodigoVerificacao(email: string, finalidade?: FinalidadeCodigo): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/enviar-codigo`, { email, finalidade });
   }
 
   emailExiste(email: string): Observable<{ existe: boolean }> {

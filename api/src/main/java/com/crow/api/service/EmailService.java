@@ -2,15 +2,19 @@ package com.crow.api.service;
 
 import com.crow.api.config.AsyncConfig;
 import com.crow.api.entity.Usuario;
+import com.crow.api.util.CorpoEmail;
+import com.crow.api.util.EmailLayout;
 import com.crow.api.util.EmailTemplates;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
@@ -27,7 +31,8 @@ import java.util.regex.Pattern;
  *       Como consequência, quem chama não recebe confirmação de entrega.</li>
  * </ul>
  *
- * <p>Os textos ficam em {@link EmailTemplates}; aqui só há envio, validação e log.
+ * <p>Os textos ficam em {@link EmailTemplates} e a moldura HTML em
+ * {@link EmailLayout}; aqui só há envio, validação e log.
  * O código de verificação de cadastro continua em {@link EmailVerificationService},
  * que é síncrono de propósito — lá a falha precisa chegar ao usuário.</p>
  *
@@ -71,7 +76,7 @@ public class EmailService {
         }
         enviar(destinatario,
                 EmailTemplates.assunto(assunto),
-                EmailTemplates.personalizado(primeiroNome(destinatario), mensagem),
+                EmailTemplates.personalizado(primeiroNome(destinatario), assunto, mensagem),
                 "mensagem personalizada");
     }
 
@@ -135,17 +140,20 @@ public class EmailService {
     /**
      * Ponto único de saída. Qualquer falha de SMTP para aqui: vira log de erro
      * e não volta para quem chamou, porque a ação administrativa já aconteceu.
+     * A mensagem leva o corpo em texto puro e em HTML, com a logo embutida.
      */
-    private void enviar(Usuario destinatario, String assunto, String corpo, String tipo) {
-        SimpleMailMessage mensagem = new SimpleMailMessage();
-        if (EmailTemplates.preenchido(remetente)) {
-            mensagem.setFrom(remetente);
-        }
-        mensagem.setTo(destinatario.getEmail());
-        mensagem.setSubject(assunto);
-        mensagem.setText(corpo);
-
+    private void enviar(Usuario destinatario, String assunto, CorpoEmail corpo, String tipo) {
         try {
+            MimeMessage mensagem = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    mensagem, MimeMessageHelper.MULTIPART_MODE_RELATED, StandardCharsets.UTF_8.name());
+            if (EmailTemplates.preenchido(remetente)) {
+                helper.setFrom(remetente);
+            }
+            helper.setTo(destinatario.getEmail());
+            helper.setSubject(assunto);
+            EmailLayout.preencher(helper, corpo);
+
             mailSender.send(mensagem);
             log.info("E-mail enviado ({}) para o usuário {}", tipo, identificacao(destinatario));
         } catch (Exception e) {

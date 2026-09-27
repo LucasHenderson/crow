@@ -5,6 +5,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { Idioma, IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models';
 import { IdiomaService } from '../../services/idioma.service';
+import { SoundService } from '../../services/sound.service';
 
 @Component({
   selector: 'app-home',
@@ -60,10 +61,14 @@ export class Home implements OnInit, OnDestroy {
 
   proficiencias = PROFICIENCIAS;
 
+  /** Máximo de idiomas por usuário — o backend recusa criar ou importar além disso. */
+  readonly limiteIdiomas = 4;
+
   constructor(
     private cdr: ChangeDetectorRef,
     private router: Router,
-    private idiomaService: IdiomaService
+    private idiomaService: IdiomaService,
+    private soundService: SoundService
   ) {}
 
   ngOnInit(): void {
@@ -114,13 +119,16 @@ export class Home implements OnInit, OnDestroy {
     return mapa[nivel] || nivel.toUpperCase();
   }
 
+  get limiteAtingido(): boolean {
+    return this.idiomas.length >= this.limiteIdiomas;
+  }
+
   /**
-   * Abre o modal de opções para adicionar idioma
+   * Abre o modal de opções para adicionar idioma. Abre também no limite de
+   * idiomas: o modal é o caminho para as buscas de idiomas e de usuários, e
+   * só a opção "Novo Idioma" fica bloqueada.
    */
   adicionarIdioma(): void {
-    if (this.idiomas.length >= 4) {
-      return;
-    }
     this.mostrarModalOpcoes = true;
   }
 
@@ -148,9 +156,11 @@ export class Home implements OnInit, OnDestroy {
   }
 
   /**
-   * Navega para criar novo idioma
+   * Navega para criar novo idioma (bloqueado no limite: o cadastro só
+   * falharia no último passo)
    */
   novoIdioma(): void {
+    if (this.limiteAtingido) return;
     this.fecharModalOpcoes();
     this.router.navigate(['/cadastrar-idioma']);
   }
@@ -209,6 +219,7 @@ export class Home implements OnInit, OnDestroy {
     if (this.salvandoEdicao) return;
     if (!this.podeAvancarEdicao() || !this.idiomaEmEdicao?.codigo || !this.idiomaSelecionadoEdicao) {
       this.erroEdicao = 'Por favor, preencha todos os campos obrigatórios.';
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -231,12 +242,14 @@ export class Home implements OnInit, OnDestroy {
         this.salvandoEdicao = false;
         this.fecharModalEdicao();
         this.cdr.detectChanges();
+        this.soundService.tocar('sucesso');
         this.exibirMensagemSucesso(`Idioma "${nome}" editado com sucesso!`);
         this.carregarIdiomas();
       },
       error: (err) => {
         this.salvandoEdicao = false;
         this.erroEdicao = err?.error?.message || 'Erro ao editar idioma.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -274,6 +287,7 @@ export class Home implements OnInit, OnDestroy {
     this.idiomaEmExclusao = idioma;
     this.indiceExclusao = index;
     this.mostrarModalExclusao = true;
+    this.soundService.tocar('alerta');
   }
 
   /**
@@ -283,6 +297,7 @@ export class Home implements OnInit, OnDestroy {
     if (this.excluindoIdioma) return;
     if (!this.idiomaEmExclusao?.codigo) {
       this.erroExclusao = 'Idioma inválido.';
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -296,12 +311,14 @@ export class Home implements OnInit, OnDestroy {
         this.excluindoIdioma = false;
         this.fecharModalExclusao();
         this.cdr.detectChanges();
+        this.soundService.tocar('exclusao');
         this.exibirMensagemSucesso(`Idioma "${nomeIdioma}" excluído com sucesso!`);
         this.carregarIdiomas();
       },
       error: (err) => {
         this.excluindoIdioma = false;
         this.erroExclusao = err?.error?.message || 'Erro ao excluir idioma.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -322,13 +339,6 @@ export class Home implements OnInit, OnDestroy {
    */
   estrelasArray(nota: number): boolean[] {
     return Array.from({ length: 5 }, (_, i) => i < nota);
-  }
-
-  /**
-   * Calcula o progresso percentual baseado nos módulos
-   */
-  calcularProgresso(modulos: number): number {
-    return Math.round((modulos / 20) * 100);
   }
 
   // ===== FUNÇÕES DO MODAL DE EDIÇÃO =====

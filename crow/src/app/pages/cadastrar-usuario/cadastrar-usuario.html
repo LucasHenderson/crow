@@ -1,7 +1,7 @@
 <section class="content">
 
   <!-- Alternância de tema antes da autenticação -->
-  <button type="button" class="theme-toggle-page" (click)="alternarTema()"
+  <button type="button" class="theme-toggle-page" (click)="alternarTema($event)"
           [attr.aria-label]="themeService.isDark() ? 'Ativar tema claro' : 'Ativar tema escuro'"
           [title]="themeService.isDark() ? 'Tema claro' : 'Tema escuro'">
     <svg *ngIf="themeService.isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -58,7 +58,7 @@
 
         <!-- Erro geral do formulário -->
         <div class="erro-formulario" *ngIf="erroCadastro">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -157,7 +157,7 @@
 
             <!-- Mensagem de feedback -->
             <div class="email-feedback" *ngIf="mensagemEmail" [class.erro]="erroEmail" [class.sucesso]="!erroEmail">
-              <svg *ngIf="erroEmail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg *ngIf="erroEmail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>

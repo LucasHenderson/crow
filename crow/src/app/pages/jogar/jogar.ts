@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { Frase, PalavraTrad, Par } from '../../models/frase.model';
 import { OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { FraseService } from '../../services/frase.service';
@@ -274,6 +274,7 @@ export class Jogar implements OnInit, OnDestroy {
     if (proximoSlot !== -1) {
       this.palavrasSelecionadas[proximoSlot] = palavra;
       this.palavrasEmbaralhadas[index].usado = true;
+      this.soundService.tocar('selecao');
     }
   }
 
@@ -285,6 +286,7 @@ export class Jogar implements OnInit, OnDestroy {
         this.palavrasEmbaralhadas[indexOriginal].usado = false;
       }
       this.palavrasSelecionadas[index] = null;
+      this.soundService.tocar('remocao');
     }
   }
 
@@ -295,35 +297,43 @@ export class Jogar implements OnInit, OnDestroy {
     );
     
     if (jaConectada) return;
-    
+
     this.palavraSelecionada = index;
-    
+
     if (this.traducaoSelecionada !== null) {
       this.paresSelecionados[this.traducaoSelecionada] = index;
       this.palavraSelecionada = null;
       this.traducaoSelecionada = null;
+      this.soundService.tocar('par');
+    } else {
+      this.soundService.tocar('selecao');
     }
   }
 
   selecionarTraducaoColuna(index: number): void {
     if (this.paresSelecionados[index] !== undefined) return;
-    
+
     this.traducaoSelecionada = index;
-    
+
     if (this.palavraSelecionada !== null) {
       this.paresSelecionados[index] = this.palavraSelecionada;
       this.palavraSelecionada = null;
       this.traducaoSelecionada = null;
+      this.soundService.tocar('par');
+    } else {
+      this.soundService.tocar('selecao');
     }
   }
 
   removerConexao(key: string): void {
     delete this.paresSelecionados[+key];
+    this.soundService.tocar('remocao');
   }
 
   // QUIZ
   selecionarAlternativa(index: number): void {
     this.alternativaSelecionada = index;
+    this.soundService.tocar('selecao');
   }
 
   // VERIFICAÇÃO
@@ -542,6 +552,7 @@ export class Jogar implements OnInit, OnDestroy {
     if (this.mostrarModalCancelar) return;
     this.mostrarModalCancelar = true;
     this.pausarMidia();
+    this.soundService.tocar('alerta');
   }
 
   /**

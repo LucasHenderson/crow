@@ -1,5 +1,6 @@
+import { ModuloCompletoAdm } from './modulo.model';
+
 export interface Idioma {
-  id: number;
   codigo: string;
   nome: string;
   bandeira: string;
@@ -24,14 +25,12 @@ export function normalizarOrigem(valor: string | null | undefined): OrigemIdioma
 }
 
 export interface IdiomaAdm {
-  id: number;
   codigo: string;
   nome: string;
   /** Nome da linguagem (ex.: "Inglês (Estados Unidos)"). */
   idioma: string;
   bandeira: string;
   descricao: string;
-  criadorId: number;
   codigoCriador: string;
   criadorNome: string;
   modulos: number;
@@ -41,10 +40,27 @@ export interface IdiomaAdm {
   visibilidade?: 'publico' | 'privado';
   /** Última alteração de conteúdo (ISO); ausente em idiomas sem registro. */
   atualizadoEm?: string | null;
+  /** Data de criação (ISO). */
+  criadoEm?: string | null;
+}
+
+/**
+ * Idioma completo servido pela área administrativa
+ * (GET /api/admin/idiomas/{codigo}): módulos na ordem do criador e, dentro de
+ * cada um, as frases brutas (campos *Json ainda serializados). Somente leitura.
+ */
+export interface IdiomaCompletoAdm {
+  idioma: IdiomaAdm;
+  modulos: ModuloCompletoAdm[];
+}
+
+/** Corpo opcional da exclusão administrativa (DELETE /api/admin/idiomas/{codigo}). */
+export interface ExcluirIdioma {
+  /** Mensagem ao proprietário no e-mail de aviso; vazia = aviso padrão. Até 1000 caracteres. */
+  mensagem?: string;
 }
 
 export interface IdiomaBusca {
-  id: number;
   codigo: string;
   nome: string;
   idioma: string;
@@ -61,7 +77,6 @@ export interface IdiomaOpcao {
 }
 
 export interface IdiomaUsuario {
-  id: number;
   codigo: string;
   nome: string;
   bandeira: string;

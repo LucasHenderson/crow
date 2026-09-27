@@ -5,7 +5,7 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-brows
 import { Router, ActivatedRoute } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Modulo } from '../../models/modulo.model';
+import { ICONES_MODULO, Modulo, iconeModuloPadrao } from '../../models/modulo.model';
 import { IdiomaUsuario, OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
 import { IdiomaService } from '../../services/idioma.service';
@@ -13,6 +13,7 @@ import { ModuloService } from '../../services/modulo.service';
 import { FraseService } from '../../services/frase.service';
 import { UploadService } from '../../services/upload.service';
 import { AuthService } from '../../services/auth.service';
+import { SoundService } from '../../services/sound.service';
 import {
   DirecaoMovimento,
   EstadoReordenacao,
@@ -31,12 +32,6 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   descricao = '';
   /** Código público do idioma (IDM-...): vem do query param e é o que circula na navegação. */
   codigoIdioma = '';
-  /**
-   * Id numérico do idioma, resolvido a partir do código depois de carregar os
-   * dados. Usado apenas nos endpoints de módulo, que seguem numéricos nesta fase.
-   */
-  idIdiomaNumerico = 0;
-  idUsuarioCriador: number = 0;
   codigoCriador = '';
   /** Tela de onde o usuário chegou aqui — define para onde o botão Voltar leva. */
   origem: OrigemIdioma = 'home';
@@ -126,33 +121,8 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   
   iconesModulo: SafeHtml[] = [];
   iconesModuloSvg: string[] = [];
-  
-  private rawIcons = [
-    `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
-    `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>`,
-    `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
-    `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>`,
-    `<rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/>`,
-    `<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>`,
-    `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>`,
-    `<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
-    `<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>`,
-    `<path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>`,
-    `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
-    `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>`,
-    `<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>`,
-    `<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>`,
-    `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`,
-    `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
-    `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>`,
-    `<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>`,
-    `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`,
-    `<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>`,
-    `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>`,
-    `<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>`,
-    `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>`,
-    `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>`
-  ];
+  /** Tema de cada ícone, na mesma ordem de iconesModulo (dica ao passar o mouse). */
+  iconesModuloNomes: string[] = [];
 
   modulos: Modulo[] = [];
 
@@ -169,6 +139,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     private fraseService: FraseService,
     private uploadService: UploadService,
     private authService: AuthService,
+    private soundService: SoundService,
     reordenacaoService: ReordenacaoService
   ) {
     this.carregarIcones();
@@ -180,7 +151,8 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       extrairId: (modulo) => modulo.id,
-      persistir: (ids) => this.moduloService.reordenarModulos(this.idIdiomaNumerico, ids)
+      persistir: (ids) => this.moduloService.reordenarModulos(this.codigoIdioma, ids),
+      aoFalhar: () => this.soundService.tocar('erro')
     });
   }
 
@@ -212,16 +184,14 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
         this.idiomaNome = idioma.nome;
         this.descricao = idioma.descricao;
         this.codigoIdioma = idioma.codigo;
-        this.idIdiomaNumerico = idioma.id;
-        this.idUsuarioCriador = idioma.criadorId;
         this.codigoCriador = idioma.codigoCriador;
         this.avaliacao = idioma.avaliacao;
         this.totalAvaliacoes = idioma.totalAvaliacoes;
         this.atualizadoEm = idioma.atualizadoEm ?? null;
         const user = this.authService.getCurrentUser();
-        this.isProprietario = user?.id === idioma.criadorId;
+        this.isProprietario = !!user && user.codigo === idioma.codigoCriador;
         this.cdr.detectChanges();
-        this.carregarModulos(this.idIdiomaNumerico);
+        this.carregarModulos(this.codigoIdioma);
       },
       error: () => {
         this.carregando = false;
@@ -230,8 +200,8 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     });
   }
 
-  carregarModulos(idiomaId: number): void {
-    this.moduloService.getModulosPorIdioma(idiomaId).subscribe({
+  carregarModulos(codigoIdioma: string): void {
+    this.moduloService.getModulosPorIdioma(codigoIdioma).subscribe({
       next: (modulos) => {
         this.modulos = modulos.map((m: any) => {
           const iconeSvg = this.resolverIconeSvg(m.icone, m.id);
@@ -255,8 +225,9 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   }
 
   carregarIcones(): void {
-    this.iconesModuloSvg = [...this.rawIcons];
-    this.iconesModulo = this.rawIcons.map(svg => this.sanitizer.bypassSecurityTrustHtml(svg));
+    this.iconesModuloSvg = ICONES_MODULO.map(icone => icone.svg);
+    this.iconesModuloNomes = ICONES_MODULO.map(icone => icone.nome);
+    this.iconesModulo = this.iconesModuloSvg.map(svg => this.sanitizer.bypassSecurityTrustHtml(svg));
   }
 
   private makeIconSvg(raw: string): SafeHtml {
@@ -272,9 +243,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     if (iconeBackend && iconeBackend.trim()) {
       return iconeBackend;
     }
-    const total = this.rawIcons.length;
-    const indice = ((((id || 1) - 1) % total) + total) % total;
-    return this.rawIcons[indice];
+    return iconeModuloPadrao(id);
   }
 
   toggleModulo(mod: Modulo, event?: MouseEvent): void {
@@ -310,10 +279,6 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
 
   get podeIniciar(): boolean {
     return this.modulosSelecionados.length > 0;
-  }
-
-  calcularProgresso(): number {
-    return Math.round((this.modulos.length / 20) * 100);
   }
 
   estrelas(nota: number): boolean[] {
@@ -363,6 +328,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
 
   onAdicionarModulo(): void {
     if (this.modulos.length >= 20) {
+      this.soundService.tocar('alerta');
       this.exibirMensagemSucesso('Limite de 20 módulos atingido.');
       return;
     }
@@ -509,7 +475,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     const nome = this.nomeModuloAdicao.trim().substring(0, 80);
     const dadosModulo = { nome, icone: this.iconeModuloAdicaoSvg || '' };
 
-    this.moduloService.criarModulo(this.idIdiomaNumerico, dadosModulo).subscribe({
+    this.moduloService.criarModulo(this.codigoIdioma, dadosModulo).subscribe({
       next: (moduloCriado: any) => {
         this.fraseService.criarFrase(moduloCriado.id, this.getDadosFraseAdicao()).subscribe({
           next: () => {
@@ -525,6 +491,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
             this.modulos.push(novoModulo);
             this.salvandoAdicao = false;
             this.fecharModalAdicionarModulo();
+            this.soundService.tocar('sucesso');
             this.exibirMensagemSucesso(`Módulo "${nome}" adicionado com sucesso!`);
           },
           error: (err) => this.tratarErroAdicao(err, 'Erro ao cadastrar frase.')
@@ -537,6 +504,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   private tratarErroAdicao(err: any, fallback: string): void {
     this.salvandoAdicao = false;
     this.erroAdicao = err?.error?.message || fallback;
+    this.soundService.tocar('erro');
     this.cdr.detectChanges();
   }
 
@@ -748,8 +716,10 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   
   copiarIdIdioma(): void {
     navigator.clipboard.writeText(this.codigoIdioma).then(() => {
+      this.soundService.tocar('sucesso');
       this.exibirMensagemSucesso('ID do Idioma copiado para a área de transferência!');
     }).catch(() => {
+      this.soundService.tocar('erro');
       this.exibirMensagemSucesso('Não foi possível copiar o ID. Tente novamente.');
     });
   }
@@ -809,10 +779,12 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.fecharModalDenuncia();
+        this.soundService.tocar('sucesso');
         this.exibirMensagemSucesso('Obrigado por sua colaboração! A moderação verificará e agirá assim que possível.');
       },
       error: (err) => {
         this.fecharModalDenuncia();
+        this.soundService.tocar('erro');
         this.exibirMensagemSucesso(err?.error?.message || 'Erro ao enviar denúncia. Tente novamente.');
       }
     });
@@ -852,10 +824,12 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
         this.avaliacao = resultado.novaMedia;
         this.totalAvaliacoes = resultado.totalAvaliacoes;
         this.fecharModalAvaliacao();
+        this.soundService.tocar('sucesso');
         this.exibirMensagemSucesso('Avaliação enviada com sucesso! Obrigado pelo seu feedback.');
       },
       error: (err) => {
         this.fecharModalAvaliacao();
+        this.soundService.tocar('erro');
         this.exibirMensagemSucesso(err?.error?.message || 'Erro ao enviar avaliação. Tente novamente.');
       }
     });
@@ -870,7 +844,6 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     this.idiomaService.getIdiomasUsuario().subscribe({
       next: (idiomas) => {
         this.idiomasUsuario = idiomas.map((i: any) => ({
-          id: i.id,
           codigo: i.codigo,
           nome: i.nome,
           bandeira: i.bandeira,
@@ -878,6 +851,9 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
         }));
         this.etapaImportacao = this.idiomasUsuario.length >= 4 ? 'exclusao' : 'confirmacao';
         this.mostrarModalImportacao = true;
+        if (this.etapaImportacao === 'exclusao') {
+          this.soundService.tocar('alerta');
+        }
         this.cdr.detectChanges();
       },
       error: () => {
@@ -915,10 +891,12 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     this.idiomaService.importarIdioma(this.codigoIdioma).subscribe({
       next: () => {
         this.fecharModalImportacao();
+        this.soundService.tocar('sucesso');
         this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
       },
       error: (err) => {
         this.fecharModalImportacao();
+        this.soundService.tocar('erro');
         this.exibirMensagemSucesso(err.error?.message || 'Erro ao importar idioma.');
       }
     });
@@ -937,16 +915,19 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
         this.idiomaService.importarIdioma(this.codigoIdioma).subscribe({
           next: () => {
             this.fecharModalImportacao();
+            this.soundService.tocar('sucesso');
             this.exibirMensagemSucesso(`Idioma "${this.idiomaNome}" importado com sucesso!`);
           },
           error: (err) => {
             this.fecharModalImportacao();
+            this.soundService.tocar('erro');
             this.exibirMensagemSucesso(err.error?.message || 'Erro ao importar idioma.');
           }
         });
       },
       error: () => {
         this.fecharModalImportacao();
+        this.soundService.tocar('erro');
         this.exibirMensagemSucesso('Erro ao excluir os idiomas selecionados.');
       }
     });
@@ -997,18 +978,20 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     this.salvandoEdicao = true;
     this.erroEdicao = '';
 
-    this.moduloService.editarModulo(this.idIdiomaNumerico, modulo.id, { nome, icone: iconeSvg }).subscribe({
+    this.moduloService.editarModulo(this.codigoIdioma, modulo.id, { nome, icone: iconeSvg }).subscribe({
       next: (atualizado: any) => {
         modulo.nome = atualizado?.nome || nome;
         modulo.iconeSvg = this.resolverIconeSvg(atualizado?.icone ?? iconeSvg, modulo.id);
         modulo.icone = this.makeIconSvg(modulo.iconeSvg);
         this.salvandoEdicao = false;
         this.fecharModalEditarModulo();
+        this.soundService.tocar('sucesso');
         this.exibirMensagemSucesso(`Módulo "${modulo.nome}" editado com sucesso!`);
       },
       error: (err) => {
         this.salvandoEdicao = false;
         this.erroEdicao = err?.error?.message || 'Erro ao editar módulo.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -1017,6 +1000,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   // ===== MODAL DE EXCLUIR MÓDULO =====
   
   removerModuloConfirmacao(mod: Modulo): void {
+    this.soundService.tocar('alerta');
     if (this.modulos.length <= 1) {
       this.mostrarModalAlertaMinimoModulos = true;
       return;
@@ -1042,17 +1026,19 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     this.erroExclusao = '';
 
     // Persiste a exclusão no backend ANTES de remover da lista local.
-    this.moduloService.excluirModulo(this.idIdiomaNumerico, modulo.id).subscribe({
+    this.moduloService.excluirModulo(this.codigoIdioma, modulo.id).subscribe({
       next: () => {
         this.modulos = this.modulos.filter(m => m.id !== modulo.id);
         this.limparSelecao();
         this.salvandoExclusao = false;
         this.fecharModalExcluirModulo();
+        this.soundService.tocar('exclusao');
         this.exibirMensagemSucesso(`Módulo "${nomeModulo}" excluído com sucesso!`);
       },
       error: (err) => {
         this.salvandoExclusao = false;
         this.erroExclusao = err?.error?.message || 'Erro ao excluir o módulo. Tente novamente.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -1079,10 +1065,19 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
     return this.codigoCriador;
   }
 
+  /**
+   * Abre o perfil público do criador. Leva junto o código deste idioma e a
+   * origem atual, para o Voltar do perfil retornar exatamente para cá.
+   */
   navegarParaUsuario(): void {
     if (!this.codigoCriador) return;
     this.router.navigate(['/visualizar-usuario'], {
-      queryParams: { id: this.codigoCriador }
+      queryParams: {
+        id: this.codigoCriador,
+        origem: 'visualizar-idioma',
+        idioma: this.codigoIdioma,
+        origemIdioma: this.origem
+      }
     });
   }
 }

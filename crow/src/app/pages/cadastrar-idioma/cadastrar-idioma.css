@@ -97,9 +97,12 @@
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Base fixa em 100%. Com `min-width: 100%` o slide crescia até a largura de
+   uma linha inteira do conteúdo (ex.: o texto de ajuda das respostas aceitas,
+   na Tradução Direta) e o carrossel cortava todo o lado direito. */
 .carousel-slide {
-  min-width: 100%;
-  flex-shrink: 0;
+  flex: 0 0 100%;
+  min-width: 0;
 }
 
 /* HEADER */

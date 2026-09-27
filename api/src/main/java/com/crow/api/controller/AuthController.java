@@ -33,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/enviar-codigo")
     public ResponseEntity<Map<String, String>> enviarCodigo(@Valid @RequestBody EnviarCodigoRequest request) {
-        emailVerificationService.enviarCodigo(request.email());
+        emailVerificationService.enviarCodigo(request.email(), request.finalidade());
         return ResponseEntity.ok(Map.of("mensagem", "Código enviado para " + request.email()));
     }
 

@@ -34,14 +34,4 @@ public final class CodigoPublico {
         }
         return sb.toString();
     }
-
-    /**
-     * Indica se a referência recebida na rota ainda é um id numérico.
-     * Usado apenas pela compatibilidade temporária dos controllers.
-     */
-    public static boolean ehNumerico(String referencia) {
-        return referencia != null
-                && !referencia.isEmpty()
-                && referencia.chars().allMatch(Character::isDigit);
-    }
 }

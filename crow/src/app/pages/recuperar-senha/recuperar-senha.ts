@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { SoundService } from '../../services/sound.service';
 
 type CamposSenha = {
   novaSenha: boolean;
@@ -53,21 +54,28 @@ export class RecuperarSenha {
     private router: Router,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private soundService: SoundService
   ) {}
 
-  /** Alterna entre tema escuro e claro (persistido pelo ThemeService). */
-  alternarTema(): void {
-    this.themeService.toggle();
+  /** Alterna o tema (persistido pelo ThemeService); a animação parte do botão clicado. */
+  alternarTema(evento: Event): void {
+    this.themeService.toggle(evento.currentTarget as Element);
   }
 
   proximaEtapa(): void {
     if (this.etapaAtual === 1) {
-      if (!this.validarEmail()) return;
+      if (!this.validarEmail()) {
+        this.soundService.tocar('erro');
+        return;
+      }
       this.verificarEmailCadastrado();
     }
     else if (this.etapaAtual === 2) {
-      if (!this.validarCodigo()) return;
+      if (!this.validarCodigo()) {
+        this.soundService.tocar('erro');
+        return;
+      }
       this.verificarCodigoBackend();
     }
   }
@@ -81,6 +89,7 @@ export class RecuperarSenha {
         if (!res.existe) {
           this.carregando = false;
           this.emailErro = 'Este email não está cadastrado.';
+          this.soundService.tocar('erro');
           this.forcarAtualizacao();
           return;
         }
@@ -89,6 +98,7 @@ export class RecuperarSenha {
       error: () => {
         this.carregando = false;
         this.emailErro = 'Erro ao verificar email. Tente novamente.';
+        this.soundService.tocar('erro');
         this.forcarAtualizacao();
       }
     });
@@ -154,18 +164,20 @@ export class RecuperarSenha {
     this.emailErro = '';
     this.enviandoCodigo = true;
 
-    this.authService.enviarCodigoVerificacao(this.email).subscribe({
+    this.authService.enviarCodigoVerificacao(this.email, 'REDEFINICAO_SENHA').subscribe({
       next: () => {
         this.carregando = false;
         this.enviandoCodigo = false;
         this.etapaAtual = 2;
         this.mensagemCodigo = 'Código enviado! Verifique sua caixa de entrada.';
+        this.soundService.tocar('sucesso');
         this.forcarAtualizacao();
       },
       error: (err) => {
         this.carregando = false;
         this.enviandoCodigo = false;
         this.emailErro = err.error?.message || 'Erro ao enviar código. Tente novamente.';
+        this.soundService.tocar('erro');
         this.forcarAtualizacao();
       }
     });
@@ -205,8 +217,10 @@ export class RecuperarSenha {
         this.carregando = false;
         if (res.valido) {
           this.etapaAtual = 3;
+          this.soundService.tocar('sucesso');
         } else {
           this.codigoErro = 'Código inválido ou expirado. Tente novamente.';
+          this.soundService.tocar('erro');
         }
         this.forcarAtualizacao();
       },
@@ -214,6 +228,7 @@ export class RecuperarSenha {
         this.verificandoCodigo = false;
         this.carregando = false;
         this.codigoErro = 'Erro ao verificar código. Tente novamente.';
+        this.soundService.tocar('erro');
         this.forcarAtualizacao();
       }
     });
@@ -252,11 +267,13 @@ export class RecuperarSenha {
 
     if (!this.novaSenha || this.novaSenha.length < 6) {
       this.senhaErro = 'A senha deve ter no mínimo 6 caracteres.';
+      this.soundService.tocar('erro');
       return;
     }
 
     if (this.novaSenha !== this.confirmarSenha) {
       this.senhaErro = 'As senhas não coincidem.';
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -265,6 +282,7 @@ export class RecuperarSenha {
 
     if (!temLetra || !temNumero) {
       this.senhaErro = 'A senha deve conter pelo menos uma letra e um número.';
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -274,11 +292,13 @@ export class RecuperarSenha {
       next: () => {
         this.carregando = false;
         this.mostrarModalSucesso = true;
+        this.soundService.tocar('sucesso');
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.carregando = false;
         this.senhaErro = err.error?.message || 'Erro ao redefinir senha. Tente novamente.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });

@@ -43,10 +43,6 @@ public class JwtService {
         return getClaims(token).getSubject();
     }
 
-    public String extrairEmail(String token) {
-        return getClaims(token).get("email", String.class);
-    }
-
     public String extrairRole(String token) {
         return getClaims(token).get("role", String.class);
     }

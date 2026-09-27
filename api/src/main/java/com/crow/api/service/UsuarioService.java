@@ -7,7 +7,6 @@ import com.crow.api.entity.Idioma;
 import com.crow.api.entity.Usuario;
 import com.crow.api.repository.IdiomaUsuarioRepository;
 import com.crow.api.repository.UsuarioRepository;
-import com.crow.api.util.CodigoPublico;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,27 +38,11 @@ public class UsuarioService {
     }
 
     /**
-     * Resolve a referência recebida na rota para a entidade: aceita o código
-     * público e, temporariamente, o id numérico.
-     */
-    public Usuario resolver(String referencia) {
-        // TODO remover compatibilidade numérica após migração completa do frontend
-        if (CodigoPublico.ehNumerico(referencia)) {
-            return buscarPorId(Long.valueOf(referencia));
-        }
-        return buscarPorCodigo(referencia);
-    }
-
-    /**
      * Contas sujeitas à moderação — usada por /api/admin/usuarios. Contas com
      * papel ADMIN ficam de fora: administradores não gerenciam uns aos outros.
      */
     public List<Usuario> buscarModeraveis() {
         return usuarioRepository.findByRoleNot(Usuario.Role.ADMIN);
-    }
-
-    public List<Usuario> buscarPorNome(String nome) {
-        return usuarioRepository.findByNomeContainingIgnoreCase(nome);
     }
 
     /**
@@ -101,7 +84,6 @@ public class UsuarioService {
      */
     public UsuarioModeracaoResponse toModeracaoResponse(Usuario usuario) {
         return new UsuarioModeracaoResponse(
-                usuario.getId(),
                 usuario.getCodigo(),
                 usuario.getNome(),
                 usuario.getEmail(),

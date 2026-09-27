@@ -41,7 +41,7 @@
       <!-- Botões para não proprietário -->
       <ng-container *ngIf="!isProprietario">
         <button class="acao-btn denunciar" (click)="denunciarIdioma()" title="Denunciar idioma">
-          <svg viewBox="0 0 24 24" class="ico">
+          <svg viewBox="0 0 24 24" class="ico" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
             <line x1="12" y1="9" x2="12" y2="13"></line>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -164,39 +164,46 @@
       (keydown.enter)="toggleModulo(mod)"
       (keydown.space)="$event.preventDefault(); toggleModulo(mod)"
     >
-      <div class="checkbox-wrapper" (click)="toggleModulo(mod, $event)">
-        <div class="checkbox" [class.checked]="mod.selecionado">
-          <svg viewBox="0 0 24 24" class="check-icon" *ngIf="mod.selecionado">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+      <div class="modulo-conteudo">
+        <div class="checkbox-wrapper" (click)="toggleModulo(mod, $event)">
+          <div class="checkbox" [class.checked]="mod.selecionado">
+            <svg viewBox="0 0 24 24" class="check-icon" *ngIf="mod.selecionado">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div class="icone-wrapper" (click)="visualizarModulo(mod, $event)">
+          <div class="icone">
+            <svg viewBox="0 0 24 24" class="svg-icone" [innerHTML]="mod.icone"></svg>
+          </div>
+        </div>
+
+        <div class="info" (click)="visualizarModulo(mod, $event)">
+          <h3 class="nome" [title]="mod.nome">{{ mod.nome }}</h3>
+          <p class="descricao">
+            <span class="modulo-numero" title="Posição do módulo">#{{ i + 1 }}</span>
+            <span>Frases: {{ mod.frases }}/50</span>
+          </p>
         </div>
       </div>
 
-      <div class="icone-wrapper" (click)="visualizarModulo(mod, $event)">
-        <div class="icone">
-          <svg viewBox="0 0 24 24" class="svg-icone" [innerHTML]="mod.icone"></svg>
-        </div>
-      </div>
-
-      <div class="info" (click)="visualizarModulo(mod, $event)">
-        <h3 class="nome">{{ mod.nome }}</h3>
-        <p class="descricao">Frases: {{ mod.frases }}/50</p>
-      </div>
-
-      <!-- Posição do módulo; as setas aparecem só para o proprietário -->
-      <div class="ordem-modulo">
-        <span class="modulo-numero">#{{ i + 1 }}</span>
-
-        <div class="ordem-controles" *ngIf="isProprietario">
+      <!-- Barra do proprietário: ordem e ações sempre à vista (sem depender de
+           hover). Cliques e teclas aqui não marcam/desmarcam o módulo. -->
+      <div
+        class="modulo-rodape"
+        *ngIf="isProprietario"
+        (click)="$event.stopPropagation()"
+        (keydown.enter)="$event.stopPropagation()"
+        (keydown.space)="$event.stopPropagation()">
+        <div class="ordem-controles">
           <button
             type="button"
             class="btn-ordem"
             [disabled]="i === 0 || reordenacao.salvando()"
             [attr.aria-label]="'Mover para cima o módulo ' + mod.nome"
             title="Mover para cima"
-            (click)="moverModulo(i, -1, $event)"
-            (keydown.enter)="$event.stopPropagation()"
-            (keydown.space)="$event.stopPropagation()">
+            (click)="moverModulo(i, -1, $event)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="19" x2="12" y2="5"/>
               <polyline points="5 12 12 5 19 12"/>
@@ -209,39 +216,43 @@
             [disabled]="i === modulos.length - 1 || reordenacao.salvando()"
             [attr.aria-label]="'Mover para baixo o módulo ' + mod.nome"
             title="Mover para baixo"
-            (click)="moverModulo(i, 1, $event)"
-            (keydown.enter)="$event.stopPropagation()"
-            (keydown.space)="$event.stopPropagation()">
+            (click)="moverModulo(i, 1, $event)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/>
               <polyline points="19 12 12 19 5 12"/>
             </svg>
           </button>
         </div>
-      </div>
 
-      <div class="acoes-modulo" *ngIf="isProprietario">
-        <button
-          class="mini-btn editar-mini"
-          title="Editar módulo"
-          (click)="$event.stopPropagation(); editarModulo(mod)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
-        </button>
+        <div class="acoes-modulo">
+          <button
+            type="button"
+            class="btn-acao-modulo editar"
+            title="Editar módulo"
+            [attr.aria-label]="'Editar o módulo ' + mod.nome"
+            (click)="editarModulo(mod)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Editar</span>
+          </button>
 
-        <button
-          class="mini-btn excluir-mini"
-          title="Remover módulo"
-          (click)="$event.stopPropagation(); removerModuloConfirmacao(mod)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-            <line x1="10" y1="11" x2="10" y2="17"></line>
-            <line x1="14" y1="11" x2="14" y2="17"></line>
-          </svg>
-        </button>
+          <button
+            type="button"
+            class="btn-acao-modulo excluir"
+            title="Remover módulo"
+            [attr.aria-label]="'Remover o módulo ' + mod.nome"
+            (click)="removerModuloConfirmacao(mod)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            <span>Excluir</span>
+          </button>
+        </div>
       </div>
 
       <div class="selection-indicator" *ngIf="mod.selecionado"></div>
@@ -437,7 +448,7 @@
         <!-- Etapa: Exclusão (4 idiomas) -->
         <div *ngIf="etapaImportacao === 'exclusao'">
           <div class="alerta-limite">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
               <line x1="12" y1="9" x2="12" y2="13"></line>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -466,7 +477,7 @@
           </div>
 
           <div class="alerta-exclusao-importacao" *ngIf="idiomasSelecionadosParaExclusao.length > 0">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
               <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -534,6 +545,7 @@
             <div class="icone-option"
                  [class.selected]="iconeModuloEdicaoSvg === iconesModuloSvg[i]"
                  *ngFor="let icone of iconesModulo; let i = index"
+                 [title]="iconesModuloNomes[i]"
                  (click)="selecionarIconeEdicao(i)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [innerHTML]="icone"></svg>
             </div>
@@ -592,7 +604,7 @@
 
       <div class="modal-body">
         <div class="icone-alerta">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
             <line x1="12" y1="9" x2="12" y2="13"></line>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -604,7 +616,7 @@
         </p>
         
         <div class="alerta-exclusao-modulo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -672,7 +684,7 @@
 
           <button class="opcao-ordem" [class.preferida]="ordemPreferida === 'cadastro'" (click)="iniciarComOrdem('cadastro')">
             <span class="opcao-ordem-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="8" y1="6" x2="21" y2="6"></line>
                 <line x1="8" y1="12" x2="21" y2="12"></line>
                 <line x1="8" y1="18" x2="21" y2="18"></line>
@@ -728,6 +740,7 @@
               <div class="icone-option"
                    [class.selected]="iconeModuloAdicao === icone"
                    *ngFor="let icone of iconesModulo; let i = index"
+                   [title]="iconesModuloNomes[i]"
                    (click)="selecionarIconeAdicao(icone, i)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [innerHTML]="icone"></svg>
               </div>
@@ -755,7 +768,7 @@
             <label>Modo/Layout *</label>
             <div class="modo-grid">
               <div class="modo-card" [class.selected]="modoFrase === 'traducao'" (click)="modoFrase = 'traducao'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h8M9 7v1M12 15l-2-2 2-2M17 15l2-2-2-2"/><rect x="14" y="10" width="7" height="10" rx="1"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
                 <h3>Tradução Direta</h3>
               </div>
               <div class="modo-card" [class.selected]="modoFrase === 'pares'" (click)="modoFrase = 'pares'">
@@ -763,7 +776,7 @@
                 <h3>Selecionar Pares</h3>
               </div>
               <div class="modo-card" [class.selected]="modoFrase === 'quiz'" (click)="modoFrase = 'quiz'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
                 <h3>Quiz</h3>
               </div>
             </div>
@@ -1016,7 +1029,7 @@
 
       <div class="modal-body">
         <div class="icone-alerta">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
             <line x1="12" y1="9" x2="12" y2="13"></line>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -1043,7 +1056,7 @@
   <!-- ========== MENSAGEM DE ERRO DA REORDENAÇÃO ========== -->
   <div class="mensagem-erro" role="alert" *ngIf="reordenacao.erro()">
     <div class="erro-content">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="8" x2="12" y2="12"></line>
         <line x1="12" y1="16" x2="12.01" y2="16"></line>

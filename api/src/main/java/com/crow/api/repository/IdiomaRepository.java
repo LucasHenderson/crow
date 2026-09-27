@@ -30,8 +30,6 @@ public interface IdiomaRepository extends JpaRepository<Idioma, Long> {
             + "WHERE i.atualizadoEm IS NULL AND i.criadoEm IS NOT NULL")
     int preencherAtualizadoEmComCriadoEm();
 
-    List<Idioma> findByCriadorId(Long criadorId);
-
     /** Idiomas de um criador filtrados por visibilidade (perfil público de usuário). */
     List<Idioma> findByVisibilidadeAndCriadorId(Idioma.Visibilidade visibilidade, Long criadorId);
 

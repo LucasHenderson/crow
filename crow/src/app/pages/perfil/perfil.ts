@@ -6,6 +6,7 @@ import { Usuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { ClipboardService, EstadoCopia } from '../../services/clipboard.service';
+import { SoundService } from '../../services/sound.service';
 
 type CamposSenha = {
   senhaAtual: boolean;
@@ -28,7 +29,6 @@ export class Perfil implements OnInit, OnDestroy {
   salvando = false;
 
   user: Usuario = {
-    id: 0,
     codigo: '',
     nome: '',
     email: '',
@@ -67,6 +67,7 @@ export class Perfil implements OnInit, OnDestroy {
     private usuarioService: UsuarioService,
     private cdr: ChangeDetectorRef,
     private location: Location,
+    private soundService: SoundService,
     clipboard: ClipboardService
   ) {
     this.estadoCopiaId = clipboard.criarEstado();
@@ -146,6 +147,7 @@ export class Perfil implements OnInit, OnDestroy {
     if (!this.validarEmail(this.user.email)) {
       this.mensagemEmail = 'Informe um email válido.';
       this.erroEmail = true;
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -159,12 +161,14 @@ export class Perfil implements OnInit, OnDestroy {
         this.codigoEnviado = true;
         this.mensagemEmail = 'Código enviado! Verifique sua caixa de entrada.';
         this.erroEmail = false;
+        this.soundService.tocar('sucesso');
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.enviandoCodigo = false;
         this.mensagemEmail = err.error?.message || 'Erro ao enviar código. Tente novamente.';
         this.erroEmail = true;
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -174,6 +178,7 @@ export class Perfil implements OnInit, OnDestroy {
     if (!this.codigoDigitado || this.codigoDigitado.length !== 6) {
       this.mensagemEmail = 'Digite o código de 6 dígitos.';
       this.erroEmail = true;
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -189,9 +194,11 @@ export class Perfil implements OnInit, OnDestroy {
           this.emailVerificadoValor = this.user.email;
           this.mensagemEmail = 'Email verificado com sucesso!';
           this.erroEmail = false;
+          this.soundService.tocar('sucesso');
         } else {
           this.mensagemEmail = 'Código inválido ou expirado. Tente novamente.';
           this.erroEmail = true;
+          this.soundService.tocar('erro');
         }
         this.cdr.detectChanges();
       },
@@ -199,6 +206,7 @@ export class Perfil implements OnInit, OnDestroy {
         this.verificandoCodigo = false;
         this.mensagemEmail = 'Erro ao verificar código. Tente novamente.';
         this.erroEmail = true;
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });
@@ -238,18 +246,21 @@ export class Perfil implements OnInit, OnDestroy {
     if (!this.user.nome || this.user.nome.trim().length < 8) {
       this.erroMensagem = 'Nome deve ter no mínimo 8 caracteres.';
       this.cdr.detectChanges();
+      this.soundService.tocar('erro');
       return;
     }
 
     if (!this.validarEmail(this.user.email)) {
       this.erroMensagem = 'Informe um email válido.';
       this.cdr.detectChanges();
+      this.soundService.tocar('erro');
       return;
     }
 
     if (this.emailFoiAlterado() && !this.emailVerificado) {
       this.erroMensagem = 'Verifique o novo email antes de salvar.';
       this.cdr.detectChanges();
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -259,6 +270,7 @@ export class Perfil implements OnInit, OnDestroy {
       this.emailFoiAlterado();
 
     if (alterarSenha && !this.validarAlteracaoSenha()) {
+      this.soundService.tocar('erro');
       return;
     }
 
@@ -270,6 +282,7 @@ export class Perfil implements OnInit, OnDestroy {
           this.limparCamposSenha();
           if (!alterarDados) {
             this.salvando = false;
+            this.soundService.tocar('sucesso');
             this.showSuccess('Senha alterada com sucesso!');
             this.carregarDadosUsuario();
           } else {
@@ -279,6 +292,7 @@ export class Perfil implements OnInit, OnDestroy {
         error: (err) => {
           this.salvando = false;
           this.erroMensagem = err.error?.message || 'Erro ao alterar senha.';
+          this.soundService.tocar('erro');
           this.cdr.detectChanges();
         }
       });
@@ -302,12 +316,14 @@ export class Perfil implements OnInit, OnDestroy {
         this.mensagemEmail = '';
         // Mantém topbar e demais telas em sincronia com o novo nome/email.
         this.authService.atualizarUsuarioLocal(atualizado);
+        this.soundService.tocar('sucesso');
         this.showSuccess(senhaTambem ? 'Dados e senha atualizados com sucesso!' : 'Dados do perfil atualizados com sucesso!');
         this.carregarDadosUsuario();
       },
       error: (err) => {
         this.salvando = false;
         this.erroMensagem = err.error?.message || 'Erro ao atualizar perfil.';
+        this.soundService.tocar('erro');
         this.cdr.detectChanges();
       }
     });

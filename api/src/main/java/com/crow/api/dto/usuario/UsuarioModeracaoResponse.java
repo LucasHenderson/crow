@@ -6,8 +6,6 @@ package com.crow.api.dto.usuario;
  * o administrador modera contas, não edita dados cadastrais.
  */
 public record UsuarioModeracaoResponse(
-    // TODO Fase 21: remover o id numérico — mantido apenas enquanto o frontend depende dele
-    Long id,
     String codigo,
     String nome,
     String email,

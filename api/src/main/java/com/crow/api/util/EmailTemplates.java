@@ -1,18 +1,24 @@
 package com.crow.api.util;
 
+import com.crow.api.util.EmailLayout.Tom;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Textos de todos os e-mails enviados pelo {@link com.crow.api.service.EmailService}.
+ * Textos de todos os e-mails enviados pelo Crow: os avisos da moderação
+ * ({@link com.crow.api.service.EmailService}) e os códigos de verificação
+ * ({@link com.crow.api.service.EmailVerificationService}).
  *
- * <p>Tudo que o usuário lê está reunido aqui — assuntos, corpos, saudação,
- * assinatura e as mensagens usadas quando a moderação não informa um motivo.
- * Para ajustar a redação basta alterar as constantes desta classe; o serviço
- * cuida apenas do envio, da validação e do registro em log.</p>
+ * <p>Tudo que o usuário lê está reunido aqui — assuntos, títulos, parágrafos,
+ * saudação, assinatura e as mensagens usadas quando a moderação não informa um
+ * motivo. Para ajustar a redação basta alterar as constantes desta classe; a
+ * apresentação (HTML) fica em {@link EmailLayout} e os serviços cuidam apenas
+ * do envio, da validação e do registro em log.</p>
  *
- * <p>Os corpos usam {@code %s} como marcador, na ordem documentada em cada
- * construtor de texto. O serviço nunca monta texto por conta própria.</p>
+ * <p>Cada construtor devolve um {@link CorpoEmail} com o mesmo conteúdo em
+ * texto puro e em HTML. Os textos usam {@code %s} como marcador, na ordem
+ * documentada em cada constante.</p>
  */
 public final class EmailTemplates {
 
@@ -50,6 +56,8 @@ public final class EmailTemplates {
     public static final String ASSUNTO_CONTA_SUSPENSA = "Sua conta foi suspensa temporariamente";
     public static final String ASSUNTO_CONTA_REATIVADA = "Sua conta foi reativada";
     public static final String ASSUNTO_IDIOMA_EXCLUIDO = "Um idioma que você criou foi removido";
+    public static final String ASSUNTO_CODIGO_VERIFICACAO = "Código de verificação";
+    public static final String ASSUNTO_CODIGO_REDEFINICAO = "Redefinição de senha";
 
     // ===================== Motivos padrão =====================
 
@@ -68,97 +76,167 @@ public final class EmailTemplates {
     public static final String SEM_PREVISAO_REATIVACAO =
             "A data de reativação ainda será definida pela equipe de moderação.";
 
-    // ===================== Corpos =====================
+    // ===================== Avisos da moderação =====================
 
-    /** %s = mensagem escrita pelo administrador. */
-    private static final String CORPO_PERSONALIZADO = """
-            %s
+    /** Selo acima do título dos avisos de conta e de conteúdo. */
+    private static final String SELO_MODERACAO = "Aviso da moderação";
 
-            Esta mensagem foi enviada pela equipe de moderação do Crow. \
-            Se precisar de mais informações, responda a este e-mail.""";
+    /** Selo da mensagem livre escrita pelo administrador. */
+    private static final String SELO_PERSONALIZADO = "Mensagem da moderação";
 
-    /** %s = motivo da desativação. */
-    private static final String CORPO_CONTA_DESATIVADA = """
-            Informamos que sua conta no Crow foi desativada pela equipe de moderação. \
-            Enquanto a desativação estiver em vigor, o acesso à plataforma fica indisponível.
+    private static final String ROTULO_MOTIVO = "Motivo informado";
+    private static final String ROTULO_PREVISAO = "Previsão de reativação";
 
-            Motivo informado:
-            %s
+    private static final String CONTESTAR =
+            "Se você acredita que houve um engano, responda a este e-mail para falar com a moderação.";
 
-            Seu progresso e os conteúdos que você criou continuam guardados.
+    /** Acompanha a mensagem escrita pelo administrador. */
+    private static final String NOTA_PERSONALIZADO =
+            "Esta mensagem foi enviada pela equipe de moderação do Crow. "
+                    + "Se precisar de mais informações, responda a este e-mail.";
 
-            Se você acredita que houve um engano, responda a este e-mail para falar com a moderação.""";
+    private static final String DESATIVADA_ABERTURA =
+            "Informamos que sua conta no Crow foi desativada pela equipe de moderação. "
+                    + "Enquanto a desativação estiver em vigor, o acesso à plataforma fica indisponível.";
+    private static final String DESATIVADA_CONTEUDO =
+            "Seu progresso e os conteúdos que você criou continuam guardados.";
 
-    /** %s = motivo da suspensão; %s = frase sobre a previsão de reativação. */
-    private static final String CORPO_CONTA_SUSPENSA = """
-            Informamos que sua conta no Crow foi suspensa temporariamente pela equipe de moderação. \
-            Durante a suspensão, o acesso à plataforma fica indisponível.
+    private static final String SUSPENSA_ABERTURA =
+            "Informamos que sua conta no Crow foi suspensa temporariamente pela equipe de moderação. "
+                    + "Durante a suspensão, o acesso à plataforma fica indisponível.";
+    private static final String SUSPENSA_CONTEUDO =
+            "Seu progresso e os conteúdos que você criou continuam guardados e voltam a ficar "
+                    + "disponíveis assim que a conta for reativada.";
 
-            Motivo informado:
-            %s
+    private static final String REATIVADA_ABERTURA =
+            "Sua conta no Crow foi reativada e você já pode acessar a plataforma normalmente.";
+    private static final String REATIVADA_CONTEUDO =
+            "Seu progresso, seus idiomas e suas avaliações continuam como antes.";
+    private static final String REATIVADA_DESPEDIDA = "Bons estudos!";
 
-            %s
+    /** %s = nome do idioma removido. */
+    private static final String IDIOMA_EXCLUIDO_ABERTURA =
+            "Informamos que o idioma \"%s\", criado por você, foi removido do Crow pela equipe de moderação.";
+    private static final String IDIOMA_EXCLUIDO_CONTA =
+            "Sua conta continua ativa e os demais conteúdos que você criou não foram afetados.";
 
-            Seu progresso e os conteúdos que você criou continuam guardados e voltam a ficar \
-            disponíveis assim que a conta for reativada.
+    // ===================== Códigos de verificação =====================
 
-            Se você acredita que houve um engano, responda a este e-mail para falar com a moderação.""";
+    /** Vale para o cadastro e para a troca de e-mail no perfil. */
+    private static final String VERIFICACAO_SELO = "Verificação de e-mail";
+    private static final String VERIFICACAO_TITULO = "Confirme seu e-mail";
+    private static final String VERIFICACAO_ABERTURA =
+            "Use o código abaixo para confirmar seu endereço de e-mail no Crow.";
+    private static final String VERIFICACAO_ROTULO_CODIGO = "Código de verificação";
+    private static final String VERIFICACAO_NAO_FOI_VOCE =
+            "Se você não solicitou este código, pode ignorar este e-mail com segurança.";
 
-    /** Frase da previsão de reativação quando há data definida (%s = data já formatada). */
-    private static final String PREVISAO_REATIVACAO = "Previsão de reativação: %s.";
+    private static final String REDEFINICAO_SELO = "Segurança da conta";
+    private static final String REDEFINICAO_TITULO = "Redefinição de senha";
+    private static final String REDEFINICAO_ABERTURA =
+            "Recebemos um pedido para redefinir a senha da sua conta no Crow. "
+                    + "Use o código abaixo para criar uma nova senha.";
+    private static final String REDEFINICAO_ROTULO_CODIGO = "Código de redefinição";
+    private static final String REDEFINICAO_ROTULO_ALERTA = "Não foi você?";
+    private static final String REDEFINICAO_ALERTA =
+            "Ignore este e-mail: sua senha continua a mesma. "
+                    + "Nunca compartilhe este código — a equipe do Crow nunca vai pedi-lo.";
 
-    private static final String CORPO_CONTA_REATIVADA = """
-            Sua conta no Crow foi reativada e você já pode acessar a plataforma normalmente.
+    /** %s = prazo (ver {@link #PRAZO_MINUTOS}), que sai em negrito no HTML. */
+    private static final String CODIGO_VALIDADE = "O código expira em %s e só pode ser usado uma vez.";
 
-            Seu progresso, seus idiomas e suas avaliações continuam como antes.
+    /** %d = minutos de validade do código. */
+    private static final String PRAZO_MINUTOS = "%d minutos";
 
-            Bons estudos!""";
-
-    /** %s = nome do idioma removido; %s = motivo da remoção. */
-    private static final String CORPO_IDIOMA_EXCLUIDO = """
-            Informamos que o idioma "%s", criado por você, foi removido do Crow \
-            pela equipe de moderação.
-
-            Motivo informado:
-            %s
-
-            Sua conta continua ativa e os demais conteúdos que você criou não foram afetados.
-
-            Se você acredita que houve um engano, responda a este e-mail para falar com a moderação.""";
+    /** Prévia na caixa de entrada: %s = código; %s = prazo. */
+    private static final String CODIGO_RESUMO = "Seu código é %s. Ele expira em %s.";
 
     // ===================== Construtores de texto =====================
 
     /** Prefixa o assunto; se vier vazio, usa {@link #ASSUNTO_PERSONALIZADO_PADRAO}. */
     public static String assunto(String assunto) {
-        return PREFIXO_ASSUNTO + (preenchido(assunto) ? assunto.trim() : ASSUNTO_PERSONALIZADO_PADRAO);
+        return PREFIXO_ASSUNTO + assuntoOuPadrao(assunto);
     }
 
-    public static String personalizado(String primeiroNome, String mensagem) {
-        return montar(primeiroNome, CORPO_PERSONALIZADO.formatted(mensagem.trim()));
+    /** Mensagem livre do administrador; o assunto informado vira o título do cartão. */
+    public static CorpoEmail personalizado(String primeiroNome, String assunto, String mensagem) {
+        return EmailLayout.mensagem()
+                .saudacao(saudacao(primeiroNome))
+                .citacao(mensagem.trim())
+                .nota(NOTA_PERSONALIZADO)
+                .montar(Tom.INFO, SELO_PERSONALIZADO, assuntoOuPadrao(assunto), ASSINATURA);
     }
 
-    public static String contaDesativada(String primeiroNome, String justificativa) {
-        return montar(primeiroNome,
-                CORPO_CONTA_DESATIVADA.formatted(motivo(justificativa, MOTIVO_PADRAO_CONTA)));
+    public static CorpoEmail contaDesativada(String primeiroNome, String justificativa) {
+        return EmailLayout.mensagem()
+                .saudacao(saudacao(primeiroNome))
+                .paragrafo(DESATIVADA_ABERTURA)
+                .destaque(ROTULO_MOTIVO, motivo(justificativa, MOTIVO_PADRAO_CONTA), Tom.PERIGO)
+                .paragrafo(DESATIVADA_CONTEUDO)
+                .paragrafo(CONTESTAR)
+                .montar(Tom.PERIGO, SELO_MODERACAO, ASSUNTO_CONTA_DESATIVADA, ASSINATURA);
     }
 
-    public static String contaSuspensa(String primeiroNome, String justificativa,
-                                       LocalDateTime reativacaoPrevista) {
+    /** Sem data de reativação, a previsão informa que ela ainda será definida. */
+    public static CorpoEmail contaSuspensa(String primeiroNome, String justificativa,
+                                           LocalDateTime reativacaoPrevista) {
         String previsao = reativacaoPrevista != null
-                ? PREVISAO_REATIVACAO.formatted(FORMATO_DATA.format(reativacaoPrevista))
+                ? FORMATO_DATA.format(reativacaoPrevista)
                 : SEM_PREVISAO_REATIVACAO;
-        return montar(primeiroNome,
-                CORPO_CONTA_SUSPENSA.formatted(motivo(justificativa, MOTIVO_PADRAO_CONTA), previsao));
+        return EmailLayout.mensagem()
+                .saudacao(saudacao(primeiroNome))
+                .paragrafo(SUSPENSA_ABERTURA)
+                .destaque(ROTULO_MOTIVO, motivo(justificativa, MOTIVO_PADRAO_CONTA), Tom.ALERTA)
+                .destaque(ROTULO_PREVISAO, previsao, Tom.INFO)
+                .paragrafo(SUSPENSA_CONTEUDO)
+                .paragrafo(CONTESTAR)
+                .montar(Tom.ALERTA, SELO_MODERACAO, ASSUNTO_CONTA_SUSPENSA, ASSINATURA);
     }
 
-    public static String contaReativada(String primeiroNome) {
-        return montar(primeiroNome, CORPO_CONTA_REATIVADA);
+    public static CorpoEmail contaReativada(String primeiroNome) {
+        return EmailLayout.mensagem()
+                .saudacao(saudacao(primeiroNome))
+                .paragrafo(REATIVADA_ABERTURA)
+                .paragrafo(REATIVADA_CONTEUDO)
+                .paragrafo(REATIVADA_DESPEDIDA)
+                .montar(Tom.SUCESSO, SELO_MODERACAO, ASSUNTO_CONTA_REATIVADA, ASSINATURA);
     }
 
-    public static String idiomaExcluido(String primeiroNome, String nomeIdioma, String mensagem) {
+    public static CorpoEmail idiomaExcluido(String primeiroNome, String nomeIdioma, String mensagem) {
         String idioma = preenchido(nomeIdioma) ? nomeIdioma.trim() : IDIOMA_SEM_NOME;
-        return montar(primeiroNome,
-                CORPO_IDIOMA_EXCLUIDO.formatted(idioma, motivo(mensagem, MOTIVO_PADRAO_IDIOMA)));
+        return EmailLayout.mensagem()
+                .saudacao(saudacao(primeiroNome))
+                .paragrafo(IDIOMA_EXCLUIDO_ABERTURA.formatted(idioma), idioma)
+                .destaque(ROTULO_MOTIVO, motivo(mensagem, MOTIVO_PADRAO_IDIOMA), Tom.ALERTA)
+                .paragrafo(IDIOMA_EXCLUIDO_CONTA)
+                .paragrafo(CONTESTAR)
+                .montar(Tom.ALERTA, SELO_MODERACAO, ASSUNTO_IDIOMA_EXCLUIDO, ASSINATURA);
+    }
+
+    /** Código que confirma um endereço de e-mail (cadastro ou troca de e-mail no perfil). */
+    public static CorpoEmail codigoVerificacaoEmail(String codigo, int minutosValidade) {
+        String prazo = PRAZO_MINUTOS.formatted(minutosValidade);
+        return EmailLayout.mensagem()
+                .saudacao(SAUDACAO_SEM_NOME)
+                .paragrafo(VERIFICACAO_ABERTURA)
+                .codigo(VERIFICACAO_ROTULO_CODIGO, codigo)
+                .paragrafo(CODIGO_VALIDADE.formatted(prazo), prazo)
+                .nota(VERIFICACAO_NAO_FOI_VOCE)
+                .resumo(CODIGO_RESUMO.formatted(codigo, prazo))
+                .montar(Tom.INFO, VERIFICACAO_SELO, VERIFICACAO_TITULO, ASSINATURA);
+    }
+
+    /** Código da tela "Esqueci minha senha". */
+    public static CorpoEmail codigoRedefinicaoSenha(String codigo, int minutosValidade) {
+        String prazo = PRAZO_MINUTOS.formatted(minutosValidade);
+        return EmailLayout.mensagem()
+                .saudacao(SAUDACAO_SEM_NOME)
+                .paragrafo(REDEFINICAO_ABERTURA)
+                .codigo(REDEFINICAO_ROTULO_CODIGO, codigo)
+                .paragrafo(CODIGO_VALIDADE.formatted(prazo), prazo)
+                .destaque(REDEFINICAO_ROTULO_ALERTA, REDEFINICAO_ALERTA, Tom.ALERTA)
+                .resumo(CODIGO_RESUMO.formatted(codigo, prazo))
+                .montar(Tom.INFO, REDEFINICAO_SELO, REDEFINICAO_TITULO, ASSINATURA);
     }
 
     /**
@@ -174,12 +252,12 @@ public final class EmailTemplates {
 
     // ===================== Apoio =====================
 
-    /** Junta saudação, corpo e assinatura no formato único de todos os e-mails. */
-    private static String montar(String primeiroNome, String corpo) {
-        String saudacao = preenchido(primeiroNome)
-                ? SAUDACAO.formatted(primeiroNome)
-                : SAUDACAO_SEM_NOME;
-        return saudacao + "\n\n" + corpo + "\n\n" + ASSINATURA;
+    private static String saudacao(String primeiroNome) {
+        return preenchido(primeiroNome) ? SAUDACAO.formatted(primeiroNome) : SAUDACAO_SEM_NOME;
+    }
+
+    private static String assuntoOuPadrao(String assunto) {
+        return preenchido(assunto) ? assunto.trim() : ASSUNTO_PERSONALIZADO_PADRAO;
     }
 
     private static String motivo(String informado, String padrao) {

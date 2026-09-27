@@ -27,7 +27,7 @@
             [attr.aria-expanded]="infoAberta === i"
             aria-label="Ver detalhes do idioma"
             (click)="$event.stopPropagation(); toggleInfo(i)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="16" x2="12" y2="12"></line>
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -86,8 +86,8 @@
 
     </div>
 
-    <!-- CARD ADD -->
-    <div class="card add" *ngIf="idiomas.length < 4" (click)="adicionarIdioma()">+</div>
+    <!-- CARD ADD: continua visível no limite, porque o modal também leva às buscas -->
+    <div class="card add" (click)="adicionarIdioma()" title="Buscar ou adicionar idiomas">+</div>
 
   </div>
 
@@ -107,6 +107,19 @@
 
       <div class="modal-body">
         <p class="modal-descricao">Escolha como deseja adicionar um novo idioma:</p>
+
+        <div class="aviso-limite" *ngIf="limiteAtingido" role="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <p>
+            Você atingiu o limite de <strong>{{ limiteIdiomas }} idiomas</strong>. Ainda dá para buscar
+            idiomas e usuários — ao importar, você escolhe qual dos seus substituir. Para criar um
+            idioma do zero, exclua um dos seus antes.
+          </p>
+        </div>
 
         <div class="opcoes-grid">
           <!-- BUSCAR IDIOMA -->
@@ -134,7 +147,7 @@
           </button>
 
           <!-- NOVO IDIOMA -->
-          <button class="opcao-card" (click)="novoIdioma()">
+          <button class="opcao-card" (click)="novoIdioma()" [disabled]="limiteAtingido">
             <div class="opcao-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -142,7 +155,7 @@
               </svg>
             </div>
             <h3>Novo Idioma</h3>
-            <p>Crie um idioma personalizado do zero</p>
+            <p>{{ limiteAtingido ? 'Indisponível: limite de ' + limiteIdiomas + ' idiomas atingido' : 'Crie um idioma personalizado do zero' }}</p>
           </button>
         </div>
       </div>
@@ -309,7 +322,7 @@
 
       <div class="modal-body">
         <div class="alerta-exclusao">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
             <line x1="12" y1="9" x2="12" y2="13"></line>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
