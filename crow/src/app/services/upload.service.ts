@@ -14,4 +14,11 @@ export class UploadService {
     form.append('file', file);
     return this.http.post<{ path: string }>(`${this.apiUrl}/uploads`, form);
   }
+
+  /** O backend confere o formato pelo conteúdo do arquivo e recusa acima de 5 MB. */
+  uploadAudio(file: File): Observable<{ path: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ path: string }>(`${this.apiUrl}/uploads/audio`, form);
+  }
 }

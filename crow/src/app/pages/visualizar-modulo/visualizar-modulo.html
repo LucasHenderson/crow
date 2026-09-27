@@ -111,17 +111,31 @@
             <div class="conteudo-item">
               <label>Tradução Completa</label>
               <p>{{ frase.traducaoCompleta }}</p>
+              <app-player-audio
+                *ngIf="frase.audioTraducaoCompleta"
+                class="audio-frase"
+                variante="barra"
+                [velocidade]="true"
+                [src]="frase.audioTraducaoCompleta"
+                rotulo="a tradução completa"
+              ></app-player-audio>
             </div>
-            
+
             <div class="palavras-grid" *ngIf="frase.palavras && frase.palavras.length > 0">
               <div class="palavra-item" *ngFor="let palavra of frase.palavras; let idx = index">
                 <span class="palavra-label">Palavra {{ idx + 1 }}</span>
                 <div class="palavra-par">
-                  <span class="palavra-original">{{ palavra.palavra }}</span>
+                  <span class="com-audio">
+                    <span class="palavra-original">{{ palavra.palavra }}</span>
+                    <app-player-audio *ngIf="palavra.audioPalavra" tamanho="pequeno" [src]="palavra.audioPalavra" [rotulo]="palavra.palavra"></app-player-audio>
+                  </span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="9 18 15 12 9 6"/>
                   </svg>
-                  <span class="palavra-traducao">{{ palavra.traducao }}</span>
+                  <span class="com-audio">
+                    <span class="palavra-traducao">{{ palavra.traducao }}</span>
+                    <app-player-audio *ngIf="palavra.audioTraducao" tamanho="pequeno" [src]="palavra.audioTraducao" [rotulo]="palavra.traducao"></app-player-audio>
+                  </span>
                 </div>
               </div>
             </div>
@@ -158,11 +172,17 @@
                 <div class="par-conteudo">
                   <div class="par-palavra">
                     <span class="label">Palavra:</span>
-                    <span class="valor">{{ par.palavra }}</span>
+                    <span class="com-audio">
+                      <span class="valor">{{ par.palavra }}</span>
+                      <app-player-audio *ngIf="par.audioPalavra" tamanho="pequeno" [src]="par.audioPalavra" [rotulo]="par.palavra"></app-player-audio>
+                    </span>
                   </div>
                   <div class="par-traducao">
                     <span class="label">Tradução:</span>
-                    <span class="valor">{{ par.traducao }}</span>
+                    <span class="com-audio">
+                      <span class="valor">{{ par.traducao }}</span>
+                      <app-player-audio *ngIf="par.audioTraducao" tamanho="pequeno" [src]="par.audioTraducao" [rotulo]="par.traducao"></app-player-audio>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -186,15 +206,29 @@
             <div class="conteudo-item">
               <label>Pergunta</label>
               <p class="quiz-pergunta">{{ frase.pergunta }}</p>
+              <app-player-audio
+                *ngIf="frase.audioPergunta"
+                class="audio-frase"
+                variante="barra"
+                [velocidade]="true"
+                [src]="frase.audioPergunta"
+                rotulo="a pergunta"
+              ></app-player-audio>
             </div>
 
             <div class="alternativas-list">
               <label>Alternativas</label>
-              <div class="alternativa-item" 
+              <div class="alternativa-item"
                    *ngFor="let alt of frase.alternativas; let idx = index"
                    [class.alternativa-correta]="idx === frase.respostaCorreta">
                 <span class="alternativa-letra">{{ getLetraAlternativa(idx) }}</span>
                 <span class="alternativa-texto">{{ alt }}</span>
+                <app-player-audio
+                  *ngIf="frase.audiosAlternativas?.[idx] as audioAlternativa"
+                  tamanho="pequeno"
+                  [src]="audioAlternativa"
+                  [rotulo]="'a alternativa ' + getLetraAlternativa(idx)"
+                ></app-player-audio>
                 <svg *ngIf="idx === frase.respostaCorreta" 
                      class="icone-correto" 
                      viewBox="0 0 24 24" 
@@ -306,18 +340,27 @@
           </div>
 
           <div class="campo">
-            <label>Tradução Completa *</label>
+            <div class="campo-cabecalho">
+              <label>Tradução Completa *</label>
+              <app-campo-audio [(audio)]="audioTraducaoCompletaEdicao" rotulo="da tradução completa"></app-campo-audio>
+            </div>
             <textarea [(ngModel)]="traducaoCompletaEdicao" placeholder="Ex: Bom dia! Como você está?"></textarea>
           </div>
 
           <div *ngFor="let item of palavrasTraducaoEdicao; let i = index">
             <div class="linha-dinamica">
               <div class="campo">
-                <label>Palavra {{ i + 1 }} *</label>
+                <div class="campo-cabecalho">
+                  <label>Palavra {{ i + 1 }} *</label>
+                  <app-campo-audio [(audio)]="item.audioPalavra" [rotulo]="'da palavra ' + (i + 1)"></app-campo-audio>
+                </div>
                 <input type="text" [(ngModel)]="item.palavra" placeholder="Ex: Bom dia" />
               </div>
               <div class="campo">
-                <label>Tradução *</label>
+                <div class="campo-cabecalho">
+                  <label>Tradução *</label>
+                  <app-campo-audio [(audio)]="item.audioTraducao" [rotulo]="'da tradução ' + (i + 1)"></app-campo-audio>
+                </div>
                 <input type="text" [(ngModel)]="item.traducao" placeholder="Ex: Good morning" />
               </div>
               <button *ngIf="palavrasTraducaoEdicao.length > 1" class="btn-icone btn-remove" (click)="removerPalavraEdicao(i)">
@@ -412,11 +455,17 @@
                 </div>
               </div>
               <div class="campo">
-                <label>Palavra {{ i + 1 }} *</label>
+                <div class="campo-cabecalho">
+                  <label>Palavra {{ i + 1 }} *</label>
+                  <app-campo-audio [(audio)]="par.audioPalavra" [rotulo]="'da palavra ' + (i + 1)"></app-campo-audio>
+                </div>
                 <input type="text" [(ngModel)]="par.palavra" placeholder="Palavra" />
               </div>
               <div class="campo">
-                <label>Tradução {{ i + 1 }} *</label>
+                <div class="campo-cabecalho">
+                  <label>Tradução {{ i + 1 }} *</label>
+                  <app-campo-audio [(audio)]="par.audioTraducao" [rotulo]="'da tradução ' + (i + 1)"></app-campo-audio>
+                </div>
                 <input type="text" [(ngModel)]="par.traducao" placeholder="Tradução" />
               </div>
               <button *ngIf="paresEdicao.length > 3" class="btn-icone btn-remove btn-par-remove" (click)="removerParEdicao(i)">
@@ -491,7 +540,10 @@
           </div>
 
           <div class="campo">
-            <label>Pergunta *</label>
+            <div class="campo-cabecalho">
+              <label>Pergunta *</label>
+              <app-campo-audio [(audio)]="audioPerguntaEdicao" rotulo="da pergunta"></app-campo-audio>
+            </div>
             <textarea [(ngModel)]="perguntaQuizEdicao" placeholder="Digite a pergunta"></textarea>
           </div>
 
@@ -500,6 +552,7 @@
               <div class="campo-alternativa-com-checkbox">
                 <div class="alternativa-header">
                   <label>Alternativa {{ getLetraAlternativa(i) }} *</label>
+                  <app-campo-audio [(audio)]="audiosAlternativasEdicao[i]" [rotulo]="'da alternativa ' + getLetraAlternativa(i)"></app-campo-audio>
                   <div class="checkbox-resposta-correta">
                     <input 
                       type="checkbox" 

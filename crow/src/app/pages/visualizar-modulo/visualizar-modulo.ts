@@ -8,9 +8,12 @@ import { Subscription, filter, forkJoin, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Frase, PalavraTrad, Par } from '../../models/frase.model';
 import { iconeModuloPadrao } from '../../models/modulo.model';
+import { CampoAudio } from '../../components/campo-audio/campo-audio';
+import { PlayerAudio } from '../../components/player-audio/player-audio';
 import { FraseService } from '../../services/frase.service';
 import { ModuloService } from '../../services/modulo.service';
 import { UploadService } from '../../services/upload.service';
+import { AudioService } from '../../services/audio.service';
 import { IdiomaService } from '../../services/idioma.service';
 import { OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
 import { AuthService } from '../../services/auth.service';
@@ -24,7 +27,7 @@ import {
 @Component({
   selector: 'app-visualizar-modulo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CampoAudio, PlayerAudio],
   templateUrl: './visualizar-modulo.html',
   styleUrl: './visualizar-modulo.css',
 })
@@ -78,6 +81,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   imagemPreviewEdicao: string | null = null;
   imagemFileEdicao: File | null = null;
   traducaoCompletaEdicao = '';
+  audioTraducaoCompletaEdicao: string | null = null;
   palavrasTraducaoEdicao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
   traducoesAlternativasEdicao: string[] = [];
   observacoesEdicao = '';
@@ -97,7 +101,10 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   videoQuizEdicao = '';
   videoQuizEmbedEdicao: SafeResourceUrl | null = null;
   perguntaQuizEdicao = '';
+  audioPerguntaEdicao: string | null = null;
   alternativasEdicao: string[] = ['', ''];
+  /** Áudio de cada alternativa, sempre com o mesmo tamanho de `alternativasEdicao`. */
+  audiosAlternativasEdicao: (string | null)[] = [null, null];
   respostaCorretaEdicao: number | null = null;
 
   // ===== MODAL DE EXCLUSÃO =====
@@ -119,6 +126,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     private fraseService: FraseService,
     private moduloService: ModuloService,
     private uploadService: UploadService,
+    private audioService: AudioService,
     private idiomaService: IdiomaService,
     private authService: AuthService,
     private soundService: SoundService,
@@ -146,6 +154,18 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     this.navSub?.unsubscribe();
     // Envia o que estiver pendente no debounce antes de a tela sair de cena.
     this.reordenacao.destruir();
+    this.audioService.descartarTodos(this.audiosDaEdicao());
+  }
+
+  /** Áudios do modal de edição, de todos os modos (os que não são do modo ficam vazios). */
+  private audiosDaEdicao(): (string | null | undefined)[] {
+    return [
+      this.audioTraducaoCompletaEdicao,
+      ...this.palavrasTraducaoEdicao.flatMap(p => [p.audioPalavra, p.audioTraducao]),
+      ...this.paresEdicao.flatMap(p => [p.audioPalavra, p.audioTraducao]),
+      this.audioPerguntaEdicao,
+      ...this.audiosAlternativasEdicao
+    ];
   }
 
   private lerParametrosECarregar(): void {
@@ -232,6 +252,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     const links = this.parseJson<string[]>(f.linksJson) || f.links;
     const pares = this.parseJson<Par[]>(f.paresJson) || f.pares;
     const alternativas = this.parseJson<string[]>(f.alternativasJson) || f.alternativas;
+    const audiosAlternativas = this.parseJson<(string | null)[]>(f.audiosAlternativasJson) || f.audiosAlternativas;
 
     const videoQuiz = f.videoQuiz
       ? this.sanitizer.bypassSecurityTrustResourceUrl(this.toEmbedUrl(f.videoQuiz))
@@ -247,6 +268,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
       links,
       pares,
       alternativas,
+      audiosAlternativas,
       videoQuiz,
       videoQuizUrl: typeof f.videoQuiz === 'string' ? f.videoQuiz : undefined
     };
@@ -434,6 +456,7 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     // Preenche os campos conforme o modo
     if (frase.modo === 'traducao') {
       this.traducaoCompletaEdicao = frase.traducaoCompleta || '';
+      this.audioTraducaoCompletaEdicao = frase.audioTraducaoCompleta || null;
       this.palavrasTraducaoEdicao = frase.palavras ? JSON.parse(JSON.stringify(frase.palavras)) : [{ palavra: '', traducao: '' }];
       this.traducoesAlternativasEdicao = frase.traducoesAlternativas ? [...frase.traducoesAlternativas] : [];
       this.imagemPreviewEdicao = frase.imagem || null;
@@ -455,7 +478,9 @@ export class VisualizarModulo implements OnInit, OnDestroy {
         this.onVideoQuizChangeEdicao(this.videoQuizEdicao);
       }
       this.perguntaQuizEdicao = frase.pergunta || '';
+      this.audioPerguntaEdicao = frase.audioPergunta || null;
       this.alternativasEdicao = frase.alternativas ? [...frase.alternativas] : ['', ''];
+      this.audiosAlternativasEdicao = this.alternativasEdicao.map((_, i) => frase.audiosAlternativas?.[i] || null);
       this.respostaCorretaEdicao = frase.respostaCorreta !== undefined ? frase.respostaCorreta : null;
     }
     
@@ -479,14 +504,17 @@ export class VisualizarModulo implements OnInit, OnDestroy {
 
     this.salvandoEdicao = true;
 
-    // Primeiro envia as imagens pendentes, depois persiste a frase no backend.
-    this.uploadImagensPendentesEdicao().subscribe({
+    // Primeiro envia as imagens e os áudios pendentes, depois persiste a frase no backend.
+    forkJoin([
+      this.uploadImagensPendentesEdicao(),
+      this.audioService.enviarPendentes(this.audiosDaEdicao())
+    ]).subscribe({
       next: () => this.enviarEdicao(),
-      error: () => {
+      error: (err) => {
         this.salvandoEdicao = false;
         this.cdr.detectChanges();
         this.soundService.tocar('erro');
-        alert('Erro ao enviar imagens. Tente novamente.');
+        alert(err?.error?.message || 'Erro ao enviar imagens ou áudios. Tente novamente.');
       }
     });
   }
@@ -539,20 +567,30 @@ export class VisualizarModulo implements OnInit, OnDestroy {
     return uploads.length ? forkJoin(uploads) : of(null);
   }
 
-  /** Monta o payload no formato esperado pelo backend (FraseRequest). */
+  /**
+   * Monta o payload no formato esperado pelo backend (FraseRequest). Na edição
+   * o backend mantém o que vier nulo, por isso áudio removido vai como ''.
+   */
   private getDadosEdicao(): any {
     const modo = this.fraseEmEdicao?.modo;
+    const audio = (url: string | null | undefined) => this.audioService.paraSalvar(url);
 
     if (modo === 'traducao') {
       return {
         modo,
         imagem: this.imagemPreviewEdicao || '',
         traducaoCompleta: this.traducaoCompletaEdicao,
+        audioTraducaoCompleta: audio(this.audioTraducaoCompletaEdicao) ?? '',
         traducoesAlternativasJson: JSON.stringify(
           this.traducoesAlternativasEdicao.map(t => t.trim()).filter(t => t)
         ),
         palavrasJson: JSON.stringify(
-          this.palavrasTraducaoEdicao.map(p => ({ palavra: p.palavra, traducao: p.traducao }))
+          this.palavrasTraducaoEdicao.map(p => ({
+            palavra: p.palavra,
+            traducao: p.traducao,
+            audioPalavra: audio(p.audioPalavra),
+            audioTraducao: audio(p.audioTraducao)
+          }))
         ),
         observacoes: this.observacoesEdicao || '',
         linksJson: JSON.stringify(this.linksEdicao.filter(l => l.trim()))
@@ -563,7 +601,9 @@ export class VisualizarModulo implements OnInit, OnDestroy {
       const paresLimpos = this.paresEdicao.map(p => ({
         imagem: p.imagem || '',
         palavra: p.palavra,
-        traducao: p.traducao
+        traducao: p.traducao,
+        audioPalavra: audio(p.audioPalavra),
+        audioTraducao: audio(p.audioTraducao)
       }));
       return { modo, paresJson: JSON.stringify(paresLimpos) };
     }
@@ -574,7 +614,9 @@ export class VisualizarModulo implements OnInit, OnDestroy {
         imagemQuiz: this.tipoMidiaQuizEdicao === 'imagem' ? (this.imagemQuizEdicao || '') : '',
         videoQuiz: this.tipoMidiaQuizEdicao === 'video' ? (this.videoQuizEdicao || '') : '',
         pergunta: this.perguntaQuizEdicao,
+        audioPergunta: audio(this.audioPerguntaEdicao) ?? '',
         alternativasJson: JSON.stringify(this.alternativasEdicao),
+        audiosAlternativasJson: JSON.stringify(this.audiosAlternativasEdicao.map(audio)),
         respostaCorreta: this.respostaCorretaEdicao
       };
     }
@@ -625,6 +667,12 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   }
 
   limparCamposEdicao(): void {
+    // Áudios escolhidos e não salvos (antes de trocar as listas que os guardam)
+    this.audioService.descartarTodos(this.audiosDaEdicao());
+    this.audioTraducaoCompletaEdicao = null;
+    this.audioPerguntaEdicao = null;
+    this.audiosAlternativasEdicao = [null, null];
+
     // Tradução Direta
     this.revogarBlob(this.imagemPreviewEdicao);
     this.imagemPreviewEdicao = null;
@@ -681,7 +729,8 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   }
 
   removerPalavraEdicao(index: number): void {
-    this.palavrasTraducaoEdicao.splice(index, 1);
+    const [removida] = this.palavrasTraducaoEdicao.splice(index, 1);
+    this.audioService.descartarTodos([removida?.audioPalavra, removida?.audioTraducao]);
   }
 
   adicionarLinkEdicao(): void {
@@ -730,7 +779,8 @@ export class VisualizarModulo implements OnInit, OnDestroy {
 
   removerParEdicao(index: number): void {
     if (this.paresEdicao.length > 3) {
-      this.paresEdicao.splice(index, 1);
+      const [removido] = this.paresEdicao.splice(index, 1);
+      this.audioService.descartarTodos([removido?.audioPalavra, removido?.audioTraducao]);
     }
   }
 
@@ -755,12 +805,15 @@ export class VisualizarModulo implements OnInit, OnDestroy {
   adicionarAlternativaEdicao(): void {
     if (this.alternativasEdicao.length < 5) {
       this.alternativasEdicao.push('');
+      this.audiosAlternativasEdicao.push(null);
     }
   }
 
   removerAlternativaEdicao(index: number): void {
     if (this.alternativasEdicao.length > 2) {
       this.alternativasEdicao.splice(index, 1);
+      const [audioRemovido] = this.audiosAlternativasEdicao.splice(index, 1);
+      this.audioService.descartar(audioRemovido);
       if (this.respostaCorretaEdicao === index) {
         this.respostaCorretaEdicao = null;
       } else if (this.respostaCorretaEdicao !== null && this.respostaCorretaEdicao > index) {

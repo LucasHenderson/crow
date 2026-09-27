@@ -337,6 +337,11 @@
 }
 
 .palavra-slot {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
   padding: 0.8rem 1.5rem;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(124, 58, 237, 0.2));
   border: 1px solid rgba(167, 139, 250, 0.4);
@@ -364,6 +369,8 @@
   flex-wrap: wrap;
   gap: 0.8rem;
   justify-content: center;
+  /* Peças sem áudio não esticam até a altura das com áudio: as palavras ficam na mesma linha */
+  align-items: flex-start;
 }
 
 .palavra-btn {
@@ -388,6 +395,96 @@
 .palavra-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* ÁUDIOS DAS FRASES */
+.audio-frase {
+  max-width: 460px;
+  margin: 1rem auto 0;
+}
+
+/* Peça com áudio: o botão de ouvir fica dentro dela, abaixo da palavra e
+   centralizado. A peça segue sendo um <button> só (botão dentro de botão não
+   é HTML válido): o de ouvir é irmão dele, posicionado sobre o espaço que a
+   peça reserva no rodapé. */
+.peca {
+  position: relative;
+  display: inline-flex;
+  transition: transform 0.3s ease;
+}
+
+.peca.com-audio .palavra-btn {
+  padding-bottom: 2.6rem;
+}
+
+.audio-peca {
+  position: absolute;
+  left: 50%;
+  bottom: 0.55rem;
+  transform: translateX(-50%);
+}
+
+/* A peça com áudio sobe inteira no hover, levando o botão de ouvir junto */
+.peca.com-audio .palavra-btn:hover:not(:disabled) {
+  transform: none;
+}
+
+.peca.com-audio:not(.usado):hover {
+  transform: translateY(-2px);
+}
+
+/* Toque: o botão de ouvir cresce, o rodapé acompanha */
+@media (pointer: coarse) {
+  .peca.com-audio .palavra-btn {
+    padding-bottom: 3rem;
+  }
+}
+
+.palavras-audio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.palavras-audio-titulo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.palavras-audio-lista {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Card da palavra: palavra em cima, botão de ouvir abaixo, centralizado */
+.palavra-audio {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 80px;
+  padding: 0.6rem 1rem 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--surface-hover);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Pares: palavra e, abaixo dela, o botão de ouvir, dentro do card */
+.par-rotulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 /* MODO: SELECIONAR PARES */

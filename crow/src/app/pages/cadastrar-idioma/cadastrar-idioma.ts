@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, HostListener } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,10 +7,12 @@ import { IdiomaOpcao, IDIOMAS_DISPONIVEIS, PROFICIENCIAS } from '../../models/id
 import { ICONES_MODULO } from '../../models/modulo.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
 import { RespostasAceitas, respostasAceitasValidas } from '../../components/respostas-aceitas/respostas-aceitas';
+import { CampoAudio } from '../../components/campo-audio/campo-audio';
 import { IdiomaService } from '../../services/idioma.service';
 import { ModuloService } from '../../services/modulo.service';
 import { FraseService } from '../../services/frase.service';
 import { UploadService } from '../../services/upload.service';
+import { AudioService } from '../../services/audio.service';
 import { SoundService } from '../../services/sound.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -18,11 +20,11 @@ import { tap } from 'rxjs/operators';
 @Component({
   selector: 'app-cadastrar-idioma',
   standalone: true,
-  imports: [CommonModule, FormsModule, RespostasAceitas],
+  imports: [CommonModule, FormsModule, RespostasAceitas, CampoAudio],
   templateUrl: './cadastrar-idioma.html',
   styleUrl: './cadastrar-idioma.css',
 })
-export class CadastrarIdioma {
+export class CadastrarIdioma implements OnDestroy {
   
   etapaAtual = 1;
 
@@ -57,6 +59,7 @@ export class CadastrarIdioma {
   imagemPreview: string | null = null;
   imagemFile: File | null = null;
   traducaoCompleta = '';
+  audioTraducaoCompleta: string | null = null;
   palavrasTraducao: PalavraTrad[] = [{ palavra: '', traducao: '' }];
   /** Respostas/ordens alternativas aceitas como corretas. */
   traducoesAlternativas: string[] = [];
@@ -77,7 +80,10 @@ export class CadastrarIdioma {
   videoQuiz = '';
   videoQuizEmbed: SafeResourceUrl | null = null;
   perguntaQuiz = '';
+  audioPergunta: string | null = null;
   alternativas: string[] = ['', ''];
+  /** Áudio de cada alternativa, sempre com o mesmo tamanho de `alternativas`. */
+  audiosAlternativas: (string | null)[] = [null, null];
   respostaCorreta: number = 0;
 
   idiomas = IDIOMAS_DISPONIVEIS;
@@ -98,9 +104,34 @@ export class CadastrarIdioma {
     private moduloService: ModuloService,
     private fraseService: FraseService,
     private uploadService: UploadService,
+    private audioService: AudioService,
     private soundService: SoundService
   ) {
     this.carregarIcones();
+  }
+
+  /** Libera os áudios escolhidos e não salvos, qualquer que seja a saída da página. */
+  ngOnDestroy(): void {
+    this.audioService.descartarTodos(this.audiosDaFrase());
+  }
+
+  /**
+   * Áudios da frase. Com `apenasModoAtual`, só os do modo escolhido — os que
+   * vão para o backend; sem ele, os de todos os modos, para descarte.
+   */
+  private audiosDaFrase(apenasModoAtual = false): (string | null | undefined)[] {
+    const traducao = [
+      this.audioTraducaoCompleta,
+      ...this.palavrasTraducao.flatMap(p => [p.audioPalavra, p.audioTraducao])
+    ];
+    const pares = this.pares.flatMap(p => [p.audioPalavra, p.audioTraducao]);
+    const quiz = [this.audioPergunta, ...this.audiosAlternativas];
+
+    if (!apenasModoAtual) return [...traducao, ...pares, ...quiz];
+    if (this.modoFrase === 'traducao') return traducao;
+    if (this.modoFrase === 'pares') return pares;
+    if (this.modoFrase === 'quiz') return quiz;
+    return [];
   }
 
   carregarIcones(): void {
@@ -219,7 +250,8 @@ export class CadastrarIdioma {
   }
 
   removerPalavra(index: number): void {
-    this.palavrasTraducao.splice(index, 1);
+    const [removida] = this.palavrasTraducao.splice(index, 1);
+    this.audioService.descartarTodos([removida?.audioPalavra, removida?.audioTraducao]);
   }
 
   adicionarLink(): void {
@@ -263,7 +295,8 @@ export class CadastrarIdioma {
 
   removerPar(index: number): void {
     if (this.pares.length > 3) {
-      this.pares.splice(index, 1);
+      const [removido] = this.pares.splice(index, 1);
+      this.audioService.descartarTodos([removido?.audioPalavra, removido?.audioTraducao]);
     }
   }
 
@@ -287,12 +320,15 @@ export class CadastrarIdioma {
   adicionarAlternativa(): void {
     if (this.alternativas.length < 5) {
       this.alternativas.push('');
+      this.audiosAlternativas.push(null);
     }
   }
 
   removerAlternativa(index: number): void {
     if (this.alternativas.length > 2) {
       this.alternativas.splice(index, 1);
+      const [audioRemovido] = this.audiosAlternativas.splice(index, 1);
+      this.audioService.descartar(audioRemovido);
       if (this.respostaCorreta === index) {
         this.respostaCorreta = 0;
       } else if (this.respostaCorreta > index) {
@@ -370,7 +406,8 @@ export class CadastrarIdioma {
       this.traducoesAlternativas.some(t => t.trim()) ||
       this.links.some(l => l.trim()) ||
       this.pares.some(p => p.palavra.trim() || p.traducao.trim() || p.imagem) ||
-      this.alternativas.some(a => a.trim()));
+      this.alternativas.some(a => a.trim()) ||
+      this.audiosDaFrase().some(audio => !!audio));
 
     return etapa1 || etapa2 || frase;
   }
@@ -417,9 +454,12 @@ export class CadastrarIdioma {
     this.salvando = true;
     this.erroSalvar = '';
 
-    this.uploadImagensPendentes().subscribe({
+    forkJoin([
+      this.uploadImagensPendentes(),
+      this.audioService.enviarPendentes(this.audiosDaFrase(true))
+    ]).subscribe({
       next: () => this.criarIdiomaModuloFrase(),
-      error: (err) => this.tratarErro(err, 'Erro ao enviar imagens.')
+      error: (err) => this.tratarErro(err, 'Erro ao enviar imagens ou áudios.')
     });
   }
 
@@ -503,16 +543,24 @@ export class CadastrarIdioma {
     this.cdr.detectChanges();
   }
 
+  /** Corpo da requisição da frase. Os áudios já foram enviados em `finalizar()`. */
   getDadosFrase(): any {
     const base: any = { modo: (this.modoFrase || '').toUpperCase() };
+    const audio = (url: string | null | undefined) => this.audioService.paraSalvar(url);
 
     if (this.modoFrase === 'traducao') {
       return {
         ...base,
         imagem: this.imagemPreview,
         traducaoCompleta: this.traducaoCompleta,
+        audioTraducaoCompleta: audio(this.audioTraducaoCompleta),
         traducoesAlternativasJson: JSON.stringify(this.traducoesAlternativas.map(t => t.trim()).filter(t => t)),
-        palavrasJson: JSON.stringify(this.palavrasTraducao),
+        palavrasJson: JSON.stringify(this.palavrasTraducao.map(p => ({
+          palavra: p.palavra,
+          traducao: p.traducao,
+          audioPalavra: audio(p.audioPalavra),
+          audioTraducao: audio(p.audioTraducao)
+        }))),
         observacoes: this.observacoes,
         linksJson: JSON.stringify(this.links.filter(l => l.trim()))
       };
@@ -521,7 +569,9 @@ export class CadastrarIdioma {
       const paresLimpos = this.pares.map(p => ({
         imagem: p.imagem,
         palavra: p.palavra,
-        traducao: p.traducao
+        traducao: p.traducao,
+        audioPalavra: audio(p.audioPalavra),
+        audioTraducao: audio(p.audioTraducao)
       }));
       return {
         ...base,
@@ -534,7 +584,9 @@ export class CadastrarIdioma {
         imagemQuiz: this.imagemQuiz,
         videoQuiz: this.videoQuiz,
         pergunta: this.perguntaQuiz,
+        audioPergunta: audio(this.audioPergunta),
         alternativasJson: JSON.stringify(this.alternativas),
+        audiosAlternativasJson: JSON.stringify(this.audiosAlternativas.map(audio)),
         respostaCorreta: this.respostaCorreta
       };
     }

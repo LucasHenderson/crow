@@ -150,6 +150,29 @@ body {
   margin-top: 4px;
 }
 
+/* Rótulo com uma ação à direita — o áudio opcional (app-campo-audio) dos
+   campos de frase. Quebra em duas linhas quando falta espaço. */
+.campo-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+/* A margem passa do rótulo para o cabeçalho, senão a ação fica abaixo do
+   texto. !important porque cada página define a margem do label com a
+   especificidade dos próprios estilos encapsulados. */
+.campo-cabecalho > label {
+  margin-bottom: 0 !important;
+}
+
+/* Quiz: o áudio da alternativa fica junto do "Resposta correta", à direita. */
+.alternativa-header > app-campo-audio {
+  margin-left: auto;
+}
+
 /* ====================================
    BOTÃO DE VOLTAR PADRÃO (navegação)
    Visual único, temático e responsivo. Posicionado no canto superior

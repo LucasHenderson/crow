@@ -30,6 +30,19 @@ public class Frase {
     @Column(name = "traducoes_alternativas_json", columnDefinition = "TEXT")
     private String traducoesAlternativasJson;
 
+    /**
+     * Áudio opcional da tradução completa (modo TRADUCAO), tocado no jogo em
+     * velocidades de 0,25x a 2x. Guarda o caminho devolvido pelo upload de
+     * áudio ({@code /api/uploads/...}); nulo quando não há áudio.
+     */
+    @Column(name = "audio_traducao_completa")
+    private String audioTraducaoCompleta;
+
+    /**
+     * Array JSON de {@code {palavra, traducao}}. Cada item pode trazer ainda
+     * {@code audioPalavra} e {@code audioTraducao}: caminhos opcionais de áudio,
+     * no mesmo formato de {@link #audioTraducaoCompleta}.
+     */
     @Column(columnDefinition = "TEXT")
     private String palavrasJson;
 
@@ -42,14 +55,30 @@ public class Frase {
     @Column(columnDefinition = "TEXT")
     private String linksJson;
 
+    /**
+     * Array JSON de {@code {imagem, palavra, traducao}}. Como nas palavras da
+     * tradução direta, cada par pode trazer {@code audioPalavra} e {@code audioTraducao}.
+     */
     @Column(columnDefinition = "TEXT")
     private String paresJson;
 
     @Column(length = 500)
     private String pergunta;
 
+    /** Áudio opcional da pergunta do quiz; mesmo formato de {@link #audioTraducaoCompleta}. */
+    @Column(name = "audio_pergunta")
+    private String audioPergunta;
+
     @Column(columnDefinition = "TEXT")
     private String alternativasJson;
+
+    /**
+     * Áudios opcionais das alternativas do quiz: array JSON paralelo a
+     * {@link #alternativasJson} (mesma ordem), com o caminho do áudio ou
+     * {@code null} em cada posição. Nulo quando nenhuma alternativa tem áudio.
+     */
+    @Column(name = "audios_alternativas_json", columnDefinition = "TEXT")
+    private String audiosAlternativasJson;
 
     @Column(name = "resposta_correta")
     private Integer respostaCorreta;

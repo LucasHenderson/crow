@@ -420,6 +420,19 @@
   font-size: 0.95rem;
 }
 
+/* ÁUDIOS: texto com o botão de ouvir ao lado; barra da frase inteira */
+.com-audio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.audio-frase {
+  max-width: 460px;
+  margin-top: 0.75rem;
+}
+
 /* IMAGEM PREVIEW */
 .imagem-preview {
   margin-bottom: 1.5rem;
