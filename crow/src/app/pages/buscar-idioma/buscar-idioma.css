@@ -576,6 +576,13 @@ h2 {
   filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.5));
 }
 
+.avaliacoes-count {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* PAGINAÇÃO */
 
 .paginacao {

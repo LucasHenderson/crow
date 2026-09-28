@@ -1842,6 +1842,73 @@ Arquivos: `api/.../util/FormatoAudio.java` (novo), `controller/UploadController.
   (Selecionar Pares: par 1 palavra, par 1 tradução e par 2 palavra). Para restaurar, reanexar os
   arquivos originais pelo "Editar" de cada frase. As 3 imagens `.webp` do idioma não foram tocadas.
 
+### 8.28 Proficiência visível na home e em Visualizar Idioma — **implementado, validação pendente** (somente frontend)
+
+Pedido: nem a home nem `visualizar-idioma` mostravam o nível de proficiência do idioma. O backend já
+enviava o campo (`IdiomaResponse.proficiencia`, em minúsculas, em `/idiomas/meus` e
+`/idiomas/{codigo}`); faltava exibi-lo. **Não compilado nem visto no navegador nesta sessão:** o
+verificador de permissões de comandos ficou indisponível e nenhum comando de terminal rodou (ver
+"Em aberto").
+
+Arquivos: `crow/src/app/pages/home/home.{ts,html,css}`,
+`pages/visualizar-idioma/visualizar-idioma.{ts,html,css}`.
+
+| # | Item | Arquivos |
+|---|---|---|
+| 1 | **Home:** linha "Proficiência: <nível>" no card de detalhes do idioma (o mesmo do ID, da nota e dos módulos — hover no desktop, botão "i" no toque, sempre aberto até 768 px), entre a nota e os módulos, com um ponto na cor do nível (verde, azul, âmbar, laranja e vermelho, as cores da busca e do perfil público) e anel claro para destacá-lo do fundo azul. Sem nível, "—" e sem ponto. | `home.{ts,html,css}` |
+| 2 | **Visualizar Idioma:** quarto card na faixa de estatísticas, "Proficiência", com o ícone da visão do moderador, fundo do ícone na cor do nível, nome do nível e escala de cinco segmentos preenchida até ele (no papel das estrelas do card Avaliação). O nome usa fonte menor que os números para caber "Intermediário". Valor nulo ou desconhecido → "—", ícone cinza e sem escala. | `visualizar-idioma.{ts,html,css}` |
+| 3 | **Faixa de estatísticas:** com quatro cards, troca o `auto-fit` por 4 colunas; 2×2 até 1280 px (o `auto-fit` deixaria 3 + 1); coluna única até 768 px, como antes. | `visualizar-idioma.css` |
+
+**Em aberto nesta etapa:**
+
+- **Validação pendente:** rodar `CI=true npx ng build` com saída fora do repositório e conferir as
+  duas telas nos dois temas, em 390, 1024 e 1400 px. Espera-se o mesmo aviso de orçamento do
+  `visualizar-idioma.css` (o acréscimo é de ~1 kB; o limite de erro é 64 kB).
+- Os mapas valor → rótulo da proficiência seguem duplicados por página (home, busca, perfil público,
+  visão do moderador e agora `visualizar-idioma`); um utilitário em `idioma.model.ts` os unificaria.
+- Nenhum dado de teste foi criado.
+
+### 8.29 Ordenação por estrelas e número de avaliações na busca de idiomas — **concluído** (somente frontend)
+
+Pedido: a ordenação por avaliação de `buscar-idioma` comparava só a média de estrelas — 2 avaliações
+de 5 estrelas empatavam com 1000 de 5 estrelas — e o card não mostrava quantas avaliações o idioma
+tinha. O backend já enviava `totalAvaliacoes` em `IdiomaResponse`; o front descartava o campo.
+**Regra definida pelo Lucas:** sem considerar a média com vírgula — primeiro as estrelas exibidas no
+card, depois o número de avaliações (5★ com 8 → 5★ com 6 → 5★ com 5 → 4★ com 9 → 4★ com 7 → …). Uma
+primeira versão com média bayesiana (média geral com peso 5) foi descartada a pedido dele.
+`npx tsc -p tsconfig.app.json --noEmit` → **exit 0** nas duas versões; build de produção (`CI=true npx
+ng build` com saída fora do repositório, feito na primeira versão) → **exit 0**, com os mesmos dois
+avisos de orçamento de CSS (`controle-adm.css` e `visualizar-idioma.css`, nenhum alterado aqui). Esse
+build já inclui as alterações ainda não validadas da 8.28, que compilaram. **Navegador** (Chrome
+headless via CDP, conta fictícia do Bruno, só leitura): as 3 páginas percorridas pela paginação, com
+as estrelas contadas no DOM de cada um dos 25 cards; ordem decrescente e crescente conferidas par a
+par contra a regra; estrelas exibidas iguais às de antes; texto da contagem correto nos 25 cards;
+"Data de Criação" ainda ordenada; exemplo do pedido simulado só no estado do componente. Card
+conferido nos temas claro e escuro, em 1400 e 400 px (na primeira versão; o card não mudou depois);
+nenhum erro de console.
+
+Arquivos: `crow/src/app/models/idioma.model.ts`, `services/idioma.service.ts`,
+`pages/buscar-idioma/buscar-idioma.{ts,html,css}`.
+
+| # | Item | Arquivos |
+|---|---|---|
+| 1 | **Dados:** `IdiomaBusca` ganha `totalAvaliacoes`, preenchido pelo `IdiomaService` (0 quando ausente). O `visualizar-usuario`, que reaproveita o tipo, recebe `any[]` do serviço e não precisou mudar. | `idioma.model.ts`, `idioma.service.ts` |
+| 2 | **Ordenação:** compara as estrelas acesas no card (`estrelasAcesas`, que agora também alimenta `estrelas()`, para a ordem e o desenho não divergirem) no sentido escolhido; com o mesmo número de estrelas, vem antes o idioma com **mais** avaliações — nos dois sentidos. Mesmo número de estrelas e de avaliações: fica a ordem que veio da API (a média com vírgula não desempata). Nos dados locais, "Espanhol: falsos cognatos" (5,0 × 2) caiu do 1º para o 10º lugar, último dos 5★. | `buscar-idioma.ts` |
+| 3 | **Idiomas sem avaliação** vão para o fim nos dois sentidos (antes, com nota 0, encabeçavam a ordem crescente). | `buscar-idioma.ts` |
+| 4 | **Card:** ao lado das estrelas, "N avaliações" / "1 avaliação" / "Sem avaliações", com separador de milhar pt-BR ("1.000 avaliações"), no estilo do `.avaliacoes-count` de `visualizar-idioma` (texto discreto, só tokens do tema). | `buscar-idioma.{ts,html,css}` |
+
+**Em aberto nesta etapa:**
+
+- **As estrelas exibidas arredondam para cima (pré-existente, não alterado):** a estrela `i` acende
+  quando `i < média`, então 4,1 e 4,6 aparecem — e agora também são ordenados — como 5★; na busca,
+  "Japonês: hiragana" (4,4 × 7) fica à frente de "Expressões populares" (4,8 × 6). É o mesmo
+  arredondamento (`Math.ceil`) de `visualizar-idioma`, `visualizar-usuario`, `controle-adm` e da
+  visão do moderador; só a home usa `Math.round`. Se 4,4 dever contar como 4★, a mudança é no
+  `estrelasAcesas` — e muda o desenho junto, o que pede alinhar as outras telas.
+- O perfil público (`visualizar-usuario`) não tem ordenação e não ganhou a contagem.
+- Nenhum dado de teste foi criado. API e front de teste (portas 8080 e 4200, SMTP apontado para uma
+  porta fechada) foram encerrados ao final, a pedido do Lucas.
+
 ---
 
 ## Checklist do plano de ajustes
@@ -2113,3 +2180,9 @@ ou que, como os da 8.18 e 8.19, preparam uma fase sem fechá-la:
 - [ ] Decidir se arquivos órfãos de `/api/uploads` (imagens e áudios) devem ser apagados, com contagem de referências (seção 8.27)
 - [ ] Tokenizar as cores do `jogar.css` para o tema claro (seção 8.27)
 - [ ] Acrescentar casos de áudio ao `docs/roteiro-de-testes.md` (seção 8.27)
+- [x] Proficiência no card de detalhes da home, com ponto na cor do nível — ver seção 8.28
+- [x] Card "Proficiência" com escala de cinco níveis em Visualizar Idioma; estatísticas em 4, 2 ou 1 coluna — ver seção 8.28
+- [ ] Compilar e conferir no navegador a proficiência da home e de Visualizar Idioma (seção 8.28)
+- [x] Número de avaliações no card da busca de idiomas — ver seção 8.29
+- [x] Ordenação por avaliação: estrelas exibidas no card, depois número de avaliações; idiomas sem avaliação no fim — ver seção 8.29
+- [ ] Decidir se as estrelas (e, com elas, a ordenação da busca) devem arredondar para o inteiro mais próximo em vez de `Math.ceil` (seção 8.29)

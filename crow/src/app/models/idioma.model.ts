@@ -67,6 +67,8 @@ export interface IdiomaBusca {
   bandeira: string;
   modulos: number;
   avaliacao: number;
+  /** Quantidade de avaliações que formam a média `avaliacao`. */
+  totalAvaliacoes: number;
   criadoEm: Date;
   proficiencia: Proficiencia;
 }

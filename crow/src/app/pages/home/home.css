@@ -397,6 +397,27 @@
   color: rgba(255, 255, 255, 0.9);
 }
 
+/* PROFICIÊNCIA — ponto na cor do nível; o anel claro o destaca do fundo azul */
+.info-box .proficiencia {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.nivel-ponto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+.nivel-ponto.nivel-iniciante { background: var(--color-success); }
+.nivel-ponto.nivel-basico { background: var(--color-primary); }
+.nivel-ponto.nivel-intermediario { background: var(--color-warning); }
+.nivel-ponto.nivel-avancado { background: var(--color-orange); }
+.nivel-ponto.nivel-fluente { background: var(--color-danger); }
+
 .descricao {
   font-size: 0.85rem;
   margin-top: 0.8rem;

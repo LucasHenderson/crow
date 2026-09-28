@@ -6,7 +6,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ICONES_MODULO, Modulo, iconeModuloPadrao } from '../../models/modulo.model';
-import { IdiomaUsuario, OrigemIdioma, normalizarOrigem } from '../../models/idioma.model';
+import { IdiomaUsuario, OrigemIdioma, Proficiencia, normalizarOrigem } from '../../models/idioma.model';
 import { PalavraTrad, Par } from '../../models/frase.model';
 import { CampoAudio } from '../../components/campo-audio/campo-audio';
 import { IdiomaService } from '../../services/idioma.service';
@@ -43,7 +43,12 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   carregando = true;
   avaliacao = 0;
   totalAvaliacoes = 0;
-  
+  /** Nível de proficiência do idioma; nulo quando o criador não informou. */
+  proficiencia: Proficiencia | null = null;
+
+  /** Níveis de proficiência na ordem de progressão (escala do card). */
+  readonly niveisProficiencia: Proficiencia[] = ['iniciante', 'basico', 'intermediario', 'avancado', 'fluente'];
+
   // Controle dos modais
   mostrarModalDenuncia = false;
   mostrarModalAvaliacao = false;
@@ -215,6 +220,7 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
         this.codigoCriador = idioma.codigoCriador;
         this.avaliacao = idioma.avaliacao;
         this.totalAvaliacoes = idioma.totalAvaliacoes;
+        this.proficiencia = this.niveisProficiencia.find(n => n === idioma.proficiencia?.toLowerCase()) ?? null;
         this.atualizadoEm = idioma.atualizadoEm ?? null;
         const user = this.authService.getCurrentUser();
         this.isProprietario = !!user && user.codigo === idioma.codigoCriador;
@@ -312,6 +318,23 @@ export class VisualizarIdioma implements OnInit, OnDestroy {
   estrelas(nota: number): boolean[] {
     const notaArredondada = Math.ceil(nota);
     return Array.from({ length: 5 }, (_, i) => i < notaArredondada);
+  }
+
+  /** Nome do nível exibido no card de estatísticas; '—' para idiomas sem proficiência. */
+  get proficienciaLabel(): string {
+    const nomes: Record<Proficiencia, string> = {
+      iniciante: 'Iniciante',
+      basico: 'Básico',
+      intermediario: 'Intermediário',
+      avancado: 'Avançado',
+      fluente: 'Fluente'
+    };
+    return this.proficiencia ? nomes[this.proficiencia] : '—';
+  }
+
+  /** Posição do nível na escala (1 a 5); 0 quando não há proficiência. */
+  get nivelProficiencia(): number {
+    return this.proficiencia ? this.niveisProficiencia.indexOf(this.proficiencia) + 1 : 0;
   }
 
   iniciar(): void {

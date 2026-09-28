@@ -35,6 +35,7 @@ export class IdiomaService {
       bandeira: i.bandeira,
       modulos: i.modulos ?? 0,
       avaliacao: i.avaliacao ?? 0,
+      totalAvaliacoes: i.totalAvaliacoes ?? 0,
       criadoEm: i.criadoEm ? new Date(i.criadoEm) : new Date(),
       proficiencia: (i.proficiencia || 'iniciante') as Proficiencia
     };

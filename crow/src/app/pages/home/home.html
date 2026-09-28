@@ -80,6 +80,11 @@
           </div>
         </div>
 
+        <p class="proficiencia">
+          <strong>Proficiência:</strong>
+          <span class="nivel-ponto" *ngIf="idioma.proficiencia" [ngClass]="'nivel-' + idioma.proficiencia"></span>
+          {{ proficienciaLabel(idioma.proficiencia) }}
+        </p>
         <p><strong>Módulos:</strong> {{ idioma.modulos }}/20</p>
         <p class="descricao">{{ idioma.descricao }}</p>
       </div>
