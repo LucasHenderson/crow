@@ -213,6 +213,13 @@ export class Home implements OnInit, OnDestroy {
   }
 
   /**
+   * Nome do nível exibido no card de detalhes; '—' para idiomas sem proficiência
+   */
+  proficienciaLabel(valor: string | undefined): string {
+    return valor ? this.mapProficienciaParaLabel(valor) : '—';
+  }
+
+  /**
    * Salva as alterações do idioma
    */
   salvarEdicao(): void {

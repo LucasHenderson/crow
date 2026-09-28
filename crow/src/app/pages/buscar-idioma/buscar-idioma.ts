@@ -308,16 +308,25 @@ export class BuscarIdioma implements OnInit {
    * Ordena os idiomas baseado no critério selecionado
    */
   private ordenarIdiomas(idiomas: Idioma[]): Idioma[] {
+    const sentido = this.direcao === 'asc' ? 1 : -1;
+
+    if (this.criterio === 'data') {
+      return [...idiomas].sort((a, b) => sentido * (a.criadoEm.getTime() - b.criadoEm.getTime()));
+    }
+
     return [...idiomas].sort((a, b) => {
-      const valA = this.criterio === 'avaliacao'
-        ? a.avaliacao
-        : a.criadoEm.getTime();
+      // Sem avaliação não há nota a comparar: esses idiomas vão para o fim
+      // nos dois sentidos, em vez de encabeçar a ordem crescente.
+      const semNotaA = a.totalAvaliacoes === 0;
+      const semNotaB = b.totalAvaliacoes === 0;
+      if (semNotaA !== semNotaB) {
+        return semNotaA ? 1 : -1;
+      }
 
-      const valB = this.criterio === 'avaliacao'
-        ? b.avaliacao
-        : b.criadoEm.getTime();
-
-      return this.direcao === 'asc' ? valA - valB : valB - valA;
+      // Compara as estrelas exibidas no card (a média com vírgula não entra);
+      // com o mesmo número de estrelas, vem antes quem tem mais avaliações.
+      const diferenca = sentido * (this.estrelasAcesas(a.avaliacao) - this.estrelasAcesas(b.avaliacao));
+      return diferenca !== 0 ? diferenca : b.totalAvaliacoes - a.totalAvaliacoes;
     });
   }
 
@@ -340,7 +349,24 @@ export class BuscarIdioma implements OnInit {
    * Retorna array de booleanos para renderizar estrelas
    */
   estrelas(nota: number): boolean[] {
-    return Array.from({ length: 5 }, (_, i) => i < nota);
+    const acesas = this.estrelasAcesas(nota);
+    return Array.from({ length: 5 }, (_, i) => i < acesas);
+  }
+
+  /**
+   * Quantidade de estrelas acesas no card para a média: arredonda para cima
+   * (4,1 acende 5). A ordenação usa o mesmo valor, para seguir o que se vê.
+   */
+  private estrelasAcesas(nota: number): number {
+    return Math.ceil(nota);
+  }
+
+  /** Texto do número de avaliações exibido ao lado das estrelas. */
+  textoAvaliacoes(total: number): string {
+    if (total === 0) {
+      return 'Sem avaliações';
+    }
+    return `${total.toLocaleString('pt-BR')} ${total === 1 ? 'avaliação' : 'avaliações'}`;
   }
 
   /**

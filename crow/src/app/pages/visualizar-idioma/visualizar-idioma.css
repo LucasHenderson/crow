@@ -254,7 +254,7 @@
   max-width: 1400px;
   margin: 0 auto 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.2rem;
   position: relative;
   z-index: 1;
@@ -361,6 +361,41 @@
   font-size: 0.75rem;
   color: var(--color-muted);
   font-weight: 600;
+}
+
+/* PROFICIÊNCIA — a cor do nível pinta o ícone e a escala */
+.stat-proficiencia { --nivel-cor: var(--color-muted); }
+.stat-proficiencia.nivel-iniciante { --nivel-cor: var(--color-success); }
+.stat-proficiencia.nivel-basico { --nivel-cor: var(--color-primary); }
+.stat-proficiencia.nivel-intermediario { --nivel-cor: var(--color-warning); }
+.stat-proficiencia.nivel-avancado { --nivel-cor: var(--color-orange); }
+.stat-proficiencia.nivel-fluente { --nivel-cor: var(--color-danger); }
+
+.proficiencia-icon {
+  background: var(--nivel-cor);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Nome do nível: menor que os números, para caber "Intermediário" */
+.stat-value.stat-value-texto {
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.nivel-escala {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.nivel-segmento {
+  width: 18px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-muted) 30%, transparent);
+}
+
+.nivel-segmento.active {
+  background: var(--nivel-cor);
 }
 
 /* CONTROLES */
@@ -1778,6 +1813,13 @@
 }
 
 /* RESPONSIVIDADE */
+/* Estatísticas em 2x2 antes que os quatro cards fiquem estreitos demais */
+@media (max-width: 1280px) {
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 1024px) {
   .modal-editar-modulo {
     max-width: 650px;
