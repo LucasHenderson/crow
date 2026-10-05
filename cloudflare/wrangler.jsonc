@@ -21,8 +21,8 @@
 
   // Segredos (fora daqui): SMTP_SENHA e EMAIL_RELAY_TOKEN.
   "vars": {
-    "API_ORIGEM": "https://crow-api.onrender.com",
-    "SUPABASE_URL": "https://PROJETO.supabase.co",
+    "API_ORIGEM": "https://crow-api-lxjs.onrender.com",
+    "SUPABASE_URL": "https://svyygvkrbagqxrxpdmyo.supabase.co",
     "BUCKET_UPLOADS": "uploads",
     "SMTP_HOST": "smtp.gmail.com",
     "SMTP_PORTA": "465",
