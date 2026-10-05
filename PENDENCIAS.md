@@ -1986,7 +1986,11 @@ cronômetro "Gravando 0:03", microfone aberto só durante a gravação; parar �
 ("0:04") e prévia tocando o `blob:` local; parada automática em 2:00; remover a linha no meio da
 gravação solta o microfone e descarta o áudio sem erro; ao salvar, tradução completa e palavra
 enviadas como `/api/uploads/<uuid>.webm`, servidas com 200 e tocando na lista do módulo. Capturas nos
-temas claro e escuro e em 390 px (modo Pares); nenhum erro de console.
+temas claro e escuro e em 390 px (modo Pares); nenhum erro de console. **Produção:** commit `3af4043`
+na `master` (a API não mudou, então o Render não republicou) e site republicado com `wrangler deploy`
+(versão `fb98b678`); o chunk com a gravação é o servido, a página não manda `Permissions-Policy` e, na
+origem do site, o Chrome abre o microfone e grava em `audio/webm;codecs=opus` (conferido sem login e
+sem criar dados — o banco de produção continua só com o admin).
 
 Arquivos: `crow/src/app/services/audio.service.ts`, `components/campo-audio/campo-audio.{ts,html,css}`.
 
