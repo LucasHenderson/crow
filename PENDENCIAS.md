@@ -1960,7 +1960,7 @@ Arquivos: `api/Dockerfile`, `api/.dockerignore`, `api/src/main/resources/applica
   projeto ainda era recusada pelo gateway do Supabase no dia do deploy (401). O código já aceita a
   nova (vai só no cabeçalho `apikey`); quando o Supabase desativar as legadas, trocar `SUPABASE_CHAVE`
   no Render e testar um upload.
-- **Revogar a chave de API do Render** `claude-deploy-crow` (usada só para criar o serviço; foi colada
+- ~~Revogar a chave de API do Render `claude-deploy-crow`~~ — **feito** em 2026-10-05 (usada só para criar o serviço; foi colada
   no chat).
 - O site e o Worker são publicados manualmente (`wrangler deploy`); só a API republica sozinha a cada
   push na `master` que mude `api/`.
@@ -2250,5 +2250,5 @@ ou que, como os da 8.18 e 8.19, preparam uma fase sem fechá-la:
 - [x] Produção no ar: site no Worker `crow` (Cloudflare), API `crow-api` no Render, banco e uploads no Supabase — ver seção 8.30
 - [x] Banco de produção só com o `admin@crow.com` (senha nova) e bucket vazio — ver seção 8.30
 - [x] E-mail em produção pelo Gmail `hendersoftwares@gmail.com` via relay do Worker (Render bloqueia SMTP) — ver seção 8.30
-- [ ] Revogar a chave de API do Render `claude-deploy-crow` (seção 8.30)
+- [x] Chave de API do Render `claude-deploy-crow` revogada em 2026-10-05 (a API do Render passou a responder 401 com ela) — ver seção 8.30
 - [ ] Trocar `SUPABASE_CHAVE` pela chave nova `sb_secret_...` quando o Supabase aceitá-la / desativar as legadas (seção 8.30)
