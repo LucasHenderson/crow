@@ -1,0 +1,11 @@
+target/
+uploads/
+.mvn/
+mvnw
+mvnw.cmd
+HELP.md
+.idea/
+*.iml
+.vscode/
+.env
+**/application-local.properties

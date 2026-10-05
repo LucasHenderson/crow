@@ -1,0 +1,35 @@
+// Worker de produção do Crow. Deploy: ver docs/deploy-producao.md
+{
+  "name": "crow",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+
+  // Build do Angular (gerado por `ng build --output-path ../cloudflare/build`).
+  // Só /api/* e /interno/* passam pelo código do Worker; o resto é estático,
+  // com index.html como fallback para as rotas do Angular.
+  "assets": {
+    "directory": "./build/browser",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/interno/*"]
+  },
+
+  // Mantém a API do Render acordada (ela dorme após 15 min sem acesso).
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+
+  // Segredos (fora daqui): SMTP_SENHA e EMAIL_RELAY_TOKEN.
+  "vars": {
+    "API_ORIGEM": "https://crow-api.onrender.com",
+    "SUPABASE_URL": "https://PROJETO.supabase.co",
+    "BUCKET_UPLOADS": "uploads",
+    "SMTP_HOST": "smtp.gmail.com",
+    "SMTP_PORTA": "465",
+    "SMTP_USUARIO": "hendersoftwares@gmail.com"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}
