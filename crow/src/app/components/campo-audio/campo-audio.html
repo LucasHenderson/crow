@@ -1,35 +1,73 @@
-<div class="anexo" *ngIf="audio; else semAudio">
-  <app-player-audio
-    [src]="audio"
-    [rotulo]="'o áudio ' + rotulo"
-    tamanho="pequeno"
-  ></app-player-audio>
-  <span class="anexo-texto">{{ duracaoTexto() }}</span>
-  <button type="button"
-          class="btn-remover"
-          (click)="remover($event)"
-          [attr.aria-label]="'Remover áudio ' + rotulo"
-          title="Remover áudio">
+<div class="gravando" *ngIf="gravando(); else naoGravando">
+  <span class="gravando-status" role="status">
+    <span class="ponto-gravando" aria-hidden="true"></span>
+    Gravando <span class="gravando-tempo" aria-hidden="true">{{ tempoGravacaoTexto() }}</span>
+  </span>
+  <button #btnParar
+          type="button"
+          class="btn-parar"
+          (click)="pararGravacao($event)"
+          [attr.aria-label]="'Parar a gravação do áudio ' + rotulo"
+          title="Parar a gravação">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
+      <rect x="6" y="6" width="12" height="12" rx="2"/>
     </svg>
+    Parar
   </button>
 </div>
 
+<ng-template #naoGravando>
+  <div class="anexo" *ngIf="audio; else semAudio">
+    <app-player-audio
+      [src]="audio"
+      [rotulo]="'o áudio ' + rotulo"
+      tamanho="pequeno"
+    ></app-player-audio>
+    <span class="anexo-texto">{{ duracaoTexto() }}</span>
+    <button type="button"
+            class="btn-remover"
+            (click)="remover($event)"
+            [attr.aria-label]="'Remover áudio ' + rotulo"
+            title="Remover áudio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</ng-template>
+
 <ng-template #semAudio>
-  <button type="button"
-          class="btn-anexar"
-          (click)="escolher(seletor, $event)"
-          [disabled]="verificando()"
-          [attr.aria-label]="'Adicionar áudio ' + rotulo + ' (opcional)'"
-          [title]="dica">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    {{ verificando() ? 'Verificando...' : 'Áudio' }}
-  </button>
+  <div class="botoes">
+    <button type="button"
+            class="btn-anexar"
+            (click)="escolher(seletor, $event)"
+            [disabled]="verificando() || abrindoMicrofone()"
+            [attr.aria-label]="'Adicionar arquivo de áudio ' + rotulo + ' (opcional)'"
+            [title]="dica">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      {{ verificando() ? 'Verificando...' : 'Áudio' }}
+    </button>
+    <button *ngIf="podeGravar && !verificando()"
+            type="button"
+            class="btn-anexar"
+            (click)="gravar($event)"
+            [disabled]="abrindoMicrofone()"
+            [attr.aria-label]="'Gravar áudio ' + rotulo + ' (opcional)'"
+            [title]="dicaGravar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2" width="6" height="12" rx="3"/>
+        <path d="M5 10v1a7 7 0 0 0 14 0v-1"/>
+        <line x1="12" y1="18" x2="12" y2="22"/>
+        <line x1="8" y1="22" x2="16" y2="22"/>
+      </svg>
+      Gravar
+    </button>
+  </div>
 </ng-template>
 
 <input #seletor type="file" [accept]="accept" (change)="aoSelecionar($event)" hidden />

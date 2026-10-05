@@ -21,6 +21,23 @@ export const TAMANHO_MAXIMO_AUDIO = 5 * 1024 * 1024;
 
 export const FORMATOS_AUDIO_TEXTO = 'MP3, M4A, AAC, WAV, OGG ou WEBM';
 
+/** Duração máxima de uma gravação pelo microfone. A 64 kbps fica bem abaixo dos 5 MB. */
+export const LIMITE_GRAVACAO_SEGUNDOS = 120;
+
+/**
+ * Tipos pedidos ao MediaRecorder, em ordem de preferência: WEBM no
+ * Chrome/Edge/Firefox, MP4 no Safari. Todos estão entre os formatos que o
+ * backend reconhece pelo conteúdo.
+ */
+export const TIPOS_GRAVACAO: readonly string[] = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+
+/** O navegador grava áudio? Exige MediaRecorder e microfone em contexto seguro (HTTPS ou localhost). */
+export function podeGravarAudio(): boolean {
+  return typeof window !== 'undefined'
+    && typeof window.MediaRecorder !== 'undefined'
+    && !!navigator.mediaDevices?.getUserMedia;
+}
+
 /** "0:07", "1:05". Duração desconhecida (ex.: WEBM gravado no navegador) vira "0:00". */
 export function formatarDuracao(segundos: number): string {
   if (!Number.isFinite(segundos) || segundos < 0) return '0:00';
@@ -55,9 +72,9 @@ interface ArquivoPendente {
  * áudio começa. A velocidade escolhida vira a inicial dos próximos players —
  * só em memória: ao recarregar a página volta a 1x.
  *
- * **Cadastro.** Os áudios seguem o modelo das imagens: o arquivo escolhido fica
- * no navegador (URL `blob:`, para ouvir antes de salvar) e só é enviado ao
- * salvar a frase. `enviarPendentes` envia e `paraSalvar` troca a URL local pelo
+ * **Cadastro.** Os áudios seguem o modelo das imagens: o arquivo escolhido (ou
+ * gravado pelo microfone) fica no navegador (URL `blob:`, para ouvir antes de
+ * salvar) e só é enviado ao salvar a frase. `enviarPendentes` envia e `paraSalvar` troca a URL local pelo
  * caminho no servidor na hora de montar o corpo da requisição. Quem prepara um
  * arquivo é responsável por descartá-lo (`descartar`/`descartarTodos`) ao
  * limpar ou sair do formulário.
@@ -198,6 +215,21 @@ export class AudioService {
     }
     this.pendentes.set(url, { arquivo });
     return { url };
+  }
+
+  /**
+   * Gravação feita pelo microfone: vira um arquivo como os escolhidos no
+   * seletor e passa pelas mesmas conferências. O WEBM gravado no navegador não
+   * informa a duração, então vale a medida durante a gravação.
+   */
+  async prepararGravacao(gravacao: Blob, segundos: number): Promise<{ url: string } | { erro: string }> {
+    const tipo = (gravacao.type || 'audio/webm').split(';')[0];
+    const extensao = tipo.includes('mp4') ? 'm4a' : tipo.includes('ogg') ? 'ogg' : 'webm';
+    const resultado = await this.prepararArquivo(new File([gravacao], `gravacao.${extensao}`, { type: tipo }));
+    if ('url' in resultado && !Number.isFinite(this.duracoes.get(resultado.url))) {
+      this.duracoes.set(resultado.url, segundos);
+    }
+    return resultado;
   }
 
   /** Libera um arquivo ainda não salvo. Caminhos do servidor são ignorados. */

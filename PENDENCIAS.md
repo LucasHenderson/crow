@@ -1970,6 +1970,46 @@ Arquivos: `api/Dockerfile`, `api/.dockerignore`, `api/src/main/resources/applica
 - Testes no ambiente de produção que gerem dados (cadastro, idiomas) precisam ser apagados depois,
   para manter o banco limpo.
 
+### 8.31 Gravação de áudio pelo microfone no cadastro das frases — **concluído** (somente frontend)
+
+Pedido: além de anexar um arquivo, gravar o áudio das frases direto pelo navegador, do mesmo jeito do
+projeto Porpones (`porpones-game-site`, `AudioField` em `src/features/admin/content/MediaFields.tsx`).
+Como os quatro formulários (cadastrar frase, cadastrar idioma, modal de módulo em Visualizar Idioma e
+edição em Visualizar Módulo) usam o mesmo `app-campo-audio`, a gravação vale para os 7 campos de áudio
+dos três modos em todos eles. O backend não mudou: `FormatoAudio` já reconhece pelo conteúdo os
+formatos que os navegadores gravam (WEBM/Opus no Chrome, Edge e Firefox; MP4 no Safari, salvo como M4A).
+`CI=true npx ng build` com saída fora do repositório → **exit 0**, com os mesmos dois avisos de
+orçamento de CSS da 8.29. **Navegador** (Chrome headless via CDP com o microfone falso do Chrome, conta
+`usuario@crow.com`, API local com SMTP numa porta fechada): 19 verificações — dois botões em cada
+campo vazio; microfone negado mostra o erro e não entra em gravação; gravar → foco no "Parar",
+cronômetro "Gravando 0:03", microfone aberto só durante a gravação; parar → anexo com a duração medida
+("0:04") e prévia tocando o `blob:` local; parada automática em 2:00; remover a linha no meio da
+gravação solta o microfone e descarta o áudio sem erro; ao salvar, tradução completa e palavra
+enviadas como `/api/uploads/<uuid>.webm`, servidas com 200 e tocando na lista do módulo. Capturas nos
+temas claro e escuro e em 390 px (modo Pares); nenhum erro de console.
+
+Arquivos: `crow/src/app/services/audio.service.ts`, `components/campo-audio/campo-audio.{ts,html,css}`.
+
+| # | Item | Arquivos |
+|---|---|---|
+| 1 | **Campo vazio:** "Áudio" (agora com ícone de envio, para não confundir com o novo botão) e "Gravar" (microfone), lado a lado e no mesmo estilo tracejado. "Gravar" só aparece quando o navegador tem `MediaRecorder` e microfone — exige HTTPS ou localhost. | `campo-audio.{html,css}`, `audio.service.ts` |
+| 2 | **Gravando:** pílula vermelha (`--color-danger`) com ponto piscando, "Gravando 0:07" e botão "Parar", na mesma altura dos outros estados para o rótulo não pular. O foco vai para o "Parar"; "reduzir movimento" tira o piscar. | `campo-audio.{ts,html,css}` |
+| 3 | **Regras iguais às do Porpones:** limite de 2 minutos (para sozinho), 64 kbps, tipos tentados em ordem (`audio/webm;codecs=opus`, `audio/webm`, `audio/mp4`, `audio/ogg;codecs=opus`), mensagem "Não foi possível acessar o microfone. Verifique a permissão do navegador." com som de `erro`. | `audio.service.ts`, `campo-audio.ts` |
+| 4 | **Mesmo caminho dos arquivos:** a gravação vira um `File` e passa por `prepararArquivo` (tamanho, leitura pelo navegador) e pelo envio ao salvar; nada muda nos formulários. A duração medida durante a gravação é guardada, porque o WEBM gravado no Chrome não informa a duração. | `audio.service.ts` |
+| 5 | **Cuidados a mais em relação ao Porpones:** um áudio tocando é interrompido ao começar a gravar (senão sairia na gravação); o botão fica bloqueado enquanto o navegador pede a permissão (dois cliques abririam dois gravadores); se o campo sai da tela no meio da gravação, o microfone é solto e o áudio descartado, sem deixar arquivo local esquecido; o microfone também é solto se o `MediaRecorder` falhar ao ser criado. | `campo-audio.ts` |
+
+**Em aberto nesta etapa:**
+
+- **Duração das gravações já salvas (limitação do WEBM do Chrome):** o arquivo não traz a duração;
+  ao reabrir para edição o campo mostra "Áudio" em vez do tempo, e no Jogar/lista do módulo a barra
+  da tradução completa e da pergunta mostra só o tempo corrido, sem o total, até o áudio ser ouvido
+  uma vez. É o mesmo comportamento de um WEBM anexado (já previsto em `formatarDuracao`). Corrigir
+  pede reescrever o cabeçalho do WEBM no navegador ou forçar a leitura até o fim no player.
+- Gravações do Chrome são WEBM/Opus: conferir que tocam no Safari do iPhone (iOS antigos não tocam WEBM).
+- Ouvir uma gravação real (o teste usou o tom do microfone falso do Chrome).
+- Dados de teste: a frase 585 ("Gravado no navegador", módulo 65 do `usuario@crow.com`) e os dois
+  `.webm` enviados foram apagados pela lista exata; o módulo voltou às 5 frases.
+
 ---
 
 ## Checklist do plano de ajustes
@@ -2252,3 +2292,6 @@ ou que, como os da 8.18 e 8.19, preparam uma fase sem fechá-la:
 - [x] E-mail em produção pelo Gmail `hendersoftwares@gmail.com` via relay do Worker (Render bloqueia SMTP) — ver seção 8.30
 - [x] Chave de API do Render `claude-deploy-crow` revogada em 2026-10-05 (a API do Render passou a responder 401 com ela) — ver seção 8.30
 - [ ] Trocar `SUPABASE_CHAVE` pela chave nova `sb_secret_...` quando o Supabase aceitá-la / desativar as legadas (seção 8.30)
+- [x] Gravação de áudio pelo microfone ("Gravar", até 2 minutos) em todos os campos de áudio das frases, como no Porpones — ver seção 8.31
+- [ ] Mostrar a duração das gravações WEBM já salvas (edição e barra do Jogar) (seção 8.31)
+- [ ] Gravar e ouvir um áudio real, inclusive no celular e no Safari do iPhone (seção 8.31)

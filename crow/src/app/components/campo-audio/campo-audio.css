@@ -1,5 +1,5 @@
-/* Áudio opcional ao lado do rótulo de um campo. As duas formas (vazio e com
-   áudio) têm a mesma altura, para o rótulo não pular ao anexar. */
+/* Áudio opcional ao lado do rótulo de um campo. As três formas (vazio,
+   gravando e com áudio) têm a mesma altura, para o rótulo não pular. */
 :host {
   display: inline-flex;
   flex-direction: column;
@@ -10,7 +10,8 @@
 }
 
 .btn-anexar,
-.anexo {
+.anexo,
+.gravando {
   height: 32px;
   border-radius: var(--radius-pill);
   font-size: 0.78rem;
@@ -18,7 +19,14 @@
   line-height: 1;
 }
 
-/* VAZIO */
+/* VAZIO: arquivo ou gravação */
+.botoes {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
 .btn-anexar {
   display: inline-flex;
   align-items: center;
@@ -49,6 +57,70 @@
 .btn-anexar svg {
   width: 14px;
   height: 14px;
+  flex-shrink: 0;
+}
+
+/* GRAVANDO */
+.gravando {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.2rem 0 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+.gravando-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+.gravando-tempo {
+  font-variant-numeric: tabular-nums;
+}
+
+.ponto-gravando {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-danger);
+  animation: piscar-gravacao 1s ease-in-out infinite;
+}
+
+@keyframes piscar-gravacao {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.btn-parar {
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.65rem 0 0.5rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter var(--transition-fast);
+}
+
+.btn-parar:hover {
+  filter: brightness(1.1);
+}
+
+.btn-parar svg {
+  width: 12px;
+  height: 12px;
   flex-shrink: 0;
 }
 
@@ -106,7 +178,8 @@
 
 @media (pointer: coarse) {
   .btn-anexar,
-  .anexo {
+  .anexo,
+  .gravando {
     height: 38px;
   }
 
@@ -114,11 +187,20 @@
     width: 32px;
     height: 32px;
   }
+
+  .btn-parar {
+    height: 30px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .btn-anexar,
-  .btn-remover {
+  .btn-remover,
+  .btn-parar {
     transition: none;
+  }
+
+  .ponto-gravando {
+    animation: none;
   }
 }
