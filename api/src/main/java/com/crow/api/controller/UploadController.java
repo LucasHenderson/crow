@@ -1,9 +1,11 @@
 package com.crow.api.controller;
 
+import com.crow.api.service.ArmazenamentoService;
 import com.crow.api.util.FormatoAudio;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,19 +13,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/uploads")
 @RequiredArgsConstructor
 public class UploadController {
 
-    @Value("${app.upload-dir}")
-    private String uploadDir;
+    private final ArmazenamentoService armazenamentoService;
 
     @PostMapping
     public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
@@ -39,7 +36,7 @@ public class UploadController {
         if (original != null && original.contains(".")) {
             ext = original.substring(original.lastIndexOf('.')).toLowerCase();
         }
-        return salvar(file, ext);
+        return salvar(file, ext, contentType);
     }
 
     /**
@@ -67,7 +64,11 @@ public class UploadController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Formato de áudio não suportado. Envie " + FormatoAudio.DESCRICAO_ACEITOS));
 
-        return salvar(file, "." + formato.getExtensao());
+        // Mesmo tipo que o disco local usaria ao servir o arquivo pela extensão.
+        String tipo = MediaTypeFactory.getMediaType("audio." + formato.getExtensao())
+                .orElse(MediaType.APPLICATION_OCTET_STREAM)
+                .toString();
+        return salvar(file, "." + formato.getExtensao(), tipo);
     }
 
     private static void exigirArquivo(MultipartFile file) {
@@ -77,16 +78,9 @@ public class UploadController {
     }
 
     /** Grava com nome aleatório (UUID + extensão) e devolve o caminho público. */
-    private ResponseEntity<Map<String, String>> salvar(MultipartFile file, String ext) {
+    private ResponseEntity<Map<String, String>> salvar(MultipartFile file, String ext, String contentType) {
         try {
-            Path dir = Paths.get(uploadDir).toAbsolutePath().normalize();
-            Files.createDirectories(dir);
-
-            String filename = UUID.randomUUID() + ext;
-            Path dest = dir.resolve(filename);
-            file.transferTo(dest.toFile());
-
-            return ResponseEntity.ok(Map.of("path", "/api/uploads/" + filename));
+            return ResponseEntity.ok(Map.of("path", armazenamentoService.salvar(file, ext, contentType)));
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao salvar arquivo", e);
         }

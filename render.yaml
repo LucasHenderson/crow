@@ -1,0 +1,43 @@
+# Blueprint do Render: API Spring Boot do Crow (plano gratuito).
+# Visão geral do ambiente de produção: docs/deploy-producao.md
+# Variáveis com "sync: false" são preenchidas no painel do Render (segredos).
+services:
+  - type: web
+    name: crow-api
+    runtime: docker
+    plan: free
+    region: virginia # mesma região do Supabase (us-east-1): menos latência por consulta
+    branch: master
+    rootDir: api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/saude
+    autoDeployTrigger: commit
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MAIL_USERNAME
+        value: hendersoftwares@gmail.com
+      # Supabase: pooler em modo sessão (jdbc:postgresql://...pooler.supabase.com:5432/postgres)
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_CHAVE
+        sync: false
+      # Worker do Cloudflare (relay de e-mail e origem do site)
+      - key: EMAIL_RELAY_URL
+        sync: false
+      - key: EMAIL_RELAY_TOKEN
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      # Só vale na primeira subida, quando o admin@crow.com é criado
+      - key: ADMIN_SENHA_INICIAL
+        sync: false
