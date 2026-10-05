@@ -1909,6 +1909,67 @@ Arquivos: `crow/src/app/models/idioma.model.ts`, `services/idioma.service.ts`,
 - Nenhum dado de teste foi criado. API e front de teste (portas 8080 e 4200, SMTP apontado para uma
   porta fechada) foram encerrados ao final, a pedido do Lucas.
 
+### 8.30 Deploy em produção (Cloudflare + Render + Supabase, plano gratuito) — **concluído** (backend + infraestrutura)
+
+Pedido: colocar o Crow na internet de graça, com Cloudflare (Workers/Pages) e Supabase, **sem nenhum
+dado** além do `admin@crow.com`, com a senha trocada para a informada pelo Lucas. Visão geral do
+ambiente, variáveis e como publicar de novo: `docs/deploy-producao.md`.
+**Decisões tomadas com o Lucas:** a API vai para o **Render** (Cloudflare não roda Java; Koyeb passou a
+exigir cartão), mantida acordada por um cron do Worker; front num **Worker com assets** (no lugar do
+Pages); deploy a partir da **`master`** (fast-forward da `feat/auditoria-tcc-fases-2-6-tema`); e-mail
+continua saindo pelo **Gmail**, agora da conta `hendersoftwares@gmail.com`. Como o Render gratuito
+bloqueia as portas SMTP, a API entrega a mensagem por HTTPS ao Worker, que faz o SMTP no Gmail.
+
+Endereços: site **https://crow.lucashendersonvieiracunha.workers.dev**; API
+`https://crow-api-lxjs.onrender.com` (serviço `crow-api`, free, Virginia); Supabase projeto `crow`
+(`svyygvkrbagqxrxpdmyo`, us-east-1, org "Lucas"), bucket público `uploads`.
+
+**Validação:** API compilada (`mvnw package` numa cópia fora do repositório, sem tocar em `target/`) e
+build do Angular (`CI=true ng build --output-path ../cloudflare/build`, mesmos dois avisos de orçamento
+de CSS da 8.29). **Local:** API + Worker (`wrangler dev`) + SMTP falso — site, fallback de rotas, proxy
+`/api`, 401/405/400 no relay, cron, CORS (Origin estranho → 403) e o e-mail de código de ponta a ponta
+(AUTH, envelope, `From`, logo embutida, acentos). **Contra o Supabase real** (API local com o perfil
+`prod`): tabelas criadas, só o admin semeado, `admincrow1234` aceita e `admin123` recusada, upload de
+imagem e de áudio no bucket com o tipo certo, áudio falso recusado. **Produção:** deploy `live` no
+Render (Spring sobe em ~70 s); pelo endereço do Worker com `Origin` do site — `/api/saude`, login do
+admin, `/usuarios/me`, listas do admin (todas vazias), upload servido com `Content-Security-Policy:
+sandbox` e `nosniff`; relay real aceito pelo Gmail (mensagem de teste e código de verificação, ambos
+para o próprio `hendersoftwares@gmail.com`); telas de login e cadastro no Chrome sem erro de console.
+**Estado final:** 8 tabelas, só `admin@crow.com` (ADMIN, ATIVO), todas as outras com 0 linhas, bucket
+vazio (os arquivos de teste foram apagados pela lista exata).
+
+Arquivos: `api/Dockerfile`, `api/.dockerignore`, `api/src/main/resources/application-prod.properties`,
+`config/{DataSeeder,SecurityConfig,EmailRelaySender}.java`, `controller/{UploadController,SaudeController}.java`,
+`service/ArmazenamentoService.java`, `cloudflare/{wrangler.jsonc,.gitignore,src/index.js,src/smtp.js}`,
+`render.yaml`, `docs/deploy-producao.md`.
+
+| # | Item | Arquivos |
+|---|---|---|
+| 1 | **Perfil `prod`:** banco, Storage, relay, CORS e seed lidos de variáveis de ambiente do Render; pool de 5 conexões e 50 threads para os 512 MB. Nenhum segredo no repositório (que é público). | `application-prod.properties` |
+| 2 | **Imagem Docker** em dois estágios (Maven → JRE 21) com heap limitado, Serial GC e C1, para caber no plano gratuito. `render.yaml` descreve o serviço (Blueprint). | `Dockerfile`, `.dockerignore`, `render.yaml` |
+| 3 | **Uploads no Supabase Storage** quando `app.supabase.url` está definido; sem ele (desenvolvimento) continua em `api/uploads/`. O caminho devolvido é o mesmo `/api/uploads/<uuid>.<ext>`, então `FormatoAudio`, importação e front não mudaram. Imagens gravadas com o tipo enviado (já validado como `image/*`), áudios com o tipo da extensão detectada. | `ArmazenamentoService.java`, `UploadController.java` |
+| 4 | **Relay de e-mail:** `EmailRelaySender` (ativo só com `app.mail.relay.url`) substitui o transporte do JavaMail — a mensagem é montada igual e vai por HTTPS, com token, ao Worker; falhas viram `MailSendException`, então `EmailService` e `EmailVerificationService` não mudaram. O código de verificação, que não definia remetente, recebe o `From` configurado. | `EmailRelaySender.java` |
+| 5 | **Saúde:** `GET /api/saude` público com `SELECT 1` — health check do Render e alvo do cron (mantém a API acordada e o Supabase ativo). | `SaudeController.java`, `SecurityConfig.java` |
+| 6 | **Seed:** senha do admin vem de `app.seed.admin-senha` (padrão `admin123` no desenvolvimento) e o `usuario@crow.com` pode ser desligado (`app.seed.usuario-teste=false` em produção). | `DataSeeder.java` |
+| 7 | **Worker `crow`:** assets do Angular com fallback de SPA; `/api/*` repassado ao Render; `/api/uploads/*` lido do bucket público, com cache e cabeçalhos que impedem execução; `/interno/email` com token comparado em tempo constante e cliente SMTP mínimo (TLS 465, AUTH PLAIN, dot-stuffing); cron `*/10 * * * *`. | `cloudflare/src/{index,smtp}.js`, `wrangler.jsonc` |
+| 8 | **Supabase:** privilégios de `anon`/`authenticated` revogados no schema `public` (inclusive os padrões para tabelas novas) — a API REST pública do Supabase não expõe as tabelas do Hibernate. | (SQL aplicado no projeto) |
+
+**Em aberto nesta etapa:**
+
+- **Chave do Storage:** a API usa a chave legada `service_role`; a chave nova `sb_secret_...` do
+  projeto ainda era recusada pelo gateway do Supabase no dia do deploy (401). O código já aceita a
+  nova (vai só no cabeçalho `apikey`); quando o Supabase desativar as legadas, trocar `SUPABASE_CHAVE`
+  no Render e testar um upload.
+- **Revogar a chave de API do Render** `claude-deploy-crow` (usada só para criar o serviço; foi colada
+  no chat).
+- O site e o Worker são publicados manualmente (`wrangler deploy`); só a API republica sozinha a cada
+  push na `master` que mude `api/`.
+- Uploads continuam nunca apagados e o upload de imagens ainda confia no tipo enviado (pendência da
+  8.27). Em produção, os cabeçalhos do Worker impedem que um arquivo malicioso execute na origem do site.
+- No primeiro acesso após um deploy da API, o Render leva ~70 s para subir o Spring.
+- Testes no ambiente de produção que gerem dados (cadastro, idiomas) precisam ser apagados depois,
+  para manter o banco limpo.
+
 ---
 
 ## Checklist do plano de ajustes
@@ -2186,3 +2247,8 @@ ou que, como os da 8.18 e 8.19, preparam uma fase sem fechá-la:
 - [x] Número de avaliações no card da busca de idiomas — ver seção 8.29
 - [x] Ordenação por avaliação: estrelas exibidas no card, depois número de avaliações; idiomas sem avaliação no fim — ver seção 8.29
 - [ ] Decidir se as estrelas (e, com elas, a ordenação da busca) devem arredondar para o inteiro mais próximo em vez de `Math.ceil` (seção 8.29)
+- [x] Produção no ar: site no Worker `crow` (Cloudflare), API `crow-api` no Render, banco e uploads no Supabase — ver seção 8.30
+- [x] Banco de produção só com o `admin@crow.com` (senha nova) e bucket vazio — ver seção 8.30
+- [x] E-mail em produção pelo Gmail `hendersoftwares@gmail.com` via relay do Worker (Render bloqueia SMTP) — ver seção 8.30
+- [ ] Revogar a chave de API do Render `claude-deploy-crow` (seção 8.30)
+- [ ] Trocar `SUPABASE_CHAVE` pela chave nova `sb_secret_...` quando o Supabase aceitá-la / desativar as legadas (seção 8.30)
