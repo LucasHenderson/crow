@@ -74,7 +74,7 @@
                 <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
-            <input #uploadImagem type="file" accept="image/*" (change)="onImagemSelecionada($event)" />
+            <input #uploadImagem type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="onImagemSelecionada($event)" />
           </div>
         </div>
 
@@ -170,7 +170,7 @@
                     <line x1="6" y1="6" x2="18" y2="18"/>
                   </svg>
                 </button>
-                <input #fileInput type="file" accept="image/*" (change)="onParImagemSelecionada($event, i)" style="display: none;" />
+                <input #fileInput type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="onParImagemSelecionada($event, i)" style="display: none;" />
               </div>
             </div>
             <div class="campo">
@@ -237,7 +237,7 @@
                 <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
-            <input #uploadQuizImagem type="file" accept="image/*" (change)="onQuizImagemSelecionada($event)" hidden />
+            <input #uploadQuizImagem type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="onQuizImagemSelecionada($event)" hidden />
           </div>
         </div>
 
@@ -300,6 +300,8 @@
           </svg>
         </button>
       </div>
+
+      <div class="erro-inline" *ngIf="erroSalvar">{{ erroSalvar }}</div>
 
       <!-- AÇÕES -->
       <div class="acoes">

@@ -528,6 +528,18 @@ textarea {
   margin-bottom: 1.5rem;
 }
 
+/* ERRO AO SALVAR (mensagem da API, mesmo estilo de cadastrar-idioma) */
+.erro-inline {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+  color: var(--color-danger);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  margin: 2rem 0 0;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 /* AÇÕES */
 .acoes {
   display: flex;

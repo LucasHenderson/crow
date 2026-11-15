@@ -335,7 +335,7 @@
                   <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
-              <input #uploadImagemEdicao type="file" accept="image/*" (change)="onImagemSelecionadaEdicao($event)" />
+              <input #uploadImagemEdicao type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="onImagemSelecionadaEdicao($event)" />
             </div>
           </div>
 
@@ -451,7 +451,7 @@
                       <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                   </button>
-                  <input #fileInputEdicao type="file" accept="image/*" (change)="onParImagemSelecionadaEdicao($event, i)" style="display: none;" />
+                  <input #fileInputEdicao type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="onParImagemSelecionadaEdicao($event, i)" style="display: none;" />
                 </div>
               </div>
               <div class="campo">
@@ -518,7 +518,7 @@
                   <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
-              <input #uploadQuizImagemEdicao type="file" accept="image/*" (change)="onQuizImagemSelecionadaEdicao($event)" hidden />
+              <input #uploadQuizImagemEdicao type="file" accept="image/png,image/jpeg,image/gif,image/webp" (change)="onQuizImagemSelecionadaEdicao($event)" hidden />
             </div>
           </div>
 

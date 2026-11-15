@@ -167,9 +167,10 @@
   gap: 1.5rem;
 }
 
+/* minmax(0, 1fr): a trilha nunca cresce além do cartão por causa do conteúdo */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.2rem;
 }
 
@@ -183,8 +184,12 @@
   grid-column: 1 / -1;
 }
 
+/* 350px no computador (mesma largura de antes), mas sem passar do espaço
+   disponível — o min-width fixo empurrava a grade para fora do cartão. */
 .form-group.email-field input {
-  min-width: 350px;
+  width: 350px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* ERRO FORMULÁRIO (inline) */
@@ -217,6 +222,7 @@
 
 .email-input-wrapper {
   flex: 1;
+  min-width: 0;
 }
 
 .btn-verificar-email {
@@ -279,6 +285,7 @@
 
 .codigo-input {
   flex: 1;
+  min-width: 0;
   padding: 0.65rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -768,7 +775,7 @@
   }
 
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .form-group.full-width {
@@ -826,7 +833,7 @@
   }
 
   .form-group.email-field input {
-    min-width: 100%;
+    width: 100%;
   }
 }
 
@@ -873,9 +880,15 @@
     font-size: 0.85rem;
   }
 
+  /* E-mail em cima e Verificar embaixo; código e Confirmar idem */
+  .email-verify-row,
+  .codigo-row {
+    flex-direction: column;
+  }
 
-  .form-group.email-field input {
-    min-width: 100%;
+  .btn-verificar-email {
+    justify-content: center;
+    padding: 0.6rem 1rem;
   }
 }
 
@@ -908,22 +921,5 @@
   .btn-cadastrar {
     padding: 0.85rem 1.2rem;
     font-size: 0.9rem;
-  }
-
-  .form-group.email-field input {
-    min-width: 100%;
-  }
-
-  .email-verify-row {
-    flex-direction: column;
-  }
-
-  .btn-verificar-email {
-    justify-content: center;
-    padding: 0.6rem 1rem;
-  }
-
-  .codigo-row {
-    flex-direction: column;
   }
 }

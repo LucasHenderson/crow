@@ -1822,7 +1822,7 @@ Arquivos: `api/.../util/FormatoAudio.java` (novo), `controller/UploadController.
   tipo informado pelo navegador e grava a extensão do nome original — um `.html` ou `.svg` enviado
   como `image/*` é aceito e servido publicamente em `/api/uploads` (XSS armazenado; em
   desenvolvimento o proxy serve `/api` na mesma origem do front, onde fica o token). O endpoint de
-  áudio já nasce com detecção pelo conteúdo; o mesmo tratamento cabe às imagens.
+  áudio já nasce com detecção pelo conteúdo; o mesmo tratamento cabe às imagens. **Resolvido na 8.32.**
 - **Tema claro do Jogar (pré-existente):** `jogar.css` usa cores fixas escuras — no claro, os cards
   ficam cinza com texto branco. Os elementos novos usam só tokens e ficam legíveis nos dois temas.
 - WEBM gravado no navegador pode não informar a duração: o campo mostra "Áudio" e a barra, só o
@@ -1966,6 +1966,7 @@ Arquivos: `api/Dockerfile`, `api/.dockerignore`, `api/src/main/resources/applica
   push na `master` que mude `api/`.
 - Uploads continuam nunca apagados e o upload de imagens ainda confia no tipo enviado (pendência da
   8.27). Em produção, os cabeçalhos do Worker impedem que um arquivo malicioso execute na origem do site.
+  A detecção pelo conteúdo nas imagens foi **resolvida na 8.32**.
 - No primeiro acesso após um deploy da API, o Render leva ~70 s para subir o Spring.
 - Testes no ambiente de produção que gerem dados (cadastro, idiomas) precisam ser apagados depois,
   para manter o banco limpo.
@@ -2013,6 +2014,124 @@ Arquivos: `crow/src/app/services/audio.service.ts`, `components/campo-audio/camp
 - Ouvir uma gravação real (o teste usou o tom do microfone falso do Chrome).
 - Dados de teste: a frase 585 ("Gravado no navegador", módulo 65 do `usuario@crow.com`) e os dois
   `.webm` enviados foram apagados pela lista exata; o módulo voltou às 5 frases.
+
+### 8.32 Validação do conteúdo das imagens enviadas (D1) — **concluído** (backend + frontend)
+
+Pedido: no teste funcional CT-28 (verificação 6), `POST /api/uploads` aceitou um SVG com `<script>` e
+o serviu como `image/svg+xml`, porque `UploadController.upload()` confiava no `Content-Type` informado
+pelo navegador (`startsWith("image/")`) e gravava a extensão do nome original. A tarefa foi aplicar às
+imagens a mesma abordagem do áudio (8.27): reconhecer o formato pelos primeiros bytes e gravar com a
+extensão do formato detectado; restringir o `accept` dos inputs de imagem; e garantir que o erro 400
+chegue ao usuário nos fluxos que salvam frase com imagem. Outros endpoints e a forma como as frases
+guardam o caminho da imagem não mudaram. `cd api && ./mvnw -q compile` → **exit 0**; build de produção
+do front (`CI=true npx ng build` com saída fora do repositório) → **exit 0**, com os mesmos dois avisos
+de orçamento de CSS (`controle-adm.css` e `visualizar-idioma.css`, nenhum dos dois alterado).
+**Backend por script** contra a API local (conta `usuario@crow.com`): **10/10**. **Navegador** (Chrome
+headless via CDP, arquivos escolhidos com `DOM.setFileInputFiles`): **8/8**; único erro de console é o
+400 provocado de propósito. API com o SMTP apontado para uma porta fechada; nenhum e-mail saiu.
+
+Arquivos: `api/.../util/FormatoImagem.java` (novo), `controller/UploadController.java`;
+`crow/src/app/pages/cadastrar-frase/cadastrar-frase.{html,css}`, `pages/cadastrar-idioma/cadastrar-idioma.html`,
+`pages/visualizar-idioma/visualizar-idioma.html`, `pages/visualizar-modulo/visualizar-modulo.html`.
+
+| # | Item | Arquivos |
+|---|---|---|
+| 1 | **`FormatoImagem`** (enum no padrão de `FormatoAudio`): PNG (`89 50 4E 47 0D 0A 1A 0A`), JPEG (`FF D8 FF`), GIF (`GIF87a`/`GIF89a`) e WEBP (`RIFF` nos bytes 0–3 e `WEBP` nos bytes 8–11), com `BYTES_ASSINATURA = 12`, `DESCRICAO_ACEITOS` e `detectar(byte[])`. SVG não é aceito (é texto e pode conter script). Extensões gravadas: `png`, `jpg`, `gif` e `webp`. | `FormatoImagem.java` |
+| 2 | **Upload de imagens:** `POST /api/uploads` lê os 12 primeiros bytes, detecta o formato e grava com a extensão **do formato detectado** e o tipo obtido por `MediaTypeFactory` (o mesmo com que o disco local serve; no Supabase é o tipo gravado no objeto), como em `uploadAudio()`. Nome e `Content-Type` enviados pelo navegador são ignorados. Formato não reconhecido → **400** "Formato de imagem não suportado. Envie PNG, JPEG, GIF ou WEBP". Limite de tamanho (`spring.servlet.multipart`, 10 MB), arquivo vazio (400) e exigência de autenticação inalterados. `uploadAudio()` não foi tocado. | `UploadController.java` |
+| 3 | **`accept` dos inputs:** `image/*` → `image/png,image/jpeg,image/gif,image/webp` nos 12 inputs de imagem (tradução, pares e quiz) de cadastrar-frase, cadastrar-idioma, visualizar-idioma (modal de módulo) e visualizar-modulo (edição). O seletor de arquivos deixa de oferecer SVG, BMP, HEIC etc.; a validação que vale é a do backend. | 4 `.html` |
+| 4 | **Mensagem do 400 no cadastro de frase:** os quatro fluxos já repassavam `err?.error?.message` (cadastrar-idioma e visualizar-idioma em `.erro-inline`, a edição em visualizar-modulo por `alert`, como o erro de áudio da 8.27), mas em **cadastrar-frase** o `tratarErro` preenchia `erroSalvar` e o template nunca o exibia (desde `cc09ea1`) — o usuário só ouvia o som de erro, também para o 400 de áudio. Acrescentado o `.erro-inline` acima das ações, com o mesmo estilo de cadastrar-idioma (tokens `--color-danger`/`--radius-sm`). | `cadastrar-frase.{html,css}` |
+
+**Chamadas ao backend** (`POST /api/uploads` autenticado; o nome e o tipo do formulário mentem de propósito):
+
+| Arquivo enviado | Nome / tipo informados | Resultado | Servido (`GET`) |
+|---|---|---|---|
+| SVG com `<script>` | `imagem.svg` / `image/svg+xml` | **400** "Formato de imagem não suportado. Envie PNG, JPEG, GIF ou WEBP" | — |
+| HTML com `<script>` | `foto.png` / `image/png` | **400** (mesma mensagem) | — |
+| Texto | `foto.jpg` / `image/jpeg` | **400** (mesma mensagem) | — |
+| PNG real (320×200, canvas) | `real.png` / `image/png` | **200** `…/<uuid>.png` | 200 `image/png`, bytes idênticos |
+| JPEG real | `real.jpg` / `image/jpeg` | **200** `…/<uuid>.jpg` | 200 `image/jpeg`, bytes idênticos |
+| GIF89a real (1×1) | `real.gif` / `image/gif` | **200** `…/<uuid>.gif` | 200 `image/gif`, bytes idênticos |
+| WEBP real | `real.webp` / `image/webp` | **200** `…/<uuid>.webp` | 200 `image/webp`, bytes idênticos |
+| PNG real | `pagina.html` / `text/html` | **200** `…/<uuid>.png` (extensão pela assinatura) | 200 `image/png`, bytes idênticos |
+| PNG real, **sem token** | `real.png` / `image/png` | **403** | — |
+| Arquivo vazio | `vazio.png` / `image/png` | **400** "Arquivo vazio" | — |
+
+**Navegador** (idioma privado descartável `IDM-8F9ACF382481`, módulo 191, da conta `usuario@crow.com`):
+`accept` restrito nos inputs de imagem dos três modos de cadastrar-frase (1 na tradução, 3 nos pares,
+1 no quiz); HTML renomeado para `.png` → faixa vermelha com "Formato de imagem não suportado. Envie PNG,
+JPEG, GIF ou WEBP", o formulário fica aberto e preenchido; trocando por um PNG real → frase salva,
+volta a Visualizar Módulo com a imagem carregada (`/api/uploads/<uuid>.png`, 320×200) e a rodada de
+estudo (`/jogar`, ordem de cadastro) exibe a mesma imagem.
+
+**Em aberto nesta etapa:**
+
+- **Produção:** nada publicado. Depois do commit na `master`, o Render republica a API sozinho (o
+  commit muda `api/`); o site (`accept` e a mensagem em cadastrar-frase) precisa de `wrangler deploy`.
+  Os cabeçalhos do Worker em `/api/uploads/*` continuam valendo como segunda barreira.
+- **Arquivos já gravados não são revalidados:** a mudança vale para os próximos uploads; o que já está
+  em `api/uploads/` ou no bucket continua com a extensão com que foi gravado.
+- **Só a assinatura é conferida:** um arquivo que começa com bytes de PNG e traz outra coisa depois é
+  aceito, mas é gravado e servido como `image/png` (com `nosniff`), então não roda como página. Validar a
+  imagem inteira (decodificar) não foi pedido.
+- **Formatos recusados:** SVG, BMP, AVIF e HEIC dão 400. Conferir num iPhone que a foto escolhida da
+  galeria chega como JPEG (o iOS costuma converter HEIC quando o `accept` não o inclui).
+- Dados de teste: o idioma `IDM-8F9ACF382481` (com o módulo 191 e a frase) foi excluído pela API (204,
+  depois 404) e os 6 arquivos gravados pelos scripts (5 do teste de backend e o PNG da frase) foram
+  apagados de `api/uploads/` pela lista exata; as tentativas recusadas não gravaram nada.
+
+### 8.33 Cadastro de conta em telas estreitas (D3) — **concluído** (somente frontend, só CSS)
+
+Pedido: no teste funcional CT-32 (verificação 2), em 375 px e nos dois temas, a tela de cadastro de
+conta (`pages/cadastrar-usuario`) mostrava o campo "Nome completo" e o botão "Verificar" cortados pela
+borda do cartão. Causa confirmada: `.form-group.email-field input { min-width: 350px; }` forçava a
+largura do e-mail (e, pelo mesmo seletor, a do campo de código, que fica dentro do mesmo
+`.form-group`); a trilha `1fr` da `.form-grid` crescia com esse mínimo, levando junto o nome; o
+Verificar e o Confirmar ficavam ao lado, fora do cartão (que tem `overflow: hidden`, por isso não havia
+rolagem horizontal, só corte). As regras `min-width: 100%` de 600/480/360 px não resolviam porque a
+porcentagem era calculada sobre a própria trilha esticada; só abaixo de 360 px a linha empilhava. A
+tarefa foi fazer o cartão caber de 320 a 1.400 px sem mudar a aparência no computador. HTML e outras
+telas não foram tocados. Build de produção do front (`CI=true npx ng build` com saída fora do
+repositório) → **exit 0**, com os mesmos dois avisos de orçamento de CSS (`controle-adm.css` e
+`visualizar-idioma.css`, nenhum dos dois alterado). **Navegador** (Chrome headless via CDP):
+**10/10** combinações pedidas sem corte (eram 6/10 antes), varredura extra de 320 a 1.400 px, de 10 em 10, **218/218** (109 larguras × 2 temas), sem erros de console;
+em 1.366 px as capturas antes/depois são **idênticas byte a byte** nos dois temas.
+
+Arquivos: `crow/src/app/pages/cadastrar-usuario/cadastrar-usuario.css`.
+
+| # | Item | Arquivos |
+|---|---|---|
+| 1 | **Grade sem crescer pelo conteúdo:** `.form-grid` passa a `repeat(2, minmax(0, 1fr))` e, até 768 px, `minmax(0, 1fr)` (era `1fr`). | `cadastrar-usuario.css` |
+| 2 | **E-mail sem largura mínima fixa:** `min-width: 350px` → `width: 350px; max-width: 100%; min-width: 0`. No computador o campo continua com os mesmos 350 px (e o mesmo espaço até o Verificar); quando falta espaço, encolhe em vez de empurrar a grade. `.email-input-wrapper` e `.codigo-input` ganham `min-width: 0` para poderem encolher dentro das linhas flex. Até 600 px, `min-width: 100%` → `width: 100%` (campo ocupa a linha toda, como já era a intenção). | `cadastrar-usuario.css` |
+| 3 | **Empilhamento até 480 px** (antes só até 360 px): `.email-verify-row` e `.codigo-row` em coluna — e-mail em cima e Verificar embaixo, código em cima e Confirmar embaixo, todos com a largura toda; Verificar centralizado com `padding: 0.6rem 1rem` (as regras que estavam no bloco de 360 px foram movidas para o de 480 px, e as cópias repetidas de `min-width: 100%` dos blocos de 480/360 px saíram). Nenhuma cor nova; só variáveis já existentes. | `cadastrar-usuario.css` |
+
+**Navegador** (Chrome headless via CDP, servidor de desenvolvimento local). Em cada combinação: tema
+gravado em `crow:theme`, e-mail preenchido, clique em **Verificar** e código `123456` digitado, com o
+campo de código visível. O `POST /api/auth/enviar-codigo` foi interceptado (`Fetch.requestPaused` →
+`Fetch.fulfillRequest` 200 `{}`): nada chegou à API e nenhum e-mail foi enviado. Critério: sem rolagem
+horizontal (`scrollWidth ≤ clientWidth`) e `getBoundingClientRect` do nome, do e-mail, do Verificar,
+do código e do Confirmar dentro do cartão (`.form-card`).
+
+| Largura | Antes (claro e escuro) | Depois (claro e escuro) |
+|---|---|---|
+| 320 px | ok (já empilhava pela regra de 360 px) | ok — tudo empilhado, 25–295 dentro do cartão 8–312 |
+| 375 px | **corte**: nome 7,8–374,1, Verificar 265,3–374,1 e Confirmar 365,1–467,7 com cartão 9,6–365,4 | ok — nome, e-mail e Verificar 29,8–345,2; código e Confirmar 46,8–328,2 |
+| 390 px | **corte**: nome até 389,1, Verificar até 389,1, Confirmar 380,1–482,7 com cartão até 380,4 | ok — nome, e-mail e Verificar 29,8–360,2; código e Confirmar 46,8–343,2 |
+| 768 px | ok | ok — medidas idênticas às de antes (e-mail 49–399, Verificar 610,2–719) |
+| 1.366 px | ok | ok — medidas e capturas idênticas às de antes |
+
+Capturas (página inteira) no scratchpad da sessão `313052f2…`, pasta `shots/`: `antes-375-{light,dark}`,
+`depois-375-{light,dark}`, `antes-1366-{light,dark}` e `depois-1366-{light,dark}`; roteiro
+`cadastro.mjs` e medidas em `medidas-depois.json`.
+
+**Em aberto nesta etapa:**
+
+- **Produção:** nada publicado; depois do commit, o site precisa de `wrangler deploy` (a API não mudou).
+- **Aparelho real:** a validação foi por emulação de largura no Chrome; vale abrir o cadastro num
+  celular de verdade (inclusive Safari do iPhone) com o teclado aberto.
+- Entre 481 e 768 px o e-mail continua com no máximo 350 px e o Verificar fica à direita, com o mesmo
+  espaço entre os dois que já existia no computador; não foi pedido mudar isso.
+- Dados de teste: nenhum. O envio de código foi respondido pelo próprio roteiro, então nada foi
+  gravado no banco nem enviado por e-mail.
 
 ---
 
@@ -2281,7 +2400,7 @@ ou que, como os da 8.18 e 8.19, preparam uma fase sem fechá-la:
 - [ ] **Reanexar os 7 áudios do "Japonês para viagem" (FRS-46 e FRS-47), apagados por engano na limpeza dos testes** (seção 8.27)
 - [ ] Importar um idioma com áudios usando uma segunda conta comum e conferir a cópia (seção 8.27)
 - [ ] Ouvir os áudios num navegador com som, inclusive Safari e celular (seção 8.27)
-- [ ] Aplicar ao upload de imagens a detecção pelo conteúdo, contra `.html`/`.svg` servidos em `/api/uploads` (seção 8.27)
+- [x] Aplicar ao upload de imagens a detecção pelo conteúdo, contra `.html`/`.svg` servidos em `/api/uploads` — ver seção 8.32
 - [ ] Decidir se arquivos órfãos de `/api/uploads` (imagens e áudios) devem ser apagados, com contagem de referências (seção 8.27)
 - [ ] Tokenizar as cores do `jogar.css` para o tema claro (seção 8.27)
 - [ ] Acrescentar casos de áudio ao `docs/roteiro-de-testes.md` (seção 8.27)
@@ -2299,3 +2418,10 @@ ou que, como os da 8.18 e 8.19, preparam uma fase sem fechá-la:
 - [x] Gravação de áudio pelo microfone ("Gravar", até 2 minutos) em todos os campos de áudio das frases, como no Porpones — ver seção 8.31
 - [ ] Mostrar a duração das gravações WEBM já salvas (edição e barra do Jogar) (seção 8.31)
 - [ ] Gravar e ouvir um áudio real, inclusive no celular e no Safari do iPhone (seção 8.31)
+- [x] `POST /api/uploads` aceita só PNG, JPEG, GIF e WEBP reconhecidos pela assinatura (`FormatoImagem`), gravados com a extensão detectada — ver seção 8.32
+- [x] `accept` dos inputs de imagem restrito a `image/png,image/jpeg,image/gif,image/webp` nos quatro formulários — ver seção 8.32
+- [x] Mensagem de erro da API exibida em Cadastrar Frase (`erroSalvar` não aparecia no template) — ver seção 8.32
+- [ ] Publicar a 8.32 em produção (API pelo push; site com `wrangler deploy`) e testar um upload de imagem (seção 8.32)
+- [ ] Conferir no iPhone que uma foto da galeria (HEIC) chega ao upload como JPEG (seção 8.32)
+- [x] Cadastro de conta sem cortes de 320 a 1.400 px: grade com `minmax(0, 1fr)`, e-mail sem `min-width` fixo, e-mail/Verificar e código/Confirmar empilhados até 480 px — ver seção 8.33
+- [ ] Publicar a 8.33 em produção (`wrangler deploy`) e abrir o cadastro num celular real, inclusive no Safari do iPhone (seção 8.33)

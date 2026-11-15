@@ -2,6 +2,7 @@ package com.crow.api.controller;
 
 import com.crow.api.service.ArmazenamentoService;
 import com.crow.api.util.FormatoAudio;
+import com.crow.api.util.FormatoImagem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,21 +23,33 @@ public class UploadController {
 
     private final ArmazenamentoService armazenamentoService;
 
+    /**
+     * Imagens das frases (tradução, pares e quiz). O formato é conferido pelo
+     * conteúdo do arquivo ({@link FormatoImagem#detectar}) e a extensão gravada é
+     * a do formato detectado — o nome e o tipo enviados pelo navegador são
+     * ignorados, então um HTML ou SVG renomeado nunca é servido em
+     * {@code /api/uploads}. O tamanho máximo é o de {@code spring.servlet.multipart}.
+     */
     @PostMapping
     public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
         exigirArquivo(file);
 
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apenas imagens são permitidas");
+        byte[] inicio;
+        try (InputStream in = file.getInputStream()) {
+            inicio = in.readNBytes(FormatoImagem.BYTES_ASSINATURA);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao ler o arquivo", e);
         }
 
-        String original = file.getOriginalFilename();
-        String ext = "";
-        if (original != null && original.contains(".")) {
-            ext = original.substring(original.lastIndexOf('.')).toLowerCase();
-        }
-        return salvar(file, ext, contentType);
+        FormatoImagem formato = FormatoImagem.detectar(inicio)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Formato de imagem não suportado. Envie " + FormatoImagem.DESCRICAO_ACEITOS));
+
+        // Mesmo tipo que o disco local usaria ao servir o arquivo pela extensão.
+        String tipo = MediaTypeFactory.getMediaType("imagem." + formato.getExtensao())
+                .orElse(MediaType.APPLICATION_OCTET_STREAM)
+                .toString();
+        return salvar(file, "." + formato.getExtensao(), tipo);
     }
 
     /**
